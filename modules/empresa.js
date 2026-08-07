@@ -16,7 +16,11 @@ NOC.Empresa=(()=>{
         <div class="field f2"><label>Provincia</label><input name="provincia" value="${e(c.provincia)}"></div>
         <div class="field f4"><label>Email</label><input name="email" type="email" value="${e(c.email)}"></div>
         <div class="field f4"><label>Web</label><input name="web" value="${e(c.web)}"></div>
-        <div class="field f4"><label>Logo (URL, por ahora)</label><input name="logo_url" value="${e(c.logo_url)}"></div>
+        <div class="field f4"><label>Logo (URL, opcional)</label><input name="logo_url" value="${e(c.logo_url)}"></div>
+        <div class="field f4"><label>Cuenta bancaria / CCC</label><input name="cuenta_bancaria" value="${e(c.cuenta_bancaria)}"></div>
+        <div class="field f6"><label>Dirección en pie de página</label><input name="direccion_pie" value="${e(c.direccion_pie)}" placeholder="Si queda vacío se usará la dirección principal"></div>
+        <div class="field f3"><label>CP pie de página</label><input name="cp_pie" value="${e(c.cp_pie)}"></div>
+        <div class="field f3"><label>Localidad pie de página</label><input name="localidad_pie" value="${e(c.localidad_pie)}"></div>
         <div class="field f3"><label>IVA general %</label><input name="iva_general" type="number" step="0.01" value="${Number(c.iva_general??21)}"></div>
         <div class="field f3"><label>Recargo equivalencia %</label><input name="recargo_general" type="number" step="0.01" value="${Number(c.recargo_general??5.2)}"></div>
         <div class="field f12"><label>Pie de documentos</label><textarea name="pie_documentos">${e(c.pie_documentos)}</textarea></div>

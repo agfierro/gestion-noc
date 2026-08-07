@@ -42,7 +42,7 @@ NOC.App=(()=>{
   }
   function setConnection(ok,msg){const d=document.getElementById("connectionDot"),t=document.getElementById("connectionText");d.className="status-dot "+(ok?"ok":"error");t.textContent=ok?"Supabase conectado":"Sin conexión"+(msg?": "+msg:"")}
   function toast(msg){document.getElementById("toastRoot").innerHTML=`<div class="toast">${esc(msg)}</div>`;setTimeout(()=>document.getElementById("toastRoot").innerHTML="",2800)}
-  function modal(html,small=false){document.getElementById("modalRoot").innerHTML=`<div class="modal-backdrop" onclick="if(event.target===this)NOC.App.closeModal()"><div class="modal ${small?"small":""}">${html}</div></div>`}
+  function modal(html,small=false,extraClass=""){document.getElementById("modalRoot").innerHTML=`<div class="modal-backdrop" onclick="if(event.target===this)NOC.App.closeModal()"><div class="modal ${small?"small":""} ${extraClass||""}">${html}</div></div>`}
   function closeModal(){document.getElementById("modalRoot").innerHTML=""}
   function money(v){return new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR"}).format(Number(v||0))}
   function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}

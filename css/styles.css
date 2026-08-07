@@ -73,3 +73,72 @@ td.actions{display:flex;gap:6px}
 .login-form{display:grid;gap:14px}.login-form .btn{width:100%;margin-top:4px}
 .login-error{min-height:20px;color:var(--danger);font-size:13px;text-align:center}
 .session-user{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ===== V3.4 DOCUMENTOS PROFORMA / FACTURA ===== */
+.modal.document-modal{width:min(1040px,100%)}
+.doc-sheet.noc-doc{
+  width:min(860px,100%);
+  min-height:1120px;
+  padding:34px 38px 28px;
+  color:#171717;
+  font-size:12px;
+  box-shadow:0 12px 36px rgba(15,23,42,.12);
+}
+.noc-doc .doc-brand-row{display:grid;grid-template-columns:1fr .9fr;gap:30px;align-items:start;margin-bottom:28px}
+.noc-doc .doc-brand{display:flex;align-items:center;gap:18px}
+.noc-doc .doc-logo{width:118px;height:118px;object-fit:contain}
+.noc-doc .doc-brand-name{font-size:38px;font-weight:900;letter-spacing:.03em;line-height:.9}
+.noc-doc .doc-brand-sub{font-size:17px;font-weight:700;font-style:italic;margin-top:5px}
+.noc-doc .doc-title-box{text-align:right}
+.noc-doc .doc-title{font-size:30px;font-weight:900;letter-spacing:.03em;margin:0 0 10px}
+.noc-doc .doc-title-line{height:2px;background:#b8c975;width:100%;margin-bottom:12px}
+.noc-doc .doc-meta{display:grid;grid-template-columns:auto auto;gap:7px 18px;justify-content:end;text-align:left}
+.noc-doc .doc-meta strong{font-weight:800}
+.noc-doc .doc-address-grid{display:grid;grid-template-columns:1fr 1fr;gap:34px;margin:20px 0 24px}
+.noc-doc .doc-address-title{display:flex;align-items:center;gap:9px;border-bottom:1px solid #c9d792;padding-bottom:7px;margin-bottom:11px;font-weight:850;font-size:13px}
+.noc-doc .doc-icon{width:28px;height:28px;border-radius:4px;background:#eef3cf;display:grid;place-items:center;font-size:15px}
+.noc-doc .doc-address-main{font-size:13px;font-weight:800;margin-bottom:4px}
+.noc-doc .doc-address p{margin:3px 0}
+.noc-doc .doc-contact-row{display:flex;gap:18px;margin-top:11px;padding-top:9px;border-top:1px solid #f0f1f2;color:#35383d}
+.noc-doc .doc-items{width:100%;border-collapse:collapse;margin-top:8px;font-size:11px}
+.noc-doc .doc-items th{position:static;background:#eef3cf;color:#171717;border:1px solid #d7dbc8;padding:9px 8px;font-size:10px}
+.noc-doc .doc-items td{border:1px solid #e0e3e6;padding:9px 8px;white-space:normal}
+.noc-doc .doc-items td.num,.noc-doc .doc-items th.num{text-align:right}
+.noc-doc .doc-items td.center,.noc-doc .doc-items th.center{text-align:center}
+.noc-doc .doc-items-spacer{height:220px;border-left:1px solid #e0e3e6;border-right:1px solid #e0e3e6;border-bottom:1px solid #e0e3e6}
+.noc-doc .doc-bottom{display:grid;grid-template-columns:1fr 340px;gap:44px;align-items:end;margin-top:20px}
+.noc-doc .doc-payment{display:grid;gap:14px;padding-bottom:8px}
+.noc-doc .doc-payment-line{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start}
+.noc-doc .doc-payment-label{font-weight:850;font-size:11px}
+.noc-doc .doc-payment-value{margin-top:2px}
+.noc-doc .doc-total-box{border:1px solid #d9dde1}
+.noc-doc .doc-total-row{display:grid;grid-template-columns:1fr auto;gap:16px;padding:11px 14px;border-bottom:1px solid #d9dde1;align-items:center}
+.noc-doc .doc-total-row strong{font-size:13px}
+.noc-doc .tax-rate{font-weight:800;color:#6d8b16}
+.noc-doc .doc-grand-total{background:#111;color:#fff;font-size:18px;font-weight:900;padding:13px 14px;display:grid;grid-template-columns:1fr auto}
+.noc-doc .doc-footer{border-top:1px solid #777;margin-top:30px;padding-top:16px;display:grid;grid-template-columns:auto 1fr 1.25fr;gap:18px;align-items:center}
+.noc-doc .doc-footer-logo{width:66px;height:66px;object-fit:contain}
+.noc-doc .doc-footer-company strong{font-size:13px}
+.noc-doc .doc-footer-company p{margin:3px 0}
+.noc-doc .doc-thanks{font-size:18px;font-weight:700;font-style:italic;text-align:center;letter-spacing:.02em}
+.noc-doc .doc-thanks:after{content:"";display:block;width:78%;height:4px;background:#dfe9a9;margin:8px auto 0;border-radius:50%}
+@media(max-width:700px){
+  .doc-sheet.noc-doc{padding:20px 16px;font-size:11px;min-height:auto}
+  .noc-doc .doc-brand-row{grid-template-columns:1fr;gap:12px}
+  .noc-doc .doc-title-box{text-align:left}
+  .noc-doc .doc-meta{justify-content:start}
+  .noc-doc .doc-address-grid{grid-template-columns:1fr;gap:18px}
+  .noc-doc .doc-bottom{grid-template-columns:1fr;gap:20px}
+  .noc-doc .doc-footer{grid-template-columns:auto 1fr}
+  .noc-doc .doc-thanks{grid-column:1/-1}
+}
+@media print{
+  body *{visibility:hidden!important}
+  #modalRoot,#modalRoot *{visibility:visible!important}
+  #modalRoot{position:absolute;left:0;top:0;width:100%}
+  .modal-backdrop{position:static;background:#fff;padding:0;display:block}
+  .modal.document-modal{width:100%;max-height:none;overflow:visible;box-shadow:none;border-radius:0}
+  .modal.document-modal .modal-head,.modal.document-modal .modal-foot{display:none!important}
+  .modal.document-modal .modal-body{padding:0}
+  .doc-sheet.noc-doc{width:100%;min-height:auto;box-shadow:none;margin:0;padding:14mm 12mm}
+}
