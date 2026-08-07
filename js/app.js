@@ -8,16 +8,30 @@ NOC.App=(()=>{
     facturas:["Facturas","Documentos facturados",()=>NOC.Facturas.render()],
     gastos:["Gastos","Registro y control",()=>NOC.Gastos.render()],
     informes:["Informes","Análisis de ventas y gastos",()=>NOC.Informes.render()],
+    empresa:["Empresa","Datos fiscales y documentos",()=>NOC.Empresa.render()],
     configuracion:["Tipos de envío","Tarifas y opciones de transporte",()=>NOC.Configuracion.render()],
     herramientas:["Herramientas","Importar, exportar y copias",()=>NOC.Herramientas.render()]
   };
   async function init(){
-    try{NOC.API.init();await NOC.API.list("clientes",{limit:1});setConnection(true)}
-    catch(e){console.error(e);setConnection(false,e.message)}
+    try{NOC.API.init();setConnection(true)}
+    catch(e){console.error(e);setConnection(false,e.message);return}
     document.querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>show(b.dataset.view)));
     document.getElementById("menuBtn").addEventListener("click",()=>document.getElementById("sidebar").classList.toggle("open"));
-    show("dashboard");
+    await NOC.Auth.init();
+    if(NOC.Auth.isAuthenticated())await startAuthenticated();
   }
+
+  async function startAuthenticated(){
+    if(!NOC.Auth.isAuthenticated())return;
+    try{await NOC.API.list("clientes",{limit:1});setConnection(true);await show("dashboard")}
+    catch(e){console.error(e);setConnection(false,e.message);toast("Sesión iniciada, pero no se puede acceder a los datos.")}
+  }
+
+  function stopAuthenticated(){
+    document.getElementById("viewContainer").innerHTML="";
+    document.querySelectorAll(".nav-item").forEach(b=>b.classList.remove("active"));
+  }
+
   async function show(name){
     document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===name));
     const v=views[name];if(!v)return;
@@ -34,6 +48,6 @@ NOC.App=(()=>{
   function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
   function today(){return new Date().toISOString().slice(0,10)}
   function openNewProforma(){show("proformas").then(()=>NOC.Proformas.openEditor())}
-  return{init,show,toast,modal,closeModal,money,esc,today,openNewProforma};
+  return{init,show,toast,modal,closeModal,money,esc,today,openNewProforma,startAuthenticated,stopAuthenticated};
 })();
 window.addEventListener("DOMContentLoaded",NOC.App.init);

@@ -9,6 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="config/config.js"></script>
   <script defer src="js/api.js"></script>
+  <script defer src="js/auth.js"></script>
   <script defer src="modules/dashboard.js"></script>
   <script defer src="modules/clientes.js"></script>
   <script defer src="modules/articulos.js"></script>
@@ -16,12 +17,27 @@
   <script defer src="modules/facturas.js"></script>
   <script defer src="modules/gastos.js"></script>
   <script defer src="modules/informes.js"></script>
+  <script defer src="modules/empresa.js"></script>
   <script defer src="modules/configuracion.js"></script>
   <script defer src="modules/herramientas.js"></script>
   <script defer src="js/app.js"></script>
 </head>
 <body>
-<div id="appShell">
+<div id="authGate" class="auth-gate">
+  <div class="login-card">
+    <div class="login-brand">NOC</div>
+    <h1>Gestión NOC</h1>
+    <p class="muted">Acceso privado</p>
+    <form id="loginForm" class="login-form">
+      <div class="field"><label>Email</label><input id="loginEmail" type="email" autocomplete="username" required></div>
+      <div class="field"><label>Contraseña</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
+      <button id="loginButton" class="btn btn-primary" type="submit">Entrar</button>
+      <div id="loginError" class="login-error" aria-live="polite"></div>
+    </form>
+  </div>
+</div>
+
+<div id="appShell" style="display:none">
   <aside id="sidebar" class="sidebar">
     <div class="brand">
       <div class="brand-mark">NOC</div>
@@ -35,6 +51,7 @@
       <button class="nav-item" data-view="facturas">Facturas</button>
       <button class="nav-item" data-view="gastos">Gastos</button>
       <button class="nav-item" data-view="informes">Informes</button>
+      <button class="nav-item" data-view="empresa">Empresa</button>
       <button class="nav-item" data-view="configuracion">Tipos de envío</button>
       <button class="nav-item" data-view="herramientas">Herramientas</button>
     </nav>
@@ -52,7 +69,8 @@
         <p id="pageSubtitle">Resumen general</p>
       </div>
       <div class="top-actions">
-        <span class="save-status">Supabase</span>
+        <span id="sessionUser" class="save-status"></span>
+        <button id="logoutBtn" class="btn btn-small" type="button" onclick="NOC.Auth.signOut()" style="display:none">Cerrar sesión</button>
         <button class="btn btn-primary" onclick="NOC.App.openNewProforma()">+ Nueva proforma</button>
       </div>
     </header>
