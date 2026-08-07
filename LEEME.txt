@@ -1,0 +1,18 @@
+V3.4.2 - BLOQUEO CRÍTICO
+
+1. Ejecuta schema_v3_4_2_bloqueo_canceladas.sql en Supabase.
+   ESTE PASO ES EL MÁS IMPORTANTE: la base de datos rechazará la facturación de una proforma cancelada.
+
+2. Sustituye:
+   - index.html
+   - modules/proformas.js
+
+3. Recarga con Ctrl+F5 (Windows) o Cmd+Shift+R (Mac).
+
+Resultado:
+- Cancelada: no editable, no facturable y bloqueada en Supabase.
+- Facturada: no editable.
+- Solo Enviada puede facturarse.
+- Facturación masiva omite cualquier estado distinto de Enviada.
+
+No depende ya únicamente de JavaScript.
