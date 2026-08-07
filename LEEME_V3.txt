@@ -1,0 +1,21 @@
+GESTIÓN NOC V3
+
+1. Descomprime este ZIP en una carpeta nueva.
+2. Ejecuta schema_v3.sql UNA SOLA VEZ en Supabase > SQL Editor.
+3. Abre index.html con Chrome o Edge.
+4. No necesitas instalar nada.
+
+IMPORTANTE:
+- Esta V3 usa la misma base Supabase que ya tienes.
+- Los datos existentes no se borran.
+- Herramientas incluye importación/exportación CSV para todas las tablas, plantillas, backup y restauración.
+- Para importar desde tu Excel actual, empieza por Clientes y Artículos.
+- Antes de publicar la app en Internet añadiremos login y políticas RLS seguras.
+
+Estructura:
+index.html
+css/
+config/
+js/
+modules/
+schema_v3.sql
