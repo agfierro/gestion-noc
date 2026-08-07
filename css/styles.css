@@ -142,3 +142,14 @@ td.actions{display:flex;gap:6px}
   .modal.document-modal .modal-body{padding:0}
   .doc-sheet.noc-doc{width:100%;min-height:auto;box-shadow:none;margin:0;padding:14mm 12mm}
 }
+
+/* V3.4.3 - Feedback de procesos y mensajes */
+.progress-backdrop{position:fixed;inset:0;z-index:500;background:rgba(15,23,42,.40);display:grid;place-items:center;padding:20px;backdrop-filter:blur(2px)}
+.progress-card{min-width:min(330px,90vw);max-width:520px;background:#fff;border-radius:16px;padding:24px 28px;box-shadow:0 25px 80px rgba(0,0,0,.25);display:grid;justify-items:center;gap:11px;text-align:center}
+.progress-spinner{width:38px;height:38px;border:4px solid #e5e7eb;border-top-color:#111827;border-radius:50%;animation:nocSpin .8s linear infinite}
+.progress-title{font-weight:800;font-size:16px}
+.progress-detail{font-size:13px;color:var(--muted)}
+@keyframes nocSpin{to{transform:rotate(360deg)}}
+.app-message{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:center;padding:14px;border-radius:12px;background:#f4f6f8}
+.app-message.success{background:#edf8f1}.app-message.error{background:#fff0ef}.app-message.info{background:#eef4ff}
+.app-message-icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:20px;font-weight:900;background:#fff;border:1px solid #dfe3e8}
