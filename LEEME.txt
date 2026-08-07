@@ -1,26 +1,25 @@
-V3.4.5 - INFORME POR COMERCIAL
+V3.4.6 - LOGO E ICONOS NOC
 
-Incluye:
-- Comercial
-- Facturado / Proformado
-- Fecha inicio
-- Fecha fin
-- Ambas fechas incluidas
-
-Columnas:
-Fecha | Nº factura/proforma | Tienda | Base | IVA | RE | Total
-
-Incluye:
-- Totales al pie.
-- Exportar CSV.
-- Imprimir / Guardar PDF.
+CAMBIOS
+- La calavera NOC sustituye al cuadrado "NOC" de la aplicación.
+- La misma calavera aparece en la pantalla de login.
+- Favicon de pestaña del navegador.
+- Icono de favoritos.
+- Icono para acceso directo / pantalla de inicio.
+- Manifest web incluido.
 
 INSTALACIÓN
-Sustituye:
+Sustituye / añade:
 - index.html
 - css/styles.css
-- modules/informes.js
+- manifest.webmanifest
+- carpeta assets con los iconos incluidos
 
-No requiere SQL.
+NO HAY QUE EJECUTAR NINGÚN SQL.
 
-Después recarga la aplicación.
+DESPUÉS
+1. Abre la aplicación.
+2. Haz Ctrl+F5 (Windows) o Cmd+Shift+R (Mac).
+3. Si el favicon antiguo sigue apareciendo, cierra esa pestaña y abre una nueva.
+   Los navegadores guardan los favicons en caché durante bastante tiempo.
+4. En GitHub Desktop: Commit to main > Push origin.
