@@ -1,25 +1,30 @@
-V3.4.6 - LOGO E ICONOS NOC
+V3.4.7 - FAVICON CALAVERA NOC
 
-CAMBIOS
-- La calavera NOC sustituye al cuadrado "NOC" de la aplicación.
-- La misma calavera aparece en la pantalla de login.
-- Favicon de pestaña del navegador.
-- Icono de favoritos.
-- Icono para acceso directo / pantalla de inicio.
-- Manifest web incluido.
+PROBLEMA CORREGIDO
+La G que aparecía en la pestaña era el icono generado por el navegador al no cargar el favicon.
 
 INSTALACIÓN
-Sustituye / añade:
+Copia estos archivos DIRECTAMENTE EN LA RAÍZ del proyecto:
 - index.html
-- css/styles.css
+- favicon.ico
+- favicon-16.png
+- favicon-32.png
+- apple-touch-icon.png
 - manifest.webmanifest
-- carpeta assets con los iconos incluidos
 
-NO HAY QUE EJECUTAR NINGÚN SQL.
+NO los metas dentro de assets. Deben quedar junto a index.html.
 
-DESPUÉS
-1. Abre la aplicación.
-2. Haz Ctrl+F5 (Windows) o Cmd+Shift+R (Mac).
-3. Si el favicon antiguo sigue apareciendo, cierra esa pestaña y abre una nueva.
-   Los navegadores guardan los favicons en caché durante bastante tiempo.
-4. En GitHub Desktop: Commit to main > Push origin.
+NO HAY SQL.
+
+DESPUÉS EN LOCAL
+1. Cierra TODAS las pestañas de Gestión NOC.
+2. Abre una nueva.
+3. Si aún ves la G, prueba una ventana privada/incógnito.
+
+DESPUÉS EN GITHUB
+1. Commit to main.
+2. Push origin.
+3. Espera a que GitHub Pages termine el despliegue.
+4. Cierra la pestaña antigua y abre de nuevo la URL.
+
+Los favicons tienen una caché especialmente agresiva; una recarga normal muchas veces no basta.
