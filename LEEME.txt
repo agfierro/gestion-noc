@@ -1,18 +1,26 @@
-V3.4.2 - BLOQUEO CRÍTICO
+V3.4.5 - INFORME POR COMERCIAL
 
-1. Ejecuta schema_v3_4_2_bloqueo_canceladas.sql en Supabase.
-   ESTE PASO ES EL MÁS IMPORTANTE: la base de datos rechazará la facturación de una proforma cancelada.
+Incluye:
+- Comercial
+- Facturado / Proformado
+- Fecha inicio
+- Fecha fin
+- Ambas fechas incluidas
 
-2. Sustituye:
-   - index.html
-   - modules/proformas.js
+Columnas:
+Fecha | Nº factura/proforma | Tienda | Base | IVA | RE | Total
 
-3. Recarga con Ctrl+F5 (Windows) o Cmd+Shift+R (Mac).
+Incluye:
+- Totales al pie.
+- Exportar CSV.
+- Imprimir / Guardar PDF.
 
-Resultado:
-- Cancelada: no editable, no facturable y bloqueada en Supabase.
-- Facturada: no editable.
-- Solo Enviada puede facturarse.
-- Facturación masiva omite cualquier estado distinto de Enviada.
+INSTALACIÓN
+Sustituye:
+- index.html
+- css/styles.css
+- modules/informes.js
 
-No depende ya únicamente de JavaScript.
+No requiere SQL.
+
+Después recarga la aplicación.

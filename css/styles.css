@@ -153,3 +153,14 @@ td.actions{display:flex;gap:6px}
 .app-message{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:center;padding:14px;border-radius:12px;background:#f4f6f8}
 .app-message.success{background:#edf8f1}.app-message.error{background:#fff0ef}.app-message.info{background:#eef4ff}
 .app-message-icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:20px;font-weight:900;background:#fff;border:1px solid #dfe3e8}
+
+/* V3.4.5 - Informe por comercial */
+.report-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:16px}
+.report-table th.num,.report-table td.num{text-align:right}
+.report-total-row td{background:#f4f5f6;border-top:2px solid #111}
+.report-count{margin-top:10px;text-align:right;font-size:12px}
+@media(max-width:700px){
+  .report-head{flex-direction:column}
+  .report-head .toolbar-right{width:100%}
+  .report-head .toolbar-right .btn{flex:1}
+}
