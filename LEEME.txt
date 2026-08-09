@@ -1,29 +1,29 @@
-V3.5.5 - INFORME DE VENTAS
+V3.5.6 - INFORME VENTAS MAYORISTA / PARTICULARES
 
-Se añade una segunda opción dentro de Informes: VENTAS.
+CAMBIOS
+1. Informe de ventas incorpora filtro TIPO DE VENTA:
+   - Mayorista
+   - Particulares
+   - Todas
 
-FILTROS
-- Fecha inicio
-- Fecha fin
-Ambas fechas incluidas.
+2. Identificación:
+   - Particular = Nombre de tienda exactamente "Particular" (ignorando mayúsculas/minúsculas y espacios).
+   - Mayorista = resto de clientes.
+   - NO se usa Num Prof = 0 como condición, porque no siempre tiene por qué cumplirse.
 
-COLUMNAS
-Fecha
-Num Factura
-Cliente
-Localidad
-Base
-IVA
-RE
-Total
-Num Prof
-Tienda
+3. Se mantiene:
+   - Fecha inicio y fecha fin incluidas.
+   - Las mismas 10 columnas.
+   - Totales Base, IVA, RE y Total.
+   - Exportar CSV.
+   - Imprimir / Guardar PDF.
 
-Incluye:
-- Totales de Base, IVA, RE y Total.
-- Exportar CSV.
-- Imprimir / Guardar PDF.
-- Mantiene intacto el informe por comercial.
+4. Cabecera:
+   NOC THE BRAND
+   Informe de ventas · Mayorista / Particulares / Todas las ventas
+   Periodo
+
+La marca también aparece al imprimir/guardar PDF.
 
 INSTALACIÓN
 Sustituye:

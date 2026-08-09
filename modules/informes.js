@@ -97,9 +97,17 @@ NOC.Informes=(()=>{
       <h2>Informe de ventas</h2>
       <p class="muted">Facturas comprendidas entre ambas fechas, incluyendo el día inicial y el día final.</p>
       <form id="reportSalesForm" class="form-grid" onsubmit="event.preventDefault();NOC.Informes.generarVentas()">
+        <div class="field f3">
+          <label>Tipo de venta</label>
+          <select id="ventasTipo" required>
+            <option value="mayorista">Mayorista</option>
+            <option value="particulares">Particulares</option>
+            <option value="todas">Todas</option>
+          </select>
+        </div>
         <div class="field f3"><label>Fecha inicio</label><input id="ventasDesde" type="date" required value="${firstOfMonth()}"></div>
         <div class="field f3"><label>Fecha fin</label><input id="ventasHasta" type="date" required value="${isoToday()}"></div>
-        <div class="f6 toolbar" style="align-items:end"><div></div><button class="btn btn-primary" type="submit">Generar informe</button></div>
+        <div class="f3 toolbar" style="align-items:end"><div></div><button class="btn btn-primary" type="submit">Generar informe</button></div>
       </form>`;
   }
 
@@ -131,20 +139,28 @@ NOC.Informes=(()=>{
   }
 
   async function generarVentas(){
+    const tipo=document.getElementById("ventasTipo").value;
     const desde=document.getElementById("ventasDesde").value;
     const hasta=document.getElementById("ventasHasta").value;
     if(!desde||!hasta)return NOC.App.alertMessage("Faltan datos","Selecciona fecha de inicio y fecha fin.","error");
     if(desde>hasta)return NOC.App.alertMessage("Periodo incorrecto","La fecha de inicio no puede ser posterior a la fecha fin.","error");
 
-    NOC.App.showProgress("Generando informe de ventas…",`${dateEs(desde)} a ${dateEs(hasta)}`);
+    const etiquetas={mayorista:"Mayorista",particulares:"Particulares",todas:"Todas las ventas"};
+    NOC.App.showProgress("Generando informe de ventas…",`${etiquetas[tipo]} · ${dateEs(desde)} a ${dateEs(hasta)}`);
     try{
       const {data,error}=await NOC.API.db().from("facturas")
         .select("id,numero,fecha,base_imponible,iva,recargo,total,proforma_id,clientes(nombre,apellidos,nombre_tienda,localidad_facturacion),proformas(numero)")
         .gte("fecha",desde).lte("fecha",hasta)
         .order("fecha",{ascending:true}).order("numero",{ascending:true});
       if(error)throw error;
-      currentRows=data||[];
-      currentCriteria={report:"ventas",desde,hasta};
+
+      const esParticular=r=>String(r.clientes?.nombre_tienda||"").trim().toLocaleLowerCase("es")==="particular";
+      let rows=data||[];
+      if(tipo==="mayorista")rows=rows.filter(r=>!esParticular(r));
+      if(tipo==="particulares")rows=rows.filter(esParticular);
+
+      currentRows=rows;
+      currentCriteria={report:"ventas",tipo,tipoEtiqueta:etiquetas[tipo],desde,hasta};
       NOC.App.hideProgress();
       drawVentasResult();
     }catch(e){
@@ -181,7 +197,11 @@ NOC.Informes=(()=>{
     box.style.display="";
     box.innerHTML=`
       <div class="report-head">
-        <div><h2 style="margin-bottom:5px">Informe de ventas</h2><div class="muted">${dateEs(c.desde)} a ${dateEs(c.hasta)}</div></div>
+        <div>
+          <div class="report-brand">NOC THE BRAND</div>
+          <h2 style="margin:2px 0 5px">Informe de ventas · ${NOC.App.esc(c.tipoEtiqueta)}</h2>
+          <div class="muted">${dateEs(c.desde)} a ${dateEs(c.hasta)}</div>
+        </div>
         <div class="toolbar-right"><button class="btn" onclick="NOC.Informes.exportCsv()">Exportar CSV</button><button class="btn btn-primary" onclick="NOC.Informes.imprimir()">Imprimir / Guardar PDF</button></div>
       </div>
       <div class="table-wrap report-table-wrap"><table class="report-table report-sales-table">
@@ -233,7 +253,7 @@ NOC.Informes=(()=>{
         t.base.toFixed(2).replace(".",","),t.iva.toFixed(2).replace(".",","),
         t.re.toFixed(2).replace(".",","),t.total.toFixed(2).replace(".",","),"",""
       ].map(csvCell).join(";"));
-      downloadBlob(`informe_ventas_${currentCriteria.desde}_${currentCriteria.hasta}.csv`,"\uFEFF"+lines.join("\r\n"),"text/csv;charset=utf-8");
+      downloadBlob(`informe_ventas_${currentCriteria.tipo}_${currentCriteria.desde}_${currentCriteria.hasta}.csv`,"\uFEFF"+lines.join("\r\n"),"text/csv;charset=utf-8");
       return NOC.App.alertMessage("Exportación finalizada",`${currentRows.length} factura(s) exportadas a CSV.`,"success");
     }
 
@@ -267,8 +287,8 @@ NOC.Informes=(()=>{
         <td class="n">${NOC.App.money(r.recargo)}</td><td class="n">${NOC.App.money(r.total)}</td>
         <td>${NOC.App.esc(r.proformas?.numero||"")}</td><td>${NOC.App.esc(r.clientes?.nombre_tienda||"")}</td></tr>`).join("");
       w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de ventas</title>
-      <style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial,Helvetica,sans-serif;color:#171717;font-size:9px;margin:0}h1{font-size:20px;margin:0 0 5px}.meta{color:#555;margin-bottom:16px}table{width:100%;border-collapse:collapse}th{background:#eef3cf;text-align:left;padding:6px;border:1px solid #d8ddc8;font-size:8px}td{padding:6px;border:1px solid #e1e4e7}.n{text-align:right;white-space:nowrap}tfoot td{background:#f4f5f6;border-top:2px solid #111;font-weight:700}</style></head><body>
-      <h1>Informe de ventas</h1><div class="meta">${dateEs(c.desde)} a ${dateEs(c.hasta)}</div>
+      <style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial,Helvetica,sans-serif;color:#171717;font-size:9px;margin:0}.brand{font-size:11px;font-weight:800;letter-spacing:2px;margin-bottom:4px}h1{font-size:20px;margin:0 0 5px}.meta{color:#555;margin-bottom:16px}table{width:100%;border-collapse:collapse}th{background:#eef3cf;text-align:left;padding:6px;border:1px solid #d8ddc8;font-size:8px}td{padding:6px;border:1px solid #e1e4e7}.n{text-align:right;white-space:nowrap}tfoot td{background:#f4f5f6;border-top:2px solid #111;font-weight:700}</style></head><body>
+      <div class="brand">NOC THE BRAND</div><h1>Informe de ventas · ${NOC.App.esc(c.tipoEtiqueta)}</h1><div class="meta">${dateEs(c.desde)} a ${dateEs(c.hasta)}</div>
       <table><thead><tr><th>Fecha</th><th>Num Factura</th><th>Cliente</th><th>Localidad</th><th>Base</th><th>IVA</th><th>RE</th><th>Total</th><th>Num Prof</th><th>Tienda</th></tr></thead>
       <tbody>${bodyRows}</tbody><tfoot><tr><td colspan="4">TOTALES</td><td class="n">${NOC.App.money(t.base)}</td><td class="n">${NOC.App.money(t.iva)}</td><td class="n">${NOC.App.money(t.re)}</td><td class="n">${NOC.App.money(t.total)}</td><td colspan="2"></td></tr></tfoot></table>
       <script>window.onload=()=>window.print();</script></body></html>`);
