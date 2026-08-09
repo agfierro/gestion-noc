@@ -1,24 +1,12 @@
-V3.5.1 - ABONOS + SAFARI
+V3.5.2 - ABONOS CON LINEAS NEGATIVAS
 
-ABONOS
-- La cantidad puede ser negativa: -1, -2, etc.
-- Una cantidad negativa resta Base, IVA, RE y Total.
+- Las líneas con cantidad negativa se conservan y guardan.
+- Se muestran en la proforma.
+- Al facturar, se copian con cantidad negativa.
 - Cantidad 0 no permitida.
-- Para abonar una unidad usa -1.
-- La proforma y la factura mostrarán cantidad e importe negativos.
 
-SAFARI
-- Se incluyen nuevos iconos con nombres nuevos para evitar caché:
-  noc-safari-icon-351.png
-  noc-safari-touch-351.png
-
-INSTALACIÓN
-Sustituye / añade:
+Sustituye:
 - index.html
 - modules/proformas.js
-- noc-safari-icon-351.png
-- noc-safari-touch-351.png
 
 NO HAY SQL NUEVO.
-
-Mantén el SQL V3.5.0 ya ejecutado para facturación correlativa.

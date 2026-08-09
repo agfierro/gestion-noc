@@ -75,7 +75,7 @@ function taxFor(c){
  async function save(id){
   const form=Object.fromEntries(new FormData(document.getElementById("pfForm")));
   if(!form.cliente_id)return NOC.App.toast("Selecciona un cliente.");
-  const lines=(window._pfLines||[]).filter(x=>x.articulo_id);
+  const lines=(window._pfLines||[]).filter(x=>x.articulo_id&&Number(x.cantidad)!==0);
   if(!lines.length)return NOC.App.toast("Añade al menos un artículo.");
   if(lines.some(l=>!Number.isFinite(Number(l.cantidad))||Number(l.cantidad)===0)){
     return NOC.App.alertMessage("Cantidad incorrecta","La cantidad de una línea no puede ser 0. Para un abono utiliza una cantidad negativa, por ejemplo -1.","error");
