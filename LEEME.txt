@@ -1,31 +1,34 @@
-V3.5.4 - DIRECCIÓN EDITABLE EN EL PIE
+V3.5.5 - INFORME DE VENTAS
 
-CAMBIO ÚNICAMENTE ESTÉTICO / CONFIGURACIÓN
-- Recupera la dirección postal en el pie de Proformas y Facturas.
-- Orden del bloque:
-  Empresa
-  Dirección
-  CP + Localidad
-  NIF/CIF
-- No se han tocado cálculos, abonos, numeración ni facturación.
+Se añade una segunda opción dentro de Informes: VENTAS.
 
-DÓNDE EDITAR LA DIRECCIÓN
-En la aplicación:
-Empresa > Dirección del pie de proformas y facturas
+FILTROS
+- Fecha inicio
+- Fecha fin
+Ambas fechas incluidas.
 
-Campos:
-- Dirección postal del pie
-- Código postal del pie
-- Localidad del pie
+COLUMNAS
+Fecha
+Num Factura
+Cliente
+Localidad
+Base
+IVA
+RE
+Total
+Num Prof
+Tienda
 
-Si esos campos están vacíos, el documento seguirá utilizando como respaldo
-la dirección principal de Empresa.
+Incluye:
+- Totales de Base, IVA, RE y Total.
+- Exportar CSV.
+- Imprimir / Guardar PDF.
+- Mantiene intacto el informe por comercial.
 
 INSTALACIÓN
 Sustituye:
 - index.html
 - css/styles.css
-- modules/documentos.js
-- modules/empresa.js
+- modules/informes.js
 
 NO HAY SQL.

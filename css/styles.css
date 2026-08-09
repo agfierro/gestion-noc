@@ -206,3 +206,8 @@ td.actions{display:flex;gap:6px}
   gap:3px;
 }
 .noc-doc .doc-footer-company p{margin:3px 0;}
+
+/* V3.5.5 - Informe de ventas */
+.report-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.report-sales-table{min-width:1050px}
+.report-sales-table th,.report-sales-table td{font-size:11px}
