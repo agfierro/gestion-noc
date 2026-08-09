@@ -88,107 +88,45 @@ function taxFor(c){
  async function setStatus(id,s){await NOC.API.update("proformas",id,{estado:s});NOC.App.closeModal();render()}
  async function applyBulkStatus(){const s=document.getElementById("bulkStatus").value;for(const id of selectedIds)await NOC.API.update("proformas",id,{estado:s});selectedIds.clear();NOC.App.closeModal();render()}
  async function facturar(id){
-  let p;
+  NOC.App.showProgress("Generando factura…","Comprobando estado y asignando número correlativo");
   try{
-    p=await NOC.API.one("proformas",id);
-  }catch(e){
-    NOC.App.alertMessage("Error","No se ha podido consultar la proforma: "+(e.message||e),"error");
-    return false;
-  }
-
-  const estado=String(p.estado||"").trim().toLowerCase();
-  if(estado==="cancelada"){
-    NOC.App.alertMessage("Proforma cancelada","No puedes facturar esta proforma porque ha sido cancelada.","error");
-    return false;
-  }
-  if(estado==="facturada"){
-    NOC.App.alertMessage("Proforma ya facturada","Esta proforma ya está facturada.","info");
-    return false;
-  }
-  if(estado!=="enviada"){
-    NOC.App.alertMessage("Proforma no facturable","Solo se pueden facturar proformas en estado Enviada.","error");
-    return false;
-  }
-
-  NOC.App.showProgress("Generando factura…","Comprobando proforma y creando documento");
-  try{
-    const {data:ls,error}=await NOC.API.db().from("lineas_proforma").select("*").eq("proforma_id",id).order("orden");
-    if(error)throw error;
-
-    const numero=await NOC.API.rpc("siguiente_numero_factura");
-    const f=await NOC.API.insert("facturas",{
-      numero,
-      fecha:NOC.App.today(),
-      cliente_id:p.cliente_id,
-      proforma_id:id,
-      forma_pago:p.forma_pago,
-      base_imponible:p.base_imponible,
-      iva:p.iva,
-      recargo:p.recargo,
-      total:p.total,
-      observaciones:p.observaciones
-    });
-
-    const {error:e2}=await NOC.API.db().from("lineas_factura").insert(
-      ls.map(l=>({
-        factura_id:f.id,articulo_id:l.articulo_id,descripcion:l.descripcion,
-        precio_unitario:l.precio_unitario,cantidad:l.cantidad,descuento:l.descuento,
-        tallaje:l.tallaje,orden:l.orden,es_envio:l.es_envio
-      }))
-    );
-    if(e2)throw e2;
-
-    await NOC.API.update("proformas",id,{estado:"Facturada"});
+    const data=await NOC.API.rpc("facturar_proforma_atomica",{p_proforma_id:id,p_fecha_factura:NOC.App.today()});
     NOC.App.hideProgress();
-    NOC.App.toast("Factura creada correctamente.");
+    const numero=Array.isArray(data)?data[0]?.numero_factura:data?.numero_factura;
     await render();
+    NOC.App.alertMessage("Factura creada",numero?`Se ha creado correctamente la factura ${numero}.`:"La factura se ha creado correctamente.","success");
     return true;
   }catch(e){
     NOC.App.hideProgress();
     const msg=String(e?.message||e||"");
-    if(/cancelad|solo se pueden facturar proformas enviadas|estado/i.test(msg)){
-      NOC.App.alertMessage("Proforma no facturable","No puedes facturar esta proforma porque ha sido cancelada o ya no está en estado Enviada.","error");
-    }else{
-      NOC.App.alertMessage("Error al facturar","No se ha podido crear la factura. "+msg,"error");
-    }
+    if(/cancelad/i.test(msg))NOC.App.alertMessage("Proforma cancelada","No puedes facturar esta proforma porque ha sido cancelada.","error");
+    else if(/ya esta facturada|ya está facturada/i.test(msg))NOC.App.alertMessage("Proforma ya facturada","Esta proforma ya está facturada.","info");
+    else NOC.App.alertMessage("Error al facturar",msg||"No se ha podido crear la factura.","error");
     return false;
   }
 }
  async function facturarSeleccionadas(){
   if(!selectedIds.size)return NOC.App.toast("Selecciona proformas.");
-  const ids=[...selectedIds];
-  let facturadas=0,bloqueadas=0,errores=0;
-  NOC.App.showProgress("Facturando proformas…",`0 de ${ids.length}`);
-
-  for(let i=0;i<ids.length;i++){
-    const id=ids[i];
-    NOC.App.updateProgress("Facturando proformas…",`${i+1} de ${ids.length}`);
-    try{
-      const p=await NOC.API.one("proformas",id);
-      const estado=String(p.estado||"").trim().toLowerCase();
-      if(estado!=="enviada"){bloqueadas++;continue;}
-
-      const {data:ls,error}=await NOC.API.db().from("lineas_proforma").select("*").eq("proforma_id",id).order("orden");
-      if(error)throw error;
-      const numero=await NOC.API.rpc("siguiente_numero_factura");
-      const f=await NOC.API.insert("facturas",{numero,fecha:NOC.App.today(),cliente_id:p.cliente_id,proforma_id:id,forma_pago:p.forma_pago,base_imponible:p.base_imponible,iva:p.iva,recargo:p.recargo,total:p.total,observaciones:p.observaciones});
-      const {error:e2}=await NOC.API.db().from("lineas_factura").insert(ls.map(l=>({factura_id:f.id,articulo_id:l.articulo_id,descripcion:l.descripcion,precio_unitario:l.precio_unitario,cantidad:l.cantidad,descuento:l.descuento,tallaje:l.tallaje,orden:l.orden,es_envio:l.es_envio})));
-      if(e2)throw e2;
-      await NOC.API.update("proformas",id,{estado:"Facturada"});
-      facturadas++;
-    }catch(e){
-      const msg=String(e?.message||e||"");
-      if(/cancelad|estado|enviada/i.test(msg))bloqueadas++; else errores++;
-    }
+  const seleccionadas=[];
+  for(const id of [...selectedIds]){
+    try{seleccionadas.push(await NOC.API.one("proformas",id,"id,numero,estado"));}catch(e){console.error(e)}
   }
-
-  selectedIds.clear();
-  NOC.App.hideProgress();
-  await render();
-  const partes=[`${facturadas} facturada(s)`];
-  if(bloqueadas)partes.push(`${bloqueadas} omitida(s) por estar canceladas o no estar Enviadas`);
-  if(errores)partes.push(`${errores} con error`);
-  NOC.App.alertMessage("Facturación finalizada",partes.join(". ")+".",errores?"error":"success");
+  const num=v=>{const m=String(v||"").match(/(\d+)$/);return m?Number(m[1]):Number.MAX_SAFE_INTEGER};
+  seleccionadas.sort((a,b)=>num(a.numero)-num(b.numero)||String(a.numero||"").localeCompare(String(b.numero||""),"es",{numeric:true}));
+  let facturadas=0,bloqueadas=0,errores=0;const creadas=[];
+  NOC.App.showProgress("Facturando proformas…",`0 de ${seleccionadas.length}`);
+  for(let i=0;i<seleccionadas.length;i++){
+    const p=seleccionadas[i];NOC.App.updateProgress("Facturando proformas…",`${i+1} de ${seleccionadas.length} · ${p.numero||""}`);
+    if(String(p.estado||"").trim().toLowerCase()!=="enviada"){bloqueadas++;continue}
+    try{
+      const data=await NOC.API.rpc("facturar_proforma_atomica",{p_proforma_id:p.id,p_fecha_factura:NOC.App.today()});
+      const numero=Array.isArray(data)?data[0]?.numero_factura:data?.numero_factura;
+      facturadas++;creadas.push(`${p.numero} → ${numero||"Factura creada"}`);
+    }catch(e){const msg=String(e?.message||e||"");if(/cancelad|facturada|estado enviada/i.test(msg))bloqueadas++;else{console.error(e);errores++}}
+  }
+  selectedIds.clear();NOC.App.hideProgress();await render();
+  let mensaje=`Facturadas: ${facturadas}.`;if(bloqueadas)mensaje+=` Omitidas: ${bloqueadas} por no estar Enviadas.`;if(errores)mensaje+=` Errores: ${errores}.`;if(creadas.length)mensaje+=` Orden aplicado: ${creadas.join(" · ")}.`;
+  NOC.App.alertMessage("Facturación masiva finalizada",mensaje,errores?"error":"success");
 }
  async function ver(id){
   const {data:p,error}=await NOC.API.db().from("proformas").select("*, clientes(*)").eq("id",id).single();

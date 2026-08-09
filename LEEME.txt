@@ -1,30 +1,10 @@
-V3.4.7 - FAVICON CALAVERA NOC
+V3.5.0 - FACTURACIÓN CORRELATIVA + ICONOS NOC
 
-PROBLEMA CORREGIDO
-La G que aparecía en la pestaña era el icono generado por el navegador al no cargar el favicon.
+1. Ejecuta UNA VEZ schema_v3_5_facturacion_correlativa.sql en Supabase.
+2. Sustituye/añade el resto de archivos del ZIP en la raíz/modules.
+3. La factura individual toma el siguiente número REAL existente y un fallo no consume número.
+4. En facturación masiva las proformas se ordenan de menor a mayor y reciben facturas correlativas en ese mismo orden.
+5. Canceladas/facturadas se omiten.
+6. Los iconos usan nombres nuevos para romper caché. En móvil, elimina el acceso directo antiguo y vuelve a añadirlo.
 
-INSTALACIÓN
-Copia estos archivos DIRECTAMENTE EN LA RAÍZ del proyecto:
-- index.html
-- favicon.ico
-- favicon-16.png
-- favicon-32.png
-- apple-touch-icon.png
-- manifest.webmanifest
-
-NO los metas dentro de assets. Deben quedar junto a index.html.
-
-NO HAY SQL.
-
-DESPUÉS EN LOCAL
-1. Cierra TODAS las pestañas de Gestión NOC.
-2. Abre una nueva.
-3. Si aún ves la G, prueba una ventana privada/incógnito.
-
-DESPUÉS EN GITHUB
-1. Commit to main.
-2. Push origin.
-3. Espera a que GitHub Pages termine el despliegue.
-4. Cierra la pestaña antigua y abre de nuevo la URL.
-
-Los favicons tienen una caché especialmente agresiva; una recarga normal muchas veces no basta.
+IMPORTANTE: si F2026-0011 existe realmente en Facturas, la siguiente será F2026-0012. Esta versión no renumera facturas ya creadas.
