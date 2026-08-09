@@ -1,10 +1,24 @@
-V3.5.0 - FACTURACIÓN CORRELATIVA + ICONOS NOC
+V3.5.1 - ABONOS + SAFARI
 
-1. Ejecuta UNA VEZ schema_v3_5_facturacion_correlativa.sql en Supabase.
-2. Sustituye/añade el resto de archivos del ZIP en la raíz/modules.
-3. La factura individual toma el siguiente número REAL existente y un fallo no consume número.
-4. En facturación masiva las proformas se ordenan de menor a mayor y reciben facturas correlativas en ese mismo orden.
-5. Canceladas/facturadas se omiten.
-6. Los iconos usan nombres nuevos para romper caché. En móvil, elimina el acceso directo antiguo y vuelve a añadirlo.
+ABONOS
+- La cantidad puede ser negativa: -1, -2, etc.
+- Una cantidad negativa resta Base, IVA, RE y Total.
+- Cantidad 0 no permitida.
+- Para abonar una unidad usa -1.
+- La proforma y la factura mostrarán cantidad e importe negativos.
 
-IMPORTANTE: si F2026-0011 existe realmente en Facturas, la siguiente será F2026-0012. Esta versión no renumera facturas ya creadas.
+SAFARI
+- Se incluyen nuevos iconos con nombres nuevos para evitar caché:
+  noc-safari-icon-351.png
+  noc-safari-touch-351.png
+
+INSTALACIÓN
+Sustituye / añade:
+- index.html
+- modules/proformas.js
+- noc-safari-icon-351.png
+- noc-safari-touch-351.png
+
+NO HAY SQL NUEVO.
+
+Mantén el SQL V3.5.0 ya ejecutado para facturación correlativa.
