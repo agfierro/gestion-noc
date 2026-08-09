@@ -1,12 +1,33 @@
-V3.5.2 - ABONOS CON LINEAS NEGATIVAS
+V3.5.3 - ABONOS CORREGIDOS EN BASE DE DATOS
 
-- Las líneas con cantidad negativa se conservan y guardan.
-- Se muestran en la proforma.
-- Al facturar, se copian con cantidad negativa.
-- Cantidad 0 no permitida.
+CAUSA REAL DEL FALLO
+Las tablas lineas_proforma y lineas_factura tenían esta restricción:
+cantidad > 0
 
-Sustituye:
-- index.html
-- modules/proformas.js
+Por eso la web calculaba el total negativo, pero Supabase rechazaba la línea -1.
 
-NO HAY SQL NUEVO.
+CORRECCIÓN
+La restricción pasa a ser:
+cantidad <> 0
+
+Así:
+- 1, 2, 3... válidos
+- -1, -2, -3... válidos
+- 0 no válido
+
+INSTALACIÓN
+1. Ejecuta UNA VEZ en Supabase:
+   schema_v3_5_3_permitir_abonos.sql
+
+2. Sustituye:
+   - index.html
+   - modules/proformas.js
+
+3. Recarga la aplicación.
+
+PRUEBA
+- Crea una proforma nueva.
+- Añade un artículo con cantidad -1.
+- Guarda.
+- Ver Proforma debe mostrar la línea completa.
+- Factúrala: la factura debe conservar también -1 y el importe negativo.
