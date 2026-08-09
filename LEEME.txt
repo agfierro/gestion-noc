@@ -1,33 +1,31 @@
-V3.5.3 - ABONOS CORREGIDOS EN BASE DE DATOS
+V3.5.4 - DIRECCIÓN EDITABLE EN EL PIE
 
-CAUSA REAL DEL FALLO
-Las tablas lineas_proforma y lineas_factura tenían esta restricción:
-cantidad > 0
+CAMBIO ÚNICAMENTE ESTÉTICO / CONFIGURACIÓN
+- Recupera la dirección postal en el pie de Proformas y Facturas.
+- Orden del bloque:
+  Empresa
+  Dirección
+  CP + Localidad
+  NIF/CIF
+- No se han tocado cálculos, abonos, numeración ni facturación.
 
-Por eso la web calculaba el total negativo, pero Supabase rechazaba la línea -1.
+DÓNDE EDITAR LA DIRECCIÓN
+En la aplicación:
+Empresa > Dirección del pie de proformas y facturas
 
-CORRECCIÓN
-La restricción pasa a ser:
-cantidad <> 0
+Campos:
+- Dirección postal del pie
+- Código postal del pie
+- Localidad del pie
 
-Así:
-- 1, 2, 3... válidos
-- -1, -2, -3... válidos
-- 0 no válido
+Si esos campos están vacíos, el documento seguirá utilizando como respaldo
+la dirección principal de Empresa.
 
 INSTALACIÓN
-1. Ejecuta UNA VEZ en Supabase:
-   schema_v3_5_3_permitir_abonos.sql
+Sustituye:
+- index.html
+- css/styles.css
+- modules/documentos.js
+- modules/empresa.js
 
-2. Sustituye:
-   - index.html
-   - modules/proformas.js
-
-3. Recarga la aplicación.
-
-PRUEBA
-- Crea una proforma nueva.
-- Añade un artículo con cantidad -1.
-- Guarda.
-- Ver Proforma debe mostrar la línea completa.
-- Factúrala: la factura debe conservar también -1 y el importe negativo.
+NO HAY SQL.

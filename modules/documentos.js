@@ -114,9 +114,9 @@ NOC.Documentos=(()=>{
         <img class="doc-footer-logo" src="${val(logo)}" alt="">
         <div class="doc-footer-company">
           <strong>${val(empresa)}</strong>
-          ${config.cif?`<p>NIF/CIF: ${val(config.cif)}</p>`:""}
           ${footerAddress?`<p>${val(footerAddress)}</p>`:""}
           ${(footerCp||footerLoc)?`<p>${val([footerCp,footerLoc].filter(Boolean).join(" "))}</p>`:""}
+          ${config.cif?`<p>NIF/CIF: ${val(config.cif)}</p>`:""}
         </div>
         <div class="doc-thanks">${val(config.pie_documentos||"GRACIAS POR SU CONFIANZA")}</div>
       </div>

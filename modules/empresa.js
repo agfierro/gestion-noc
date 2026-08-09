@@ -18,9 +18,13 @@ NOC.Empresa=(()=>{
         <div class="field f4"><label>Web</label><input name="web" value="${e(c.web)}"></div>
         <div class="field f4"><label>Logo (URL, opcional)</label><input name="logo_url" value="${e(c.logo_url)}"></div>
         <div class="field f4"><label>Cuenta bancaria / CCC</label><input name="cuenta_bancaria" value="${e(c.cuenta_bancaria)}"></div>
-        <div class="field f6"><label>Dirección en pie de página</label><input name="direccion_pie" value="${e(c.direccion_pie)}" placeholder="Si queda vacío se usará la dirección principal"></div>
-        <div class="field f3"><label>CP pie de página</label><input name="cp_pie" value="${e(c.cp_pie)}"></div>
-        <div class="field f3"><label>Localidad pie de página</label><input name="localidad_pie" value="${e(c.localidad_pie)}"></div>
+        <div class="field f12 footer-config-title">
+          <strong>Dirección del pie de proformas y facturas</strong>
+          <span class="muted">Estos datos aparecen junto a la calavera en la parte inferior de los documentos.</span>
+        </div>
+        <div class="field f6"><label>Dirección postal del pie</label><input name="direccion_pie" value="${e(c.direccion_pie)}" placeholder="Ej.: Plaza de la Marina, 2"></div>
+        <div class="field f3"><label>Código postal del pie</label><input name="cp_pie" value="${e(c.cp_pie)}" placeholder="Ej.: 29001"></div>
+        <div class="field f3"><label>Localidad del pie</label><input name="localidad_pie" value="${e(c.localidad_pie)}" placeholder="Ej.: Málaga"></div>
         <div class="field f3"><label>IVA general %</label><input name="iva_general" type="number" step="0.01" value="${Number(c.iva_general??21)}"></div>
         <div class="field f3"><label>Recargo equivalencia %</label><input name="recargo_general" type="number" step="0.01" value="${Number(c.recargo_general??5.2)}"></div>
         <div class="field f12"><label>Pie de documentos</label><textarea name="pie_documentos">${e(c.pie_documentos)}</textarea></div>
