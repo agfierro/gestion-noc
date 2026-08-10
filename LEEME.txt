@@ -1,49 +1,29 @@
-V3.6.2 - INSIGHTS EN DASHBOARD + INFORME >3.000 €
+V3.7.0 - PROPUESTA VISUAL NOC
 
-DASHBOARD
-Se añade un bloque moderno "Lo más destacado del periodo":
-- Artículo más vendido (unidades netas)
-- Artículo más rentable (margen generado)
-- Fábrica nº1 (importe facturado de artículos)
-- Punto de venta nº1 (base imponible)
-- Localidad nº1 (base imponible)
-- Comunidad nº1 (base imponible)
+Primera prueba real del nuevo frontend:
+- navegación lateral
+- Inicio
+- Proformas
+- Informes / Dashboard
+- modales
 
-Respeta los filtros del Dashboard:
-- periodo
-- categoría
-- año principal
+Estética:
+- minimalista
+- editorial / fashion
+- blanco + negro
+- verde NOC muy contenido
+- tablas más ligeras
+- botones más sobrios
+- más aire y jerarquía visual
 
-Los abonos negativos restan en unidades, facturación y margen.
-
-INFORMES
-Nueva pestaña:
-Puntos de venta +3.000 €
-
-Filtros:
-- Año
-- Base mínima (por defecto 3.000 €)
-
-Agrupa todas las facturas del año por punto de venta.
-Excluye Nombre de tienda = Particular.
-Muestra:
-- Tienda
-- Cliente
-- CIF/NIF
-- Localidad
-- Provincia
-- Nº facturas
-- Base
-- IVA
-- RE
-- Total
-
-Incluye CSV y PDF/impresión.
-
+NO CAMBIA NINGUNA LÓGICA.
 NO HAY SQL.
 
 Sustituye:
 - index.html
 - css/styles.css
 - modules/dashboard.js
+- modules/proformas.js
 - modules/informes.js
+
+Si gusta esta línea, se extiende después a Clientes, Artículos, Facturas, Gastos, Empresa, Herramientas, Configuración y Login.

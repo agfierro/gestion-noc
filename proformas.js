@@ -7,7 +7,7 @@ NOC.Proformas=(()=>{
  const esFacturada=v=>normalizarEstado(v)==="facturada";
  async function render(){
    const {data,error}=await NOC.API.db().from("proformas").select("*, clientes(nombre_tienda)").order("created_at",{ascending:false});if(error)throw error;
-   document.getElementById("viewContainer").innerHTML=`<div class="card"><div class="toolbar"><div class="toolbar-left"><button class="btn btn-primary" onclick="NOC.Proformas.openEditor()">+ Nueva proforma</button><button class="btn" onclick="NOC.Proformas.openBulkStatus()">Cambiar estado seleccionadas</button><button class="btn" onclick="NOC.Proformas.facturarSeleccionadas()">Facturar seleccionadas</button></div></div>
+   document.getElementById("viewContainer").innerHTML=`<div class="noc-view noc-view-proformas"><div class="card"><div class="toolbar"><div class="toolbar-left"><button class="btn btn-primary" onclick="NOC.Proformas.openEditor()">+ Nueva proforma</button><button class="btn" onclick="NOC.Proformas.openBulkStatus()">Cambiar estado seleccionadas</button><button class="btn" onclick="NOC.Proformas.facturarSeleccionadas()">Facturar seleccionadas</button></div></div>
    <div class="table-wrap"><table><thead><tr><th></th><th>Nº</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th>Total</th><th>Pago</th><th>Acciones</th></tr></thead><tbody>
    ${data.map(r=>`<tr><td><input type="checkbox" ${selectedIds.has(r.id)?"checked":""} onchange="NOC.Proformas.toggle('${r.id}',this.checked)"></td><td><strong>${NOC.App.esc(r.numero)}</strong></td><td>${r.fecha}</td><td>${NOC.App.esc(r.clientes?.nombre_tienda||"")}</td><td><span class="badge ${String(r.estado).toLowerCase()}">${r.estado}</span></td><td>${NOC.App.money(r.total)}</td><td>${NOC.App.esc(r.forma_pago||"Transferencia")}</td><td class="actions"><button class="btn btn-small" onclick="NOC.Proformas.ver('${r.id}')">Ver Proforma</button>${esEnviada(r.estado)?`<button class="btn btn-small" onclick="NOC.Proformas.openEditor('${r.id}')">Editar</button><button class="btn btn-small" onclick="NOC.Proformas.openStatus('${r.id}')">Estado</button><button class="btn btn-small btn-primary" onclick="NOC.Proformas.facturar('${r.id}')">Facturar</button>`:(esCancelada(r.estado)?`<button class="btn btn-small" onclick="NOC.Proformas.openStatus('${r.id}')">Estado</button>`:"")}</td></tr>`).join("")||`<tr><td colspan="8" class="empty">No hay proformas.</td></tr>`}
    </tbody></table></div></div>`
@@ -47,7 +47,7 @@ NOC.Proformas=(()=>{
  function addLine(){window._pfLines=window._pfLines||[];window._pfLines.push({_key:Date.now()+Math.random(),cantidad:1,descuento:0,tallaje:""});drawLines()}
  function removeLine(k){window._pfLines=window._pfLines.filter(x=>String(x._key)!==String(k));drawLines()}
  function patchLine(k,key,val){const l=window._pfLines.find(x=>String(x._key)===String(k));l[key]=["cantidad","descuento"].includes(key)?Number(val):val}
- function drawLines(){const box=document.getElementById("lineEditor");if(!box)return;box.innerHTML=window._pfLines.map(l=>`<div class="line-editor"><div class="field wide"><label>Artículo</label><input class="art-input" data-key="${l._key}" value="${NOC.App.esc(l.descripcion||"")}" placeholder="Escribe para buscar…"><div class="search-holder"></div></div><div class="field"><label>Cantidad</label><input type="number" min="1" value="${Number(l.cantidad||1)}" onchange="NOC.Proformas.patchLine('${l._key}','cantidad',this.value)"></div><div class="field"><label>Dto. %</label><input type="number" min="0" max="100" value="${Number(l.descuento||0)}" onchange="NOC.Proformas.patchLine('${l._key}','descuento',this.value)"></div><div class="field"><label>Tallaje</label><input value="${NOC.App.esc(l.tallaje||"")}" onchange="NOC.Proformas.patchLine('${l._key}','tallaje',this.value)"></div><button class="btn btn-danger" onclick="NOC.Proformas.removeLine('${l._key}')">×</button></div>`).join("");box.querySelectorAll(".art-input").forEach(i=>{i.addEventListener("input",()=>searchFor(i));i.addEventListener("focus",()=>searchFor(i))})}
+ function drawLines(){const box=document.getElementById("lineEditor");if(!box)return;box.innerHTML=window._pfLines.map(l=>`<div class="line-editor"><div class="field wide"><label>Artículo</label><input class="art-input" data-key="${l._key}" value="${NOC.App.esc(l.descripcion||"")}" placeholder="Escribe para buscar…"><div class="search-holder"></div></div><div class="field"><label>Cantidad</label><input type="number" step="1" value="${Number(l.cantidad??1)}" onchange="NOC.Proformas.patchLine('${l._key}','cantidad',this.value)"></div><div class="field"><label>Dto. %</label><input type="number" min="0" max="100" value="${Number(l.descuento||0)}" onchange="NOC.Proformas.patchLine('${l._key}','descuento',this.value)"></div><div class="field"><label>Tallaje</label><input value="${NOC.App.esc(l.tallaje||"")}" onchange="NOC.Proformas.patchLine('${l._key}','tallaje',this.value)"></div><button class="btn btn-danger" onclick="NOC.Proformas.removeLine('${l._key}')">×</button></div>`).join("");box.querySelectorAll(".art-input").forEach(i=>{i.addEventListener("input",()=>searchFor(i));i.addEventListener("focus",()=>searchFor(i))})}
  async function searchFor(inp){const items=await NOC.Articulos.search(inp.value.trim()),h=inp.parentElement.querySelector(".search-holder");h.innerHTML=`<div class="search-results">${items.map(a=>`<div class="search-result" data-id="${a.id}" data-name="${NOC.App.esc(a.nombre_producto)}" data-price="${a.precio_venta}"><span>${NOC.App.esc(a.nombre_producto)}</span><strong>${NOC.App.money(a.precio_venta)}</strong></div>`).join("")}</div>`;h.querySelectorAll(".search-result").forEach(el=>el.addEventListener("click",()=>{const l=window._pfLines.find(x=>String(x._key)===String(inp.dataset.key));Object.assign(l,{articulo_id:el.dataset.id,descripcion:el.dataset.name,precio_unitario:Number(el.dataset.price)});h.innerHTML="";drawLines()}))}
  function isCanariasCliente(c){
   const norm=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
@@ -73,11 +73,17 @@ function taxFor(c){
   return{iva:.21,re:0};
 }
  async function save(id){
-  const form=Object.fromEntries(new FormData(document.getElementById("pfForm")));if(!form.cliente_id)return NOC.App.toast("Selecciona un cliente.");const lines=(window._pfLines||[]).filter(x=>x.articulo_id);if(!lines.length)return NOC.App.toast("Añade al menos un artículo.");
+  const form=Object.fromEntries(new FormData(document.getElementById("pfForm")));
+  if(!form.cliente_id)return NOC.App.toast("Selecciona un cliente.");
+  const lines=(window._pfLines||[]).filter(x=>x.articulo_id&&Number(x.cantidad)!==0);
+  if(!lines.length)return NOC.App.toast("Añade al menos un artículo.");
+  if(lines.some(l=>!Number.isFinite(Number(l.cantidad))||Number(l.cantidad)===0)){
+    return NOC.App.alertMessage("Cantidad incorrecta","La cantidad de una línea no puede ser 0. Para un abono utiliza una cantidad negativa, por ejemplo -1.","error");
+  }
   const cli=await NOC.API.one("clientes",form.cliente_id),tax=taxFor(cli);form.envio_precio=Number(form.envio_precio||0);form.envio_descuento=Number(form.envio_descuento||0);if(!form.envio_id)form.envio_id=null;
   let base=lines.reduce((s,l)=>s+Number(l.precio_unitario||0)*Number(l.cantidad||0)*(1-Number(l.descuento||0)/100),0);base+=form.envio_precio*(1-form.envio_descuento/100);const iva=base*tax.iva,re=base*tax.re,total=base+iva+re;Object.assign(form,{base_imponible:base,iva,recargo:re,total});
   let pf;if(id){pf=await NOC.API.update("proformas",id,form);await NOC.API.db().from("lineas_proforma").delete().eq("proforma_id",id)}else{const numero=await NOC.API.rpc("siguiente_numero_proforma");pf=await NOC.API.insert("proformas",{...form,numero,estado:"Enviada"})}
-  const payload=lines.map((l,i)=>({proforma_id:pf.id,articulo_id:l.articulo_id,descripcion:l.descripcion,precio_unitario:Number(l.precio_unitario||0),cantidad:Number(l.cantidad||1),descuento:Number(l.descuento||0),tallaje:l.tallaje||"",orden:i+1,es_envio:false}));
+  const payload=lines.map((l,i)=>({proforma_id:pf.id,articulo_id:l.articulo_id,descripcion:l.descripcion,precio_unitario:Number(l.precio_unitario||0),cantidad:Number(l.cantidad??1),descuento:Number(l.descuento||0),tallaje:l.tallaje||"",orden:i+1,es_envio:false}));
   let env="Gastos de envío";if(form.envio_id){try{env=(await NOC.API.one("tipos_envio",form.envio_id)).nombre}catch{}}
   payload.push({proforma_id:pf.id,articulo_id:null,descripcion:env,precio_unitario:form.envio_precio,cantidad:1,descuento:form.envio_descuento,tallaje:"",orden:9999,es_envio:true});const {error}=await NOC.API.db().from("lineas_proforma").insert(payload);if(error)throw error;
   NOC.App.closeModal();NOC.App.toast("Proforma guardada.");render()
@@ -88,107 +94,45 @@ function taxFor(c){
  async function setStatus(id,s){await NOC.API.update("proformas",id,{estado:s});NOC.App.closeModal();render()}
  async function applyBulkStatus(){const s=document.getElementById("bulkStatus").value;for(const id of selectedIds)await NOC.API.update("proformas",id,{estado:s});selectedIds.clear();NOC.App.closeModal();render()}
  async function facturar(id){
-  let p;
+  NOC.App.showProgress("Generando factura…","Comprobando estado y asignando número correlativo");
   try{
-    p=await NOC.API.one("proformas",id);
-  }catch(e){
-    NOC.App.alertMessage("Error","No se ha podido consultar la proforma: "+(e.message||e),"error");
-    return false;
-  }
-
-  const estado=String(p.estado||"").trim().toLowerCase();
-  if(estado==="cancelada"){
-    NOC.App.alertMessage("Proforma cancelada","No puedes facturar esta proforma porque ha sido cancelada.","error");
-    return false;
-  }
-  if(estado==="facturada"){
-    NOC.App.alertMessage("Proforma ya facturada","Esta proforma ya está facturada.","info");
-    return false;
-  }
-  if(estado!=="enviada"){
-    NOC.App.alertMessage("Proforma no facturable","Solo se pueden facturar proformas en estado Enviada.","error");
-    return false;
-  }
-
-  NOC.App.showProgress("Generando factura…","Comprobando proforma y creando documento");
-  try{
-    const {data:ls,error}=await NOC.API.db().from("lineas_proforma").select("*").eq("proforma_id",id).order("orden");
-    if(error)throw error;
-
-    const numero=await NOC.API.rpc("siguiente_numero_factura");
-    const f=await NOC.API.insert("facturas",{
-      numero,
-      fecha:NOC.App.today(),
-      cliente_id:p.cliente_id,
-      proforma_id:id,
-      forma_pago:p.forma_pago,
-      base_imponible:p.base_imponible,
-      iva:p.iva,
-      recargo:p.recargo,
-      total:p.total,
-      observaciones:p.observaciones
-    });
-
-    const {error:e2}=await NOC.API.db().from("lineas_factura").insert(
-      ls.map(l=>({
-        factura_id:f.id,articulo_id:l.articulo_id,descripcion:l.descripcion,
-        precio_unitario:l.precio_unitario,cantidad:l.cantidad,descuento:l.descuento,
-        tallaje:l.tallaje,orden:l.orden,es_envio:l.es_envio
-      }))
-    );
-    if(e2)throw e2;
-
-    await NOC.API.update("proformas",id,{estado:"Facturada"});
+    const data=await NOC.API.rpc("facturar_proforma_atomica",{p_proforma_id:id,p_fecha_factura:NOC.App.today()});
     NOC.App.hideProgress();
-    NOC.App.toast("Factura creada correctamente.");
+    const numero=Array.isArray(data)?data[0]?.numero_factura:data?.numero_factura;
     await render();
+    NOC.App.alertMessage("Factura creada",numero?`Se ha creado correctamente la factura ${numero}.`:"La factura se ha creado correctamente.","success");
     return true;
   }catch(e){
     NOC.App.hideProgress();
     const msg=String(e?.message||e||"");
-    if(/cancelad|solo se pueden facturar proformas enviadas|estado/i.test(msg)){
-      NOC.App.alertMessage("Proforma no facturable","No puedes facturar esta proforma porque ha sido cancelada o ya no está en estado Enviada.","error");
-    }else{
-      NOC.App.alertMessage("Error al facturar","No se ha podido crear la factura. "+msg,"error");
-    }
+    if(/cancelad/i.test(msg))NOC.App.alertMessage("Proforma cancelada","No puedes facturar esta proforma porque ha sido cancelada.","error");
+    else if(/ya esta facturada|ya está facturada/i.test(msg))NOC.App.alertMessage("Proforma ya facturada","Esta proforma ya está facturada.","info");
+    else NOC.App.alertMessage("Error al facturar",msg||"No se ha podido crear la factura.","error");
     return false;
   }
 }
  async function facturarSeleccionadas(){
   if(!selectedIds.size)return NOC.App.toast("Selecciona proformas.");
-  const ids=[...selectedIds];
-  let facturadas=0,bloqueadas=0,errores=0;
-  NOC.App.showProgress("Facturando proformas…",`0 de ${ids.length}`);
-
-  for(let i=0;i<ids.length;i++){
-    const id=ids[i];
-    NOC.App.updateProgress("Facturando proformas…",`${i+1} de ${ids.length}`);
-    try{
-      const p=await NOC.API.one("proformas",id);
-      const estado=String(p.estado||"").trim().toLowerCase();
-      if(estado!=="enviada"){bloqueadas++;continue;}
-
-      const {data:ls,error}=await NOC.API.db().from("lineas_proforma").select("*").eq("proforma_id",id).order("orden");
-      if(error)throw error;
-      const numero=await NOC.API.rpc("siguiente_numero_factura");
-      const f=await NOC.API.insert("facturas",{numero,fecha:NOC.App.today(),cliente_id:p.cliente_id,proforma_id:id,forma_pago:p.forma_pago,base_imponible:p.base_imponible,iva:p.iva,recargo:p.recargo,total:p.total,observaciones:p.observaciones});
-      const {error:e2}=await NOC.API.db().from("lineas_factura").insert(ls.map(l=>({factura_id:f.id,articulo_id:l.articulo_id,descripcion:l.descripcion,precio_unitario:l.precio_unitario,cantidad:l.cantidad,descuento:l.descuento,tallaje:l.tallaje,orden:l.orden,es_envio:l.es_envio})));
-      if(e2)throw e2;
-      await NOC.API.update("proformas",id,{estado:"Facturada"});
-      facturadas++;
-    }catch(e){
-      const msg=String(e?.message||e||"");
-      if(/cancelad|estado|enviada/i.test(msg))bloqueadas++; else errores++;
-    }
+  const seleccionadas=[];
+  for(const id of [...selectedIds]){
+    try{seleccionadas.push(await NOC.API.one("proformas",id,"id,numero,estado"));}catch(e){console.error(e)}
   }
-
-  selectedIds.clear();
-  NOC.App.hideProgress();
-  await render();
-  const partes=[`${facturadas} facturada(s)`];
-  if(bloqueadas)partes.push(`${bloqueadas} omitida(s) por estar canceladas o no estar Enviadas`);
-  if(errores)partes.push(`${errores} con error`);
-  NOC.App.alertMessage("Facturación finalizada",partes.join(". ")+".",errores?"error":"success");
+  const num=v=>{const m=String(v||"").match(/(\d+)$/);return m?Number(m[1]):Number.MAX_SAFE_INTEGER};
+  seleccionadas.sort((a,b)=>num(a.numero)-num(b.numero)||String(a.numero||"").localeCompare(String(b.numero||""),"es",{numeric:true}));
+  let facturadas=0,bloqueadas=0,errores=0;const creadas=[];
+  NOC.App.showProgress("Facturando proformas…",`0 de ${seleccionadas.length}`);
+  for(let i=0;i<seleccionadas.length;i++){
+    const p=seleccionadas[i];NOC.App.updateProgress("Facturando proformas…",`${i+1} de ${seleccionadas.length} · ${p.numero||""}`);
+    if(String(p.estado||"").trim().toLowerCase()!=="enviada"){bloqueadas++;continue}
+    try{
+      const data=await NOC.API.rpc("facturar_proforma_atomica",{p_proforma_id:p.id,p_fecha_factura:NOC.App.today()});
+      const numero=Array.isArray(data)?data[0]?.numero_factura:data?.numero_factura;
+      facturadas++;creadas.push(`${p.numero} → ${numero||"Factura creada"}`);
+    }catch(e){const msg=String(e?.message||e||"");if(/cancelad|facturada|estado enviada/i.test(msg))bloqueadas++;else{console.error(e);errores++}}
+  }
+  selectedIds.clear();NOC.App.hideProgress();await render();
+  let mensaje=`Facturadas: ${facturadas}.`;if(bloqueadas)mensaje+=` Omitidas: ${bloqueadas} por no estar Enviadas.`;if(errores)mensaje+=` Errores: ${errores}.`;if(creadas.length)mensaje+=` Orden aplicado: ${creadas.join(" · ")}.`;
+  NOC.App.alertMessage("Facturación masiva finalizada",mensaje,errores?"error":"success");
 }
  async function ver(id){
   const {data:p,error}=await NOC.API.db().from("proformas").select("*, clientes(*)").eq("id",id).single();
