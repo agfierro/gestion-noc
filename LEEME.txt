@@ -1,31 +1,44 @@
-V3.7.1 - FRONTEND NOC CORREGIDO
+V3.8.0 - FRONTEND MODERNO NOC
 
-La V3.7.0 podía quedar visualmente anulada porque responsive.css se carga después de styles.css.
+CAMBIO PRINCIPAL
+Proformas se ha rediseñado de verdad, no solo con CSS:
+- Cabecera moderna
+- Buscador por número o cliente
+- Filtros de fecha, estado y pago
+- KPIs de proformas, importe, enviadas, facturadas y canceladas
+- Filas compactas
+- Checkboxes pequeños (16 px)
+- Estados tipo badge
+- Acciones compactas
+- Barra inferior para acciones masivas
+- Responsive
 
-CORRECCIÓN
-- Nuevo archivo css/noc-fashion.css.
-- Se carga DESPUÉS de responsive.css.
-- La clase noc-fashion-ui va directamente en <body>.
-- Se han reforzado selectores y prioridades.
-- Cambios visuales deliberadamente más evidentes.
+RESTO DE LA APP
+Se refuerza el nuevo lenguaje visual:
+- sidebar oscuro
+- activo verde
+- tarjetas más planas y modernas
+- botones y formularios más compactos
+- tablas con menos altura
+- modales más limpios
+- Informes/Dashboard adaptados al mismo estilo
 
-ALCANCE
-- Navegación lateral
-- Barra superior
-- Inicio
-- Proformas
-- Informes / Dashboard
-- Tablas, botones, campos y modales
+INFORME DE ARTÍCULOS
+- Se elimina la columna SKU de pantalla, CSV y PDF.
+
+IMPORTANTE
+NO se ha modificado:
+- lógica de facturación
+- numeración
+- impuestos
+- Supabase
+- abonos
+- datos existentes
 
 NO HAY SQL.
-NO CAMBIA LÓGICA DE NEGOCIO.
 
-Sustituye / añade:
+Sustituye:
 - index.html
 - css/noc-fashion.css
-- modules/dashboard.js
 - modules/proformas.js
 - modules/informes.js
-
-IMPORTANTE:
-noc-fashion.css es NUEVO y debe quedar dentro de la carpeta css.

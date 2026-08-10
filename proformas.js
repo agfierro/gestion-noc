@@ -5,12 +5,158 @@ NOC.Proformas=(()=>{
  const esEnviada=v=>normalizarEstado(v)==="enviada";
  const esCancelada=v=>normalizarEstado(v)==="cancelada";
  const esFacturada=v=>normalizarEstado(v)==="facturada";
+ let pfRows=[];
  async function render(){
-   const {data,error}=await NOC.API.db().from("proformas").select("*, clientes(nombre_tienda)").order("created_at",{ascending:false});if(error)throw error;
-   document.getElementById("viewContainer").innerHTML=`<div class="noc-view noc-view-proformas"><div class="card"><div class="toolbar"><div class="toolbar-left"><button class="btn btn-primary" onclick="NOC.Proformas.openEditor()">+ Nueva proforma</button><button class="btn" onclick="NOC.Proformas.openBulkStatus()">Cambiar estado seleccionadas</button><button class="btn" onclick="NOC.Proformas.facturarSeleccionadas()">Facturar seleccionadas</button></div></div>
-   <div class="table-wrap"><table><thead><tr><th></th><th>Nº</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th>Total</th><th>Pago</th><th>Acciones</th></tr></thead><tbody>
-   ${data.map(r=>`<tr><td><input type="checkbox" ${selectedIds.has(r.id)?"checked":""} onchange="NOC.Proformas.toggle('${r.id}',this.checked)"></td><td><strong>${NOC.App.esc(r.numero)}</strong></td><td>${r.fecha}</td><td>${NOC.App.esc(r.clientes?.nombre_tienda||"")}</td><td><span class="badge ${String(r.estado).toLowerCase()}">${r.estado}</span></td><td>${NOC.App.money(r.total)}</td><td>${NOC.App.esc(r.forma_pago||"Transferencia")}</td><td class="actions"><button class="btn btn-small" onclick="NOC.Proformas.ver('${r.id}')">Ver Proforma</button>${esEnviada(r.estado)?`<button class="btn btn-small" onclick="NOC.Proformas.openEditor('${r.id}')">Editar</button><button class="btn btn-small" onclick="NOC.Proformas.openStatus('${r.id}')">Estado</button><button class="btn btn-small btn-primary" onclick="NOC.Proformas.facturar('${r.id}')">Facturar</button>`:(esCancelada(r.estado)?`<button class="btn btn-small" onclick="NOC.Proformas.openStatus('${r.id}')">Estado</button>`:"")}</td></tr>`).join("")||`<tr><td colspan="8" class="empty">No hay proformas.</td></tr>`}
-   </tbody></table></div></div>`
+   const {data,error}=await NOC.API.db().from("proformas")
+     .select("*, clientes(nombre_tienda)")
+     .order("created_at",{ascending:false});
+   if(error)throw error;
+   pfRows=data||[];
+   drawModernPage();
+ }
+
+ function pfDateEs(v){
+   if(!v)return"";
+   const [y,m,d]=String(v).split("-");
+   return `${d}/${m}/${y}`;
+ }
+ function pfStatusClass(v){
+   const s=normalizarEstado(v);
+   if(s==="facturada")return"status-facturada";
+   if(s==="cancelada")return"status-cancelada";
+   if(s==="enviada")return"status-enviada";
+   return"status-pendiente";
+ }
+ function getPfFilters(){
+   return{
+     q:(document.getElementById("pfModernSearch")?.value||"").trim().toLocaleLowerCase("es"),
+     desde:document.getElementById("pfFilterDesde")?.value||"",
+     hasta:document.getElementById("pfFilterHasta")?.value||"",
+     estado:document.getElementById("pfFilterEstado")?.value||"",
+     pago:document.getElementById("pfFilterPago")?.value||""
+   };
+ }
+ function filteredPfRows(){
+   const f=getPfFilters();
+   return pfRows.filter(r=>{
+     const client=String(r.clientes?.nombre_tienda||"").toLocaleLowerCase("es");
+     const num=String(r.numero||"").toLocaleLowerCase("es");
+     if(f.q && !num.includes(f.q) && !client.includes(f.q))return false;
+     if(f.desde && String(r.fecha)<f.desde)return false;
+     if(f.hasta && String(r.fecha)>f.hasta)return false;
+     if(f.estado && normalizarEstado(r.estado)!==normalizarEstado(f.estado))return false;
+     if(f.pago && String(r.forma_pago||"Transferencia")!==f.pago)return false;
+     return true;
+   });
+ }
+ function pfStats(rows){
+   return{
+     count:rows.length,
+     total:rows.reduce((a,r)=>a+Number(r.total||0),0),
+     enviadas:rows.filter(r=>esEnviada(r.estado)).length,
+     facturadas:rows.filter(r=>esFacturada(r.estado)).length,
+     canceladas:rows.filter(r=>esCancelada(r.estado)).length
+   };
+ }
+ function drawModernPage(){
+   const rows=filteredPfRows();
+   const st=pfStats(rows);
+   const pagos=[...new Set(pfRows.map(r=>String(r.forma_pago||"Transferencia")).filter(Boolean))].sort();
+   const container=document.getElementById("viewContainer");
+   container.innerHTML=`<div class="noc-modern-page noc-proformas-modern">
+     <div class="modern-page-head">
+       <div>
+         <div class="modern-kicker">GESTIÓN COMERCIAL</div>
+         <h1>Proformas</h1>
+         <p>Consulta, filtra y gestiona tus documentos comerciales.</p>
+       </div>
+       <div class="modern-head-actions">
+         <div class="modern-search">
+           <span class="search-glyph">⌕</span>
+           <input id="pfModernSearch" placeholder="Buscar por Nº o cliente…" value="${NOC.App.esc(getPfFilters().q||"")}" oninput="NOC.Proformas.refreshModern()">
+         </div>
+         <button class="btn btn-primary modern-new-btn" onclick="NOC.Proformas.openEditor()">＋ Nueva proforma</button>
+       </div>
+     </div>
+
+     <div class="modern-filter-card">
+       <div class="modern-filter-field"><label>Desde</label><input id="pfFilterDesde" type="date" onchange="NOC.Proformas.refreshModern()"></div>
+       <div class="modern-filter-field"><label>Hasta</label><input id="pfFilterHasta" type="date" onchange="NOC.Proformas.refreshModern()"></div>
+       <div class="modern-filter-field"><label>Estado</label><select id="pfFilterEstado" onchange="NOC.Proformas.refreshModern()"><option value="">Todos</option><option>Enviada</option><option>Facturada</option><option>Cancelada</option></select></div>
+       <div class="modern-filter-field"><label>Pago</label><select id="pfFilterPago" onchange="NOC.Proformas.refreshModern()"><option value="">Todos</option>${pagos.map(x=>`<option>${NOC.App.esc(x)}</option>`).join("")}</select></div>
+       <button class="btn modern-clear-btn" onclick="NOC.Proformas.clearModernFilters()">Limpiar filtros</button>
+     </div>
+
+     <div class="modern-kpis">
+       <div class="modern-kpi"><span class="kpi-icon">▤</span><div><small>Proformas</small><strong>${st.count}</strong></div></div>
+       <div class="modern-kpi"><span class="kpi-icon">€</span><div><small>Importe total</small><strong>${NOC.App.money(st.total)}</strong></div></div>
+       <div class="modern-kpi kpi-blue"><span class="kpi-icon">↗</span><div><small>Enviadas</small><strong>${st.enviadas}</strong></div></div>
+       <div class="modern-kpi kpi-green"><span class="kpi-icon">✓</span><div><small>Facturadas</small><strong>${st.facturadas}</strong></div></div>
+       <div class="modern-kpi kpi-red"><span class="kpi-icon">×</span><div><small>Canceladas</small><strong>${st.canceladas}</strong></div></div>
+     </div>
+
+     <div class="modern-table-card">
+       <div class="table-wrap modern-table-wrap">
+         <table class="modern-data-table">
+           <thead><tr>
+             <th class="modern-check-col"><input class="modern-check" type="checkbox" onchange="NOC.Proformas.toggleAllVisible(this.checked)"></th>
+             <th>Nº</th><th>Fecha</th><th>Cliente</th><th class="num">Importe</th><th>Estado</th><th>Pago</th><th>Acciones</th>
+           </tr></thead>
+           <tbody>
+           ${rows.map(r=>`<tr>
+             <td class="modern-check-col"><input class="modern-check" type="checkbox" ${selectedIds.has(r.id)?"checked":""} onchange="NOC.Proformas.toggle('${r.id}',this.checked);NOC.Proformas.updateBulkBar()"></td>
+             <td><strong class="doc-number">${NOC.App.esc(r.numero)}</strong></td>
+             <td>${pfDateEs(r.fecha)}</td>
+             <td>${NOC.App.esc(r.clientes?.nombre_tienda||"")}</td>
+             <td class="num"><strong>${NOC.App.money(r.total)}</strong></td>
+             <td><span class="modern-status ${pfStatusClass(r.estado)}">${NOC.App.esc(r.estado)}</span></td>
+             <td>${NOC.App.esc(r.forma_pago||"Transferencia")}</td>
+             <td class="modern-actions">
+               <button class="modern-icon-btn" title="Ver" onclick="NOC.Proformas.ver('${r.id}')">○</button>
+               ${esEnviada(r.estado)?`<button class="modern-icon-btn" title="Editar" onclick="NOC.Proformas.openEditor('${r.id}')">✎</button><button class="modern-icon-btn" title="Estado" onclick="NOC.Proformas.openStatus('${r.id}')">•••</button>`:(esCancelada(r.estado)?`<button class="modern-icon-btn" title="Estado" onclick="NOC.Proformas.openStatus('${r.id}')">•••</button>`:"")}
+             </td>
+           </tr>`).join("")||`<tr><td colspan="8" class="empty modern-empty">No hay proformas que coincidan con los filtros.</td></tr>`}
+           </tbody>
+         </table>
+       </div>
+       <div id="pfBulkBar" class="modern-bulk-bar">
+         <span><strong>${selectedIds.size}</strong> seleccionada(s)</span>
+         <div class="modern-bulk-actions">
+           <button class="btn" onclick="NOC.Proformas.openBulkStatus()">Cambiar estado</button>
+           <button class="btn btn-primary" onclick="NOC.Proformas.facturarSeleccionadas()">Facturar seleccionadas</button>
+         </div>
+       </div>
+     </div>
+   </div>`;
+
+   // restore current filter values after redraw
+   if(window._pfModernFilters){
+     const f=window._pfModernFilters;
+     ["Desde","Hasta","Estado","Pago"].forEach(k=>{
+       const el=document.getElementById("pfFilter"+k);
+       if(el)el.value=f[k.toLowerCase()]||"";
+     });
+     const s=document.getElementById("pfModernSearch");if(s)s.value=f.q||"";
+   }
+   updateBulkBar();
+ }
+ function refreshModern(){
+   window._pfModernFilters=getPfFilters();
+   drawModernPage();
+ }
+ function clearModernFilters(){
+   window._pfModernFilters={q:"",desde:"",hasta:"",estado:"",pago:""};
+   drawModernPage();
+ }
+ function toggleAllVisible(checked){
+   filteredPfRows().forEach(r=>checked?selectedIds.add(r.id):selectedIds.delete(r.id));
+   drawModernPage();
+ }
+ function updateBulkBar(){
+   const bar=document.getElementById("pfBulkBar");
+   if(!bar)return;
+   bar.classList.toggle("has-selection",selectedIds.size>0);
+   const count=bar.querySelector("span strong");if(count)count.textContent=selectedIds.size;
  }
  async function openEditor(id){
    if(id){
@@ -143,5 +289,5 @@ function taxFor(c){
   const html=NOC.Documentos.render({tipo:"PROFORMA",doc:p,lineas:ls||[],config});
   NOC.App.modal(`<div class="modal-head"><strong>Proforma ${NOC.App.esc(p.numero)}</strong><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div><div class="modal-body">${html}</div><div class="modal-foot"><button class="btn" onclick="window.print()">Imprimir / Guardar PDF</button></div>`,false,"document-modal");
 }
- return{render,openEditor,addLine,removeLine,patchLine,save,toggle,openStatus,openBulkStatus,setStatus,applyBulkStatus,facturar,facturarSeleccionadas,ver}
+ return{render,openEditor,addLine,removeLine,patchLine,save,toggle,openStatus,openBulkStatus,setStatus,applyBulkStatus,facturar,facturarSeleccionadas,ver,refreshModern,clearModernFilters,toggleAllVisible,updateBulkBar}
 })();

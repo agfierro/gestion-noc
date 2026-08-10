@@ -332,3 +332,100 @@ body.noc-fashion-ui .modal-foot{
   body.noc-fashion-ui .noc-view-home .home-actions .btn{width:100%!important}
   body.noc-fashion-ui .report-tabs{width:100%!important}
 }
+
+
+/* ============================================================
+   V3.8.0 — NOC MODERN FASHION BACKOFFICE
+   ============================================================ */
+body.noc-fashion-ui{
+  --m-bg:#f6f7f8;--m-card:#fff;--m-ink:#111318;--m-muted:#737982;
+  --m-border:#e6e8eb;--m-green:#33d17a;--m-green-dark:#116736;
+  --m-sidebar:#0c0f0e;--m-blue:#2768f6;--m-red:#ef4444;--m-orange:#e99a14;
+  background:var(--m-bg)!important;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif!important;
+}
+body.noc-fashion-ui .sidebar{background:linear-gradient(180deg,#080b0a,#0d1110)!important;width:210px!important}
+body.noc-fashion-ui .main{margin-left:210px!important}
+body.noc-fashion-ui .brand{min-height:92px!important;display:flex!important;align-items:center!important}
+body.noc-fashion-ui .brand-logo{width:58px!important;height:58px!important;border-radius:0!important;background:transparent!important}
+body.noc-fashion-ui .brand-logo img{object-fit:contain!important}
+body.noc-fashion-ui .nav a{min-height:52px!important;border-radius:0!important;margin:0 -10px!important;padding:14px 26px!important;border-left:3px solid transparent!important;color:#e3e5e4!important;font-size:13px!important}
+body.noc-fashion-ui .nav a.active{background:linear-gradient(90deg,rgba(35,137,84,.34),rgba(35,137,84,.10))!important;color:#7df0ac!important;border-left-color:#46e18a!important}
+body.noc-fashion-ui .topbar{min-height:76px!important;background:#fff!important;border-bottom:1px solid var(--m-border)!important;padding:0 30px!important}
+body.noc-fashion-ui .view-container{padding:26px 30px 40px!important;background:var(--m-bg)!important}
+body.noc-fashion-ui .card{border:1px solid var(--m-border)!important;border-radius:14px!important;box-shadow:0 4px 18px rgba(18,24,32,.035)!important}
+body.noc-fashion-ui .btn{border-radius:8px!important;min-height:38px!important;font-size:12px!important}
+body.noc-fashion-ui .btn-primary{background:#0d0f0e!important;border-color:#0d0f0e!important;color:#fff!important}
+body.noc-fashion-ui input,body.noc-fashion-ui select,body.noc-fashion-ui textarea{border-radius:8px!important;background:#fff!important;min-height:39px!important}
+body.noc-fashion-ui label{text-transform:none!important;letter-spacing:0!important;font-size:11px!important;color:#626871!important}
+body.noc-fashion-ui .table-wrap{border-radius:12px!important;border:1px solid var(--m-border)!important}
+body.noc-fashion-ui thead th{background:#fafbfb!important;font-size:10px!important;color:#50565f!important;letter-spacing:.04em!important}
+body.noc-fashion-ui tbody td{padding:10px 12px!important;font-size:12px!important}
+body.noc-fashion-ui tbody tr:hover td{background:#f8fbf9!important}
+
+/* Página proformas */
+.noc-proformas-modern{max-width:1500px;margin:0 auto}
+.modern-page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:18px}
+.modern-page-head h1{font-size:34px;margin:0 0 5px;letter-spacing:-.045em;font-weight:760}
+.modern-page-head p{margin:0;color:var(--m-muted);font-size:13px}
+.modern-kicker{font-size:10px;font-weight:800;letter-spacing:.15em;color:#2a8c55;margin-bottom:6px}
+.modern-head-actions{display:flex;gap:12px;align-items:center}
+.modern-search{position:relative;width:300px}
+.modern-search input{width:100%;height:42px;padding-left:38px!important;border:1px solid #dfe2e5!important}
+.search-glyph{position:absolute;left:13px;top:9px;font-size:21px;color:#111;z-index:2}
+.modern-new-btn{height:42px!important;padding:0 18px!important;text-transform:uppercase;letter-spacing:.025em}
+.modern-filter-card{display:grid;grid-template-columns:repeat(4,minmax(145px,1fr)) auto;gap:0;background:#fff;border:1px solid var(--m-border);border-radius:12px;padding:15px 16px;margin-bottom:14px;box-shadow:0 3px 14px rgba(0,0,0,.025)}
+.modern-filter-field{padding:0 15px;border-right:1px solid #eceef0}
+.modern-filter-field:first-child{padding-left:0}.modern-filter-field:nth-child(4){border-right:0}
+.modern-filter-field label{display:block;margin-bottom:5px}
+.modern-filter-field input,.modern-filter-field select{width:100%}
+.modern-clear-btn{align-self:end;margin-left:14px;white-space:nowrap}
+.modern-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:15px}
+.modern-kpi{background:#fff;border:1px solid var(--m-border);border-radius:12px;min-height:92px;padding:15px;display:flex;align-items:center;gap:13px;box-shadow:0 3px 14px rgba(0,0,0,.025)}
+.kpi-icon{width:38px;height:38px;border-radius:9px;background:#edf7f1;display:grid;place-items:center;font-size:18px;color:#132b1d;font-weight:800}
+.modern-kpi small{display:block;color:#656b73;text-transform:uppercase;font-size:9px;letter-spacing:.045em;margin-bottom:4px}
+.modern-kpi strong{display:block;font-size:21px;letter-spacing:-.025em}
+.kpi-blue .kpi-icon{background:#edf3ff;color:#2768f6}.kpi-green .kpi-icon{background:#eaf8ef;color:#19944f}.kpi-red .kpi-icon{background:#fff0f0;color:#ef4444}
+.modern-table-card{background:#fff;border:1px solid var(--m-border);border-radius:12px;overflow:hidden;box-shadow:0 4px 18px rgba(18,24,32,.03)}
+.modern-table-wrap{border:0!important;border-radius:0!important}
+.modern-data-table{width:100%;min-width:900px}
+.modern-data-table thead th{height:46px;padding:0 12px!important}
+.modern-data-table tbody td{height:49px!important;padding:7px 12px!important;vertical-align:middle}
+.modern-data-table tbody tr:last-child td{border-bottom:0!important}
+.modern-check-col{width:42px!important;text-align:center!important;padding-left:14px!important;padding-right:6px!important}
+.modern-check{appearance:none!important;-webkit-appearance:none!important;width:16px!important;height:16px!important;min-height:16px!important;border:1.4px solid #c7cbd0!important;border-radius:3px!important;background:#fff!important;margin:0!important;padding:0!important;vertical-align:middle;cursor:pointer}
+.modern-check:checked{background:#111!important;border-color:#111!important;box-shadow:inset 0 0 0 3px #fff!important}
+.doc-number{font-weight:780;color:#111;font-size:12px}
+.modern-status{display:inline-flex;align-items:center;border-radius:5px;padding:5px 9px;font-size:10px;font-weight:700}
+.status-enviada{background:#edf3ff;color:#2462dd}.status-facturada{background:#e9f7ee;color:#21814b}.status-cancelada{background:#fff0f0;color:#e43c3c}.status-pendiente{background:#fff5df;color:#c77d00}
+.modern-actions{display:flex;gap:6px;white-space:nowrap}
+.modern-icon-btn{width:30px;height:30px;border:1px solid #e1e4e7;border-radius:7px;background:#fff;display:inline-grid;place-items:center;font-size:12px;cursor:pointer;color:#111}
+.modern-icon-btn:hover{background:#f4f6f5;border-color:#ccd2ce}
+.modern-bulk-bar{min-height:64px;border-top:1px solid var(--m-border);display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:#fbfbfb}
+.modern-bulk-bar>span{font-size:12px;color:#5e646d}
+.modern-bulk-actions{display:flex;gap:8px}
+.modern-bulk-bar:not(.has-selection) .modern-bulk-actions{opacity:.45;pointer-events:none}
+.modern-empty{height:120px!important;text-align:center!important;color:#888!important}
+
+/* Resto de módulos: estética consistente */
+body.noc-fashion-ui .noc-view-home .home-clean{background:#fff!important;min-height:240px!important;padding:34px!important}
+body.noc-fashion-ui .noc-view-home .home-clean:after{font-size:130px!important;color:rgba(26,130,75,.04)!important}
+body.noc-fashion-ui .report-tabs{background:#eef0f1!important;border:0!important;border-radius:9px!important;padding:4px!important}
+body.noc-fashion-ui .report-tabs .btn{border-radius:7px!important}
+body.noc-fashion-ui .report-tabs .btn-primary{background:#111!important}
+body.noc-fashion-ui .dash-metric-card,body.noc-fashion-ui .dash-insight{border-radius:12px!important}
+body.noc-fashion-ui .modal-card{border-radius:14px!important}
+body.noc-fashion-ui .modal-head,body.noc-fashion-ui .modal-foot{padding-left:20px!important;padding-right:20px!important}
+
+@media(max-width:1050px){
+ .modern-page-head{flex-direction:column}.modern-head-actions{width:100%}.modern-search{flex:1}
+ .modern-filter-card{grid-template-columns:repeat(2,1fr);gap:12px}.modern-filter-field{border-right:0;padding:0}
+ .modern-kpis{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:700px){
+ body.noc-fashion-ui .sidebar{width:72px!important}
+ body.noc-fashion-ui .main{margin-left:72px!important}
+ body.noc-fashion-ui .view-container{padding:14px!important}
+ .modern-head-actions{flex-direction:column;align-items:stretch}.modern-search{width:100%}
+ .modern-filter-card{grid-template-columns:1fr}.modern-kpis{grid-template-columns:1fr 1fr}
+ .modern-bulk-bar{align-items:flex-start;gap:10px;flex-direction:column}
+}

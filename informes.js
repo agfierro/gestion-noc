@@ -293,14 +293,14 @@ NOC.Informes=(()=>{
       </div>
       <div class="table-wrap">
         <table class="report-table">
-          <thead><tr><th>Artículo</th><th>SKU</th><th>Tipo</th><th>Fábrica</th><th class="num">Unidades vendidas</th><th class="num">Importe facturado</th></tr></thead>
+          <thead><tr><th>Artículo</th><th>Tipo</th><th>Fábrica</th><th class="num">Unidades vendidas</th><th class="num">Importe facturado</th></tr></thead>
           <tbody>${currentRows.map((r,i)=>`<tr>
             <td><strong>${NOC.App.esc(r.articulo)}</strong>${i<3&&r.unidades>0?` <span class="rank-badge">#${i+1}</span>`:""}</td>
-            <td>${NOC.App.esc(r.sku)}</td><td>${NOC.App.esc(r.tipo)}</td><td>${NOC.App.esc(r.fabrica)}</td>
+            <td>${NOC.App.esc(r.tipo)}</td><td>${NOC.App.esc(r.fabrica)}</td>
             <td class="num"><strong>${Number(r.unidades).toLocaleString("es-ES")}</strong></td>
             <td class="num">${NOC.App.money(r.facturado)}</td>
-          </tr>`).join("")||`<tr><td colspan="6" class="empty">No hay ventas que coincidan con los filtros seleccionados.</td></tr>`}</tbody>
-          ${currentRows.length?`<tfoot><tr class="report-total-row"><td colspan="4"><strong>TOTALES</strong></td><td class="num"><strong>${totalUnidades.toLocaleString("es-ES")}</strong></td><td class="num"><strong>${NOC.App.money(totalFacturado)}</strong></td></tr></tfoot>`:""}
+          </tr>`).join("")||`<tr><td colspan="5" class="empty">No hay ventas que coincidan con los filtros seleccionados.</td></tr>`}</tbody>
+          ${currentRows.length?`<tfoot><tr class="report-total-row"><td colspan="3"><strong>TOTALES</strong></td><td class="num"><strong>${totalUnidades.toLocaleString("es-ES")}</strong></td><td class="num"><strong>${NOC.App.money(totalFacturado)}</strong></td></tr></tfoot>`:""}
         </table>
       </div>`;
     box.scrollIntoView({behavior:"smooth",block:"start"});
@@ -442,16 +442,16 @@ NOC.Informes=(()=>{
     }
 
     if(currentCriteria.report==="articulos"){
-      const headers=["Artículo","SKU","Tipo","Fábrica","Unidades vendidas","Importe facturado"];
+      const headers=["Artículo","Tipo","Fábrica","Unidades vendidas","Importe facturado"];
       const lines=[headers.map(csvCell).join(";")];
       currentRows.forEach(r=>lines.push([
-        r.articulo,r.sku,r.tipo,r.fabrica,
+        r.articulo,r.tipo,r.fabrica,
         Number(r.unidades||0).toString().replace(".",","),
         Number(r.facturado||0).toFixed(2).replace(".",",")
       ].map(csvCell).join(";")));
       const totalU=currentRows.reduce((a,r)=>a+Number(r.unidades||0),0);
       const totalF=currentRows.reduce((a,r)=>a+Number(r.facturado||0),0);
-      lines.push(["","","","TOTALES",String(totalU).replace(".",","),totalF.toFixed(2).replace(".",",")].map(csvCell).join(";"));
+      lines.push(["","","TOTALES",String(totalU).replace(".",","),totalF.toFixed(2).replace(".",",")].map(csvCell).join(";"));
       downloadBlob(`informe_articulos_${currentCriteria.desde||"inicio"}_${currentCriteria.hasta||"fin"}.csv`,"\uFEFF"+lines.join("\r\n"),"text/csv;charset=utf-8");
       return NOC.App.alertMessage("Exportación finalizada",`${currentRows.length} artículo(s) exportados a CSV.`,"success");
     }
@@ -508,11 +508,11 @@ NOC.Informes=(()=>{
     if(c.report==="articulos"){
       const totalU=currentRows.reduce((a,r)=>a+Number(r.unidades||0),0);
       const totalF=currentRows.reduce((a,r)=>a+Number(r.facturado||0),0);
-      const body=currentRows.map(r=>`<tr><td>${NOC.App.esc(r.articulo)}</td><td>${NOC.App.esc(r.sku)}</td><td>${NOC.App.esc(r.tipo)}</td><td>${NOC.App.esc(r.fabrica)}</td><td class="n">${Number(r.unidades).toLocaleString("es-ES")}</td><td class="n">${NOC.App.money(r.facturado)}</td></tr>`).join("");
+      const body=currentRows.map(r=>`<tr><td>${NOC.App.esc(r.articulo)}</td><td>${NOC.App.esc(r.tipo)}</td><td>${NOC.App.esc(r.fabrica)}</td><td class="n">${Number(r.unidades).toLocaleString("es-ES")}</td><td class="n">${NOC.App.money(r.facturado)}</td></tr>`).join("");
       w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de artículos</title>
       <style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,Helvetica,sans-serif;color:#171717;font-size:10px}.brand{font-size:11px;font-weight:800;letter-spacing:2px;margin-bottom:4px}h1{font-size:20px;margin:0 0 14px}table{width:100%;border-collapse:collapse}th{background:#eef3cf;text-align:left;padding:7px;border:1px solid #d8ddc8}td{padding:7px;border:1px solid #e1e4e7}.n{text-align:right}tfoot td{background:#f4f5f6;border-top:2px solid #111;font-weight:700}</style></head><body>
       <div class="brand">NOC THE BRAND</div><h1>Informe de artículos</h1>
-      <table><thead><tr><th>Artículo</th><th>SKU</th><th>Tipo</th><th>Fábrica</th><th>Unidades vendidas</th><th>Importe facturado</th></tr></thead><tbody>${body}</tbody><tfoot><tr><td colspan="4">TOTALES</td><td class="n">${totalU.toLocaleString("es-ES")}</td><td class="n">${NOC.App.money(totalF)}</td></tr></tfoot></table>
+      <table><thead><tr><th>Artículo</th><th>Tipo</th><th>Fábrica</th><th>Unidades vendidas</th><th>Importe facturado</th></tr></thead><tbody>${body}</tbody><tfoot><tr><td colspan="3">TOTALES</td><td class="n">${totalU.toLocaleString("es-ES")}</td><td class="n">${NOC.App.money(totalF)}</td></tr></tfoot></table>
       <script>window.onload=()=>window.print();</script></body></html>`);
       return w.document.close();
     }
