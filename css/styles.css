@@ -276,3 +276,65 @@ td.actions{display:flex;gap:6px}
 .dash-insight em{font-style:normal;font-size:12px;color:#738224;font-weight:700}
 @media(max-width:900px){.dash-insight-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.dash-insight-grid{grid-template-columns:1fr}}
+
+/* V3.7.0 - Propuesta frontend fashion / minimal */
+:root{--nf-ink:#111;--nf-bg:#f4f4f0;--nf-card:#fff;--nf-line:#e7e7e1;--nf-muted:#77766f;--nf-accent:#dce9aa;--nf-accent-deep:#6f7f31;--nf-radius:18px;--nf-shadow:0 12px 36px rgba(17,17,17,.055)}
+body.noc-fashion-ui{background:var(--nf-bg);color:var(--nf-ink);letter-spacing:-.01em}
+body.noc-fashion-ui .sidebar{background:#111;border-right:0}
+body.noc-fashion-ui .sidebar .brand{padding:22px 18px 16px}
+body.noc-fashion-ui .brand-logo{width:48px;height:48px;border-radius:14px;background:#fff}
+body.noc-fashion-ui .nav{padding:8px 10px 18px;gap:4px}
+body.noc-fashion-ui .nav a{border-radius:12px;padding:11px 12px;color:#b8b8b2;font-size:13px;font-weight:650}
+body.noc-fashion-ui .nav a:hover{background:#1b1b1b;color:#fff}
+body.noc-fashion-ui .nav a.active{background:#f2f2eb;color:#111}
+body.noc-fashion-ui .topbar{background:rgba(244,244,240,.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(17,17,17,.06)}
+body.noc-fashion-ui .content{padding:28px}
+body.noc-fashion-ui .noc-view .card{background:rgba(255,255,255,.98);border:1px solid var(--nf-line);border-radius:var(--nf-radius);box-shadow:var(--nf-shadow)}
+body.noc-fashion-ui .noc-view h2{font-size:24px;font-weight:720;letter-spacing:-.035em}
+body.noc-fashion-ui .noc-view .muted{color:var(--nf-muted)}
+body.noc-fashion-ui .noc-view .btn{border-radius:999px;min-height:40px;padding:9px 15px;border:1px solid #dbdbd5;background:#fff;color:#111;font-size:12px;font-weight:750;box-shadow:none}
+body.noc-fashion-ui .noc-view .btn-primary{background:#111;border-color:#111;color:#fff}
+body.noc-fashion-ui .noc-view .btn-danger{background:#fff;color:#9c2d2d;border-color:#ecd1d1}
+body.noc-fashion-ui .noc-view input,body.noc-fashion-ui .noc-view select,body.noc-fashion-ui .noc-view textarea{border:1px solid #deded8;background:#fbfbf8;border-radius:12px;min-height:42px;box-shadow:none}
+body.noc-fashion-ui .noc-view input:focus,body.noc-fashion-ui .noc-view select:focus,body.noc-fashion-ui .noc-view textarea:focus{border-color:#9aa669;box-shadow:0 0 0 3px rgba(220,233,170,.35)}
+body.noc-fashion-ui .noc-view label{font-size:10px;color:#72726b;text-transform:uppercase;letter-spacing:.075em;font-weight:800}
+body.noc-fashion-ui .noc-view .table-wrap{border-radius:14px;border:1px solid #ecece7;overflow:auto;background:#fff}
+body.noc-fashion-ui .noc-view thead th{background:#f7f7f2;color:#74746d;text-transform:uppercase;letter-spacing:.055em;font-size:10px;font-weight:800;border-bottom:1px solid #e8e8e2}
+body.noc-fashion-ui .noc-view tbody td{border-bottom:1px solid #efefea;padding-top:13px;padding-bottom:13px}
+body.noc-fashion-ui .noc-view tbody tr:hover td{background:#fcfcf8}
+
+/* Inicio */
+body.noc-fashion-ui .noc-view-home .home-clean{padding:42px;min-height:300px;position:relative;overflow:hidden;background:linear-gradient(120deg,#fff,#fbfbf7)}
+body.noc-fashion-ui .noc-view-home .home-clean:after{content:"NOC";position:absolute;right:32px;bottom:-23px;font-size:126px;line-height:1;font-weight:900;letter-spacing:-.08em;color:rgba(17,17,17,.028);pointer-events:none}
+body.noc-fashion-ui .noc-view-home .dashboard-eyebrow{color:var(--nf-accent-deep);font-size:10px;letter-spacing:.18em}
+body.noc-fashion-ui .noc-view-home h2{font-size:36px;margin-top:6px}
+body.noc-fashion-ui .noc-view-home .home-actions{margin-top:34px;gap:10px}
+
+/* Proformas */
+body.noc-fashion-ui .noc-view-proformas>.card{padding:20px}
+body.noc-fashion-ui .noc-view-proformas .toolbar{padding-bottom:18px;border-bottom:1px solid #ecece7;margin-bottom:18px}
+body.noc-fashion-ui .noc-view-proformas #pfSearch{min-width:280px;background:#f7f7f3}
+body.noc-fashion-ui .noc-view-proformas .btn-small{min-height:32px;padding:6px 10px;font-size:11px}
+
+/* Informes / Dashboard */
+body.noc-fashion-ui .noc-view-informes{gap:18px}
+body.noc-fashion-ui .noc-view-informes>.card:first-child{padding:20px}
+body.noc-fashion-ui .report-tabs{display:flex;gap:7px;padding:5px;border:1px solid #e5e5df;border-radius:999px;background:#f6f6f1;width:max-content;max-width:100%;overflow:auto}
+body.noc-fashion-ui .report-tabs .btn{border:0;background:transparent;min-height:34px;padding:7px 13px;white-space:nowrap}
+body.noc-fashion-ui .report-tabs .btn-primary{background:#111;color:#fff}
+body.noc-fashion-ui .report-brand,body.noc-fashion-ui .dashboard-eyebrow{color:var(--nf-accent-deep);letter-spacing:.16em;font-size:10px;font-weight:800}
+body.noc-fashion-ui .dash-metric-card{border-radius:16px;border:1px solid #e6e6e0;box-shadow:none;padding:20px}
+body.noc-fashion-ui .dash-metric-card.primary{background:#111;color:#fff;border-color:#111}
+body.noc-fashion-ui .dash-metric-card.primary .dash-metric-label{color:#c5c5be}
+body.noc-fashion-ui .dash-metric-card.primary .dash-compare-chip{background:var(--nf-accent);color:#111}
+body.noc-fashion-ui .dash-insight{border-radius:16px;border:1px solid #e6e6e0;background:#fff;padding:18px}
+body.noc-fashion-ui .dash-insight em{color:var(--nf-accent-deep)}
+body.noc-fashion-ui .dashboard-privacy{box-shadow:none;background:#f8f8f4;border-style:dashed}
+
+/* Modales */
+body.noc-fashion-ui .modal-card{border-radius:20px;border:1px solid #e5e5df;box-shadow:0 30px 90px rgba(17,17,17,.18)}
+body.noc-fashion-ui .modal-head{border-bottom:1px solid #ecece7}
+body.noc-fashion-ui .modal-foot{border-top:1px solid #ecece7;background:#fafaf6}
+
+@media(max-width:900px){body.noc-fashion-ui .content{padding:18px}.noc-view-home .home-clean{padding:28px}}
+@media(max-width:620px){body.noc-fashion-ui .content{padding:12px}body.noc-fashion-ui .noc-view-home h2{font-size:30px}body.noc-fashion-ui .noc-view-home .home-actions .btn{width:100%}body.noc-fashion-ui .report-tabs{width:100%}}

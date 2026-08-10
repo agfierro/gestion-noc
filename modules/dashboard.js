@@ -408,7 +408,7 @@ NOC.Dashboard=(()=>{
 
   async function render(){
     document.getElementById("viewContainer").innerHTML=`
-      <div class="grid">
+      <div class="grid noc-view noc-view-home">
         <div class="card col-12 home-clean">
           <div class="dashboard-eyebrow">NOC THE BRAND</div>
           <h2>Inicio</h2>

@@ -40,7 +40,7 @@ NOC.Informes=(()=>{
     )].sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
 
     document.getElementById("viewContainer").innerHTML=`
-      <div class="grid">
+      <div class="grid noc-view noc-view-informes">
         <div class="card col-12">
           <div class="report-tabs">
             <button class="btn ${currentReport==="dashboard"?"btn-primary":""}" onclick="NOC.Informes.cambiarInforme('dashboard')">Dashboard</button>
