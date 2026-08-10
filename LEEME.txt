@@ -1,29 +1,31 @@
-V3.7.0 - PROPUESTA VISUAL NOC
+V3.7.1 - FRONTEND NOC CORREGIDO
 
-Primera prueba real del nuevo frontend:
-- navegación lateral
+La V3.7.0 podía quedar visualmente anulada porque responsive.css se carga después de styles.css.
+
+CORRECCIÓN
+- Nuevo archivo css/noc-fashion.css.
+- Se carga DESPUÉS de responsive.css.
+- La clase noc-fashion-ui va directamente en <body>.
+- Se han reforzado selectores y prioridades.
+- Cambios visuales deliberadamente más evidentes.
+
+ALCANCE
+- Navegación lateral
+- Barra superior
 - Inicio
 - Proformas
 - Informes / Dashboard
-- modales
+- Tablas, botones, campos y modales
 
-Estética:
-- minimalista
-- editorial / fashion
-- blanco + negro
-- verde NOC muy contenido
-- tablas más ligeras
-- botones más sobrios
-- más aire y jerarquía visual
-
-NO CAMBIA NINGUNA LÓGICA.
 NO HAY SQL.
+NO CAMBIA LÓGICA DE NEGOCIO.
 
-Sustituye:
+Sustituye / añade:
 - index.html
-- css/styles.css
+- css/noc-fashion.css
 - modules/dashboard.js
 - modules/proformas.js
 - modules/informes.js
 
-Si gusta esta línea, se extiende después a Clientes, Artículos, Facturas, Gastos, Empresa, Herramientas, Configuración y Login.
+IMPORTANTE:
+noc-fashion.css es NUEVO y debe quedar dentro de la carpeta css.

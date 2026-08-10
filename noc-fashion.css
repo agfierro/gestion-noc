@@ -1,0 +1,334 @@
+
+/* =========================================================
+   NOC FASHION UI — V3.7.1
+   Cargado DESPUÉS de responsive.css para tener prioridad.
+   Propuesta visual deliberadamente visible.
+   ========================================================= */
+
+:root{
+  --nf-black:#0e0e0e;
+  --nf-paper:#f2f2ed;
+  --nf-white:#ffffff;
+  --nf-cream:#fafaf6;
+  --nf-line:#deded7;
+  --nf-muted:#797970;
+  --nf-green:#dce9aa;
+  --nf-green-dark:#68772e;
+  --nf-radius:20px;
+  --nf-shadow:0 16px 45px rgba(0,0,0,.06);
+}
+
+body.noc-fashion-ui{
+  background:var(--nf-paper)!important;
+  color:var(--nf-black)!important;
+}
+
+/* ===== SIDEBAR ===== */
+body.noc-fashion-ui .sidebar{
+  background:#0d0d0d!important;
+  border-right:0!important;
+  box-shadow:none!important;
+}
+body.noc-fashion-ui .sidebar .brand{
+  padding:24px 18px 20px!important;
+  border-bottom:1px solid rgba(255,255,255,.07)!important;
+}
+body.noc-fashion-ui .brand-logo{
+  width:50px!important;
+  height:50px!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  box-shadow:none!important;
+}
+body.noc-fashion-ui .brand-title,
+body.noc-fashion-ui .brand-subtitle{
+  color:#fff!important;
+}
+body.noc-fashion-ui .nav{
+  padding:14px 10px!important;
+  gap:5px!important;
+}
+body.noc-fashion-ui .nav a{
+  color:#aaa9a2!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:13px!important;
+  min-height:43px!important;
+  padding:11px 13px!important;
+  font-size:13px!important;
+  font-weight:650!important;
+}
+body.noc-fashion-ui .nav a:hover{
+  background:#1a1a1a!important;
+  color:#fff!important;
+}
+body.noc-fashion-ui .nav a.active{
+  background:var(--nf-green)!important;
+  color:#111!important;
+  font-weight:800!important;
+}
+
+/* ===== TOP BAR ===== */
+body.noc-fashion-ui .topbar{
+  background:rgba(242,242,237,.92)!important;
+  backdrop-filter:blur(16px)!important;
+  border-bottom:1px solid rgba(0,0,0,.06)!important;
+  min-height:82px!important;
+  padding:15px 28px!important;
+}
+body.noc-fashion-ui #pageTitle{
+  font-size:24px!important;
+  font-weight:760!important;
+  letter-spacing:-.04em!important;
+}
+body.noc-fashion-ui #pageSubtitle{
+  color:#84847d!important;
+  font-size:12px!important;
+}
+body.noc-fashion-ui .view-container{
+  padding:30px!important;
+}
+
+/* ===== CARDS ===== */
+body.noc-fashion-ui .card{
+  border:1px solid var(--nf-line)!important;
+  border-radius:var(--nf-radius)!important;
+  background:var(--nf-white)!important;
+  box-shadow:var(--nf-shadow)!important;
+}
+body.noc-fashion-ui h2{
+  letter-spacing:-.04em!important;
+}
+
+/* ===== BUTTONS ===== */
+body.noc-fashion-ui .btn{
+  border-radius:999px!important;
+  min-height:40px!important;
+  padding:9px 16px!important;
+  border:1px solid #d7d7d0!important;
+  background:#fff!important;
+  color:#111!important;
+  font-weight:750!important;
+  box-shadow:none!important;
+}
+body.noc-fashion-ui .btn:hover{
+  transform:translateY(-1px)!important;
+  border-color:#aead9f!important;
+}
+body.noc-fashion-ui .btn-primary{
+  background:#111!important;
+  border-color:#111!important;
+  color:#fff!important;
+}
+body.noc-fashion-ui .btn-danger{
+  background:#fff!important;
+  color:#a13333!important;
+  border-color:#edcdcd!important;
+}
+body.noc-fashion-ui .icon-btn{
+  border-radius:12px!important;
+}
+
+/* ===== INPUTS ===== */
+body.noc-fashion-ui input,
+body.noc-fashion-ui select,
+body.noc-fashion-ui textarea{
+  background:#f9f9f5!important;
+  border:1px solid #dcdcd5!important;
+  border-radius:13px!important;
+  min-height:43px!important;
+  box-shadow:none!important;
+}
+body.noc-fashion-ui input:focus,
+body.noc-fashion-ui select:focus,
+body.noc-fashion-ui textarea:focus{
+  outline:none!important;
+  border-color:#909c61!important;
+  box-shadow:0 0 0 3px rgba(220,233,170,.42)!important;
+}
+body.noc-fashion-ui label{
+  text-transform:uppercase!important;
+  letter-spacing:.07em!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  color:#6f6f68!important;
+}
+
+/* ===== TABLES ===== */
+body.noc-fashion-ui .table-wrap{
+  border:1px solid #e7e7e1!important;
+  border-radius:15px!important;
+  overflow:auto!important;
+  background:#fff!important;
+}
+body.noc-fashion-ui table{
+  border-collapse:separate!important;
+  border-spacing:0!important;
+}
+body.noc-fashion-ui thead th{
+  background:#f5f5f0!important;
+  color:#74746d!important;
+  font-size:10px!important;
+  text-transform:uppercase!important;
+  letter-spacing:.06em!important;
+  border-bottom:1px solid #dfdfd8!important;
+}
+body.noc-fashion-ui tbody td{
+  padding-top:14px!important;
+  padding-bottom:14px!important;
+  border-bottom:1px solid #ecece6!important;
+}
+body.noc-fashion-ui tbody tr:hover td{
+  background:#fbfbf7!important;
+}
+
+/* ===== HOME: very obvious visual change ===== */
+body.noc-fashion-ui .noc-view-home .home-clean{
+  padding:48px!important;
+  min-height:360px!important;
+  background:
+    radial-gradient(circle at 82% 20%,rgba(220,233,170,.65),transparent 28%),
+    linear-gradient(145deg,#fff 0%,#fafaf5 100%)!important;
+  position:relative!important;
+  overflow:hidden!important;
+}
+body.noc-fashion-ui .noc-view-home .home-clean::before{
+  content:"NOT ORDINARY";
+  position:absolute;
+  right:42px;
+  top:38px;
+  font-size:10px;
+  letter-spacing:.28em;
+  font-weight:800;
+  color:#777;
+}
+body.noc-fashion-ui .noc-view-home .home-clean::after{
+  content:"NOC";
+  position:absolute;
+  right:32px;
+  bottom:-32px;
+  font-size:160px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-.09em;
+  color:rgba(0,0,0,.035);
+}
+body.noc-fashion-ui .noc-view-home h2{
+  font-size:44px!important;
+  margin:8px 0 5px!important;
+}
+body.noc-fashion-ui .noc-view-home .dashboard-eyebrow{
+  color:var(--nf-green-dark)!important;
+  letter-spacing:.2em!important;
+  font-size:10px!important;
+}
+body.noc-fashion-ui .noc-view-home .home-actions{
+  margin-top:40px!important;
+  gap:10px!important;
+}
+
+/* ===== PROFORMAS ===== */
+body.noc-fashion-ui .noc-view-proformas>.card{
+  padding:23px!important;
+}
+body.noc-fashion-ui .noc-view-proformas .toolbar{
+  margin-bottom:20px!important;
+  padding-bottom:19px!important;
+  border-bottom:1px solid #e8e8e2!important;
+}
+body.noc-fashion-ui .noc-view-proformas #pfSearch{
+  min-width:320px!important;
+  background:#f7f7f2!important;
+}
+body.noc-fashion-ui .noc-view-proformas .btn-small{
+  min-height:31px!important;
+  padding:5px 10px!important;
+  font-size:10px!important;
+}
+
+/* ===== REPORTS ===== */
+body.noc-fashion-ui .noc-view-informes{
+  gap:20px!important;
+}
+body.noc-fashion-ui .noc-view-informes>.card:first-child{
+  padding:24px!important;
+}
+body.noc-fashion-ui .report-tabs{
+  display:flex!important;
+  gap:6px!important;
+  padding:5px!important;
+  border:1px solid #ddddD6!important;
+  border-radius:999px!important;
+  background:#ededE7!important;
+  width:max-content!important;
+  max-width:100%!important;
+  overflow:auto!important;
+}
+body.noc-fashion-ui .report-tabs .btn{
+  min-height:35px!important;
+  padding:7px 14px!important;
+  background:transparent!important;
+  border:0!important;
+  white-space:nowrap!important;
+}
+body.noc-fashion-ui .report-tabs .btn-primary{
+  background:#111!important;
+  color:#fff!important;
+}
+body.noc-fashion-ui .report-brand,
+body.noc-fashion-ui .dashboard-eyebrow{
+  color:var(--nf-green-dark)!important;
+}
+body.noc-fashion-ui .dash-metric-card{
+  border-radius:18px!important;
+  padding:22px!important;
+  box-shadow:none!important;
+}
+body.noc-fashion-ui .dash-metric-card.primary{
+  background:#111!important;
+  color:#fff!important;
+  border-color:#111!important;
+}
+body.noc-fashion-ui .dash-metric-card.primary .dash-metric-label{
+  color:#c7c7c0!important;
+}
+body.noc-fashion-ui .dash-metric-card.primary .dash-compare-chip{
+  background:var(--nf-green)!important;
+  color:#111!important;
+}
+body.noc-fashion-ui .dash-insight{
+  border-radius:18px!important;
+  padding:20px!important;
+  box-shadow:none!important;
+}
+body.noc-fashion-ui .dash-insight em{
+  color:var(--nf-green-dark)!important;
+}
+
+/* ===== MODALS ===== */
+body.noc-fashion-ui .modal-card{
+  border-radius:22px!important;
+  border:1px solid #deded8!important;
+  box-shadow:0 35px 100px rgba(0,0,0,.20)!important;
+}
+body.noc-fashion-ui .modal-head{
+  border-bottom:1px solid #e8e8e2!important;
+}
+body.noc-fashion-ui .modal-foot{
+  background:#f8f8f4!important;
+  border-top:1px solid #e8e8e2!important;
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:900px){
+  body.noc-fashion-ui .view-container{padding:18px!important}
+  body.noc-fashion-ui .topbar{padding:13px 18px!important}
+  body.noc-fashion-ui .noc-view-home .home-clean{padding:34px!important}
+}
+@media(max-width:620px){
+  body.noc-fashion-ui .view-container{padding:12px!important}
+  body.noc-fashion-ui .noc-view-home h2{font-size:34px!important}
+  body.noc-fashion-ui .noc-view-home .home-clean::after{font-size:100px!important}
+  body.noc-fashion-ui .noc-view-home .home-actions .btn{width:100%!important}
+  body.noc-fashion-ui .report-tabs{width:100%!important}
+}
