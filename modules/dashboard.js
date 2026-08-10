@@ -4,6 +4,32 @@ NOC.Dashboard=(()=>{
   let lastResult=null;
   const MONTHS=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
+  const PROV_COMUNIDAD={
+    "alava":"País Vasco","araba":"País Vasco","bizkaia":"País Vasco","vizcaya":"País Vasco","gipuzkoa":"País Vasco","guipuzcoa":"País Vasco",
+    "a coruna":"Galicia","coruna":"Galicia","la coruna":"Galicia","lugo":"Galicia","ourense":"Galicia","orense":"Galicia","pontevedra":"Galicia",
+    "asturias":"Asturias","cantabria":"Cantabria","navarra":"Navarra","la rioja":"La Rioja","rioja":"La Rioja",
+    "huesca":"Aragón","teruel":"Aragón","zaragoza":"Aragón",
+    "barcelona":"Cataluña","girona":"Cataluña","gerona":"Cataluña","lleida":"Cataluña","lerida":"Cataluña","tarragona":"Cataluña",
+    "castellon":"Comunidad Valenciana","castello":"Comunidad Valenciana","valencia":"Comunidad Valenciana","alicante":"Comunidad Valenciana","alacant":"Comunidad Valenciana",
+    "murcia":"Región de Murcia","albacete":"Castilla-La Mancha","ciudad real":"Castilla-La Mancha","cuenca":"Castilla-La Mancha","guadalajara":"Castilla-La Mancha","toledo":"Castilla-La Mancha",
+    "avila":"Castilla y León","burgos":"Castilla y León","leon":"Castilla y León","palencia":"Castilla y León","salamanca":"Castilla y León","segovia":"Castilla y León","soria":"Castilla y León","valladolid":"Castilla y León","zamora":"Castilla y León",
+    "madrid":"Comunidad de Madrid","badajoz":"Extremadura","caceres":"Extremadura",
+    "almeria":"Andalucía","cadiz":"Andalucía","cordoba":"Andalucía","granada":"Andalucía","huelva":"Andalucía","jaen":"Andalucía","malaga":"Andalucía","sevilla":"Andalucía",
+    "illes balears":"Islas Baleares","islas baleares":"Islas Baleares","baleares":"Islas Baleares",
+    "las palmas":"Canarias","santa cruz de tenerife":"Canarias","ceuta":"Ceuta","melilla":"Melilla"
+  };
+  const cleanKey=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLocaleLowerCase("es");
+  const comunidadDe=prov=>PROV_COMUNIDAD[cleanKey(prov)]||String(prov||"Sin comunidad");
+  function topBy(rows,keyFn,valueFn){
+    const m=new Map();
+    rows.forEach(r=>{
+      const k=String(keyFn(r)||"").trim();
+      if(!k)return;
+      m.set(k,(m.get(k)||0)+Number(valueFn(r)||0));
+    });
+    return [...m.entries()].sort((a,b)=>b[1]-a[1])[0]||["—",0];
+  }
+
   const norm=v=>String(v||"").trim().toLocaleLowerCase("es");
   const isParticular=f=>norm(f.clientes?.nombre_tienda)==="particular";
   const money=n=>NOC.App.money(Number(n||0));
@@ -200,7 +226,7 @@ NOC.Dashboard=(()=>{
       const maxTo=ranges.map(r=>r.to).sort().slice(-1)[0];
 
       const {data,error}=await NOC.API.db().from("facturas")
-        .select("id,fecha,total,clientes(nombre_tienda)")
+        .select("id,fecha,base_imponible,total,cliente_id,clientes(nombre_tienda,localidad_facturacion,provincia_facturacion)")
         .gte("fecha",minFrom).lte("fecha",maxTo)
         .order("fecha",{ascending:true});
       if(error)throw error;
@@ -227,7 +253,44 @@ NOC.Dashboard=(()=>{
         };
       });
 
-      lastResult={cfg,category,yearly};
+      // Insights directos únicamente para el periodo principal.
+      const baseRange=ranges.find(r=>r.year===cfg.baseYear)||ranges[0];
+      const baseFacturas=filtered.filter(r=>r.fecha>=baseRange.from&&r.fecha<=baseRange.to);
+      const baseIds=baseFacturas.map(r=>r.id);
+      let lineas=[];
+      if(baseIds.length){
+        const {data:ld,error:le}=await NOC.API.db().from("lineas_factura")
+          .select("factura_id,articulo_id,descripcion,cantidad,precio_unitario,descuento,es_envio,articulos(nombre_producto,fabrica,precio_coste)")
+          .in("factura_id",baseIds)
+          .eq("es_envio",false);
+        if(le)throw le;
+        lineas=ld||[];
+      }
+
+      const artMap=new Map(),fabMap=new Map();
+      lineas.forEach(l=>{
+        const a=l.articulos||{};
+        const name=a.nombre_producto||l.descripcion||"Sin artículo";
+        const fab=a.fabrica||"Sin fábrica";
+        const qty=Number(l.cantidad||0);
+        const netUnit=Number(l.precio_unitario||0)*(1-Number(l.descuento||0)/100);
+        const amount=netUnit*qty;
+        const margin=(netUnit-Number(a.precio_coste||0))*qty;
+        if(!artMap.has(name))artMap.set(name,{name,unidades:0,facturado:0,margen:0});
+        const ar=artMap.get(name);ar.unidades+=qty;ar.facturado+=amount;ar.margen+=margin;
+        if(!fabMap.has(fab))fabMap.set(fab,{name:fab,unidades:0,facturado:0,margen:0});
+        const fr=fabMap.get(fab);fr.unidades+=qty;fr.facturado+=amount;fr.margen+=margin;
+      });
+      const arts=[...artMap.values()];
+      const fabs=[...fabMap.values()];
+      const topArticulo=[...arts].sort((a,b)=>b.unidades-a.unidades)[0]||null;
+      const topRentable=[...arts].sort((a,b)=>b.margen-a.margen)[0]||null;
+      const topFabrica=[...fabs].sort((a,b)=>b.facturado-a.facturado)[0]||null;
+      const [topTienda,topTiendaBase]=topBy(baseFacturas,r=>r.clientes?.nombre_tienda,r=>r.base_imponible);
+      const [topLocalidad,topLocalidadBase]=topBy(baseFacturas,r=>r.clientes?.localidad_facturacion,r=>r.base_imponible);
+      const [topComunidad,topComunidadBase]=topBy(baseFacturas,r=>comunidadDe(r.clientes?.provincia_facturacion),r=>r.base_imponible);
+
+      lastResult={cfg,category,yearly,insights:{topArticulo,topRentable,topFabrica,topTienda,topTiendaBase,topLocalidad,topLocalidadBase,topComunidad,topComunidadBase}};
       NOC.App.hideProgress();
       drawResults();
     }catch(e){
@@ -245,7 +308,7 @@ NOC.Dashboard=(()=>{
 
   function drawResults(){
     if(!lastResult)return;
-    const {cfg,category,yearly}=lastResult;
+    const {cfg,category,yearly,insights}=lastResult;
     const base=yearly.find(y=>y.year===cfg.baseYear)||yearly[0];
     const comparisons=yearly.filter(y=>y.year!==base.year);
     const catLabel={all:"Todas las ventas",pos:"Puntos de venta",particular:"Particulares"}[category];
@@ -294,6 +357,20 @@ NOC.Dashboard=(()=>{
         <div class="dash-metric-card"><div class="dash-metric-label">Puntos de venta</div><div class="dash-metric-value">${money(base.pos)}</div><div class="muted">${base.year}</div></div>
         <div class="dash-metric-card"><div class="dash-metric-label">Particulares</div><div class="dash-metric-value">${money(base.particular)}</div><div class="muted">${base.year}</div></div>
         <div class="dash-metric-card"><div class="dash-metric-label">N.º facturas</div><div class="dash-metric-value">${base.count}</div><div class="muted">${catLabel}</div></div>
+      </div>
+
+      <div class="card dash-insights-card">
+        <div class="dashboard-card-head">
+          <div><div class="dashboard-eyebrow">INSIGHTS</div><h2>Lo más destacado del periodo</h2><div class="muted">Consultas directas sobre ventas reales</div></div>
+        </div>
+        <div class="dash-insight-grid">
+          <div class="dash-insight"><span>Artículo más vendido</span><strong>${NOC.App.esc(insights?.topArticulo?.name||"—")}</strong><em>${insights?.topArticulo?`${Number(insights.topArticulo.unidades).toLocaleString("es-ES")} uds.`:"Sin datos"}</em></div>
+          <div class="dash-insight"><span>Artículo más rentable</span><strong>${NOC.App.esc(insights?.topRentable?.name||"—")}</strong><em>${insights?.topRentable?`${money(insights.topRentable.margen)} margen`:"Sin datos"}</em></div>
+          <div class="dash-insight"><span>Fábrica nº1</span><strong>${NOC.App.esc(insights?.topFabrica?.name||"—")}</strong><em>${insights?.topFabrica?`${money(insights.topFabrica.facturado)} facturado`:"Sin datos"}</em></div>
+          <div class="dash-insight"><span>Punto de venta nº1</span><strong>${NOC.App.esc(insights?.topTienda||"—")}</strong><em>${insights?.topTiendaBase?`${money(insights.topTiendaBase)} base`:"Sin datos"}</em></div>
+          <div class="dash-insight"><span>Localidad nº1</span><strong>${NOC.App.esc(insights?.topLocalidad||"—")}</strong><em>${insights?.topLocalidadBase?`${money(insights.topLocalidadBase)} base`:"Sin datos"}</em></div>
+          <div class="dash-insight"><span>Comunidad nº1</span><strong>${NOC.App.esc(insights?.topComunidad||"—")}</strong><em>${insights?.topComunidadBase?`${money(insights.topComunidadBase)} base`:"Sin datos"}</em></div>
+        </div>
       </div>
 
       <div class="card dashboard-chart-card">

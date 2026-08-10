@@ -266,3 +266,13 @@ td.actions{display:flex;gap:6px}
 .article-report-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}
 .rank-badge{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;background:#eef3cf;font-size:10px;font-weight:850}
 @media(max-width:700px){.article-report-metrics{grid-template-columns:1fr}}
+
+/* V3.6.2 - Insights directos + informe puntos de venta */
+.dash-insights-card{padding:20px}
+.dash-insight-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.dash-insight{border:1px solid var(--line);border-radius:13px;padding:15px;background:linear-gradient(145deg,#fff,#fafafa);display:flex;flex-direction:column;gap:5px;min-width:0}
+.dash-insight span{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:750}
+.dash-insight strong{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-insight em{font-style:normal;font-size:12px;color:#738224;font-weight:700}
+@media(max-width:900px){.dash-insight-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.dash-insight-grid{grid-template-columns:1fr}}

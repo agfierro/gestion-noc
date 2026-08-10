@@ -1,52 +1,44 @@
-V3.6.1 - INICIO LIMPIO + INFORME DE ARTÍCULOS
-
-INICIO
-- Ya no muestra cifras ni dashboard.
-- Solo acciones rápidas:
-  Nueva proforma
-  Clientes
-  Artículos
-  Informes
-
-INFORMES
-Ahora contiene:
-- Dashboard
-- Por comercial
-- Ventas
-- Artículos
+V3.6.2 - INSIGHTS EN DASHBOARD + INFORME >3.000 €
 
 DASHBOARD
-- Se conserva el dashboard comparativo creado en V3.6.0.
-- Ahora está dentro de Informes, no en Inicio.
+Se añade un bloque moderno "Lo más destacado del periodo":
+- Artículo más vendido (unidades netas)
+- Artículo más rentable (margen generado)
+- Fábrica nº1 (importe facturado de artículos)
+- Punto de venta nº1 (base imponible)
+- Localidad nº1 (base imponible)
+- Comunidad nº1 (base imponible)
 
-INFORME DE ARTÍCULOS
-Todos los filtros son OPCIONALES:
-- Fecha inicio
-- Fecha fin
-- Fábrica
-- Tipo
-- Artículo
+Respeta los filtros del Dashboard:
+- periodo
+- categoría
+- año principal
 
-Si no seleccionas filtros, muestra todas las ventas facturadas.
+Los abonos negativos restan en unidades, facturación y margen.
 
-RESULTADOS
-- Artículo
-- SKU
-- Tipo
-- Fábrica
-- Unidades vendidas netas
-- Importe facturado de las líneas
+INFORMES
+Nueva pestaña:
+Puntos de venta +3.000 €
 
-Orden por defecto: unidades vendidas de mayor a menor.
-Los abonos con cantidades negativas RESTAN unidades e importe.
+Filtros:
+- Año
+- Base mínima (por defecto 3.000 €)
 
-Incluye:
-- Total unidades netas
-- Facturación total de líneas
-- Nº artículos distintos
-- Ranking #1, #2 y #3
-- Exportar CSV
-- Imprimir / Guardar PDF
+Agrupa todas las facturas del año por punto de venta.
+Excluye Nombre de tienda = Particular.
+Muestra:
+- Tienda
+- Cliente
+- CIF/NIF
+- Localidad
+- Provincia
+- Nº facturas
+- Base
+- IVA
+- RE
+- Total
+
+Incluye CSV y PDF/impresión.
 
 NO HAY SQL.
 

@@ -47,6 +47,7 @@ NOC.Informes=(()=>{
             <button class="btn ${currentReport==="comercial"?"btn-primary":""}" onclick="NOC.Informes.cambiarInforme('comercial')">Por comercial</button>
             <button class="btn ${currentReport==="ventas"?"btn-primary":""}" onclick="NOC.Informes.cambiarInforme('ventas')">Ventas</button>
             <button class="btn ${currentReport==="articulos"?"btn-primary":""}" onclick="NOC.Informes.cambiarInforme('articulos')">Artículos</button>
+            <button class="btn ${currentReport==="fiscal3000"?"btn-primary":""}" onclick="NOC.Informes.cambiarInforme('fiscal3000')">Puntos de venta +3.000 €</button>
           </div>
           <div id="reportFilters"></div>
         </div>
@@ -58,6 +59,7 @@ NOC.Informes=(()=>{
       await NOC.Dashboard.renderReport("reportFilters");
     }else if(currentReport==="ventas")drawVentasFilters();
     else if(currentReport==="articulos")await drawArticulosFilters();
+    else if(currentReport==="fiscal3000")await drawFiscal3000Filters();
     else drawCommercialFilters(comerciales);
   }
 
@@ -116,6 +118,76 @@ NOC.Informes=(()=>{
         <div class="field f3"><label>Fecha fin</label><input id="ventasHasta" type="date" required value="${isoToday()}"></div>
         <div class="f3 toolbar" style="align-items:end"><div></div><button class="btn btn-primary" type="submit">Generar informe</button></div>
       </form>`;
+  }
+
+  async function drawFiscal3000Filters(){
+    let anos=[];
+    try{
+      const {data,error}=await NOC.API.db().from("facturas").select("fecha").order("fecha",{ascending:false});
+      if(error)throw error;
+      anos=[...new Set((data||[]).map(r=>String(r.fecha||"").slice(0,4)).filter(Boolean))];
+    }catch(e){}
+    if(!anos.length)anos=[String(new Date().getFullYear())];
+    document.getElementById("reportFilters").innerHTML=`
+      <h2>Puntos de venta con más de 3.000 € de base</h2>
+      <p class="muted">Agrupa la facturación anual por punto de venta. Los particulares quedan excluidos.</p>
+      <form class="form-grid" onsubmit="event.preventDefault();NOC.Informes.generarFiscal3000()">
+        <div class="field f3"><label>Año</label><select id="fiscal3000Year">${anos.map(y=>`<option value="${y}">${y}</option>`).join("")}</select></div>
+        <div class="field f3"><label>Base mínima</label><input id="fiscal3000Min" type="number" step="0.01" value="3000"></div>
+        <div class="f6 toolbar" style="align-items:end"><div></div><button class="btn btn-primary" type="submit">Generar informe</button></div>
+      </form>`;
+  }
+
+  async function generarFiscal3000(){
+    const year=document.getElementById("fiscal3000Year").value;
+    const minimo=Number(document.getElementById("fiscal3000Min").value||3000);
+    const desde=`${year}-01-01`,hasta=`${year}-12-31`;
+    NOC.App.showProgress("Generando informe…",`Puntos de venta · ${year}`);
+    try{
+      const {data,error}=await NOC.API.db().from("facturas")
+        .select("id,cliente_id,base_imponible,iva,recargo,total,clientes(nombre_tienda,nombre,apellidos,dni_cif,localidad_facturacion,provincia_facturacion)")
+        .gte("fecha",desde).lte("fecha",hasta);
+      if(error)throw error;
+      const map=new Map();
+      (data||[]).filter(r=>String(r.clientes?.nombre_tienda||"").trim().toLocaleLowerCase("es")!=="particular").forEach(r=>{
+        const key=r.cliente_id||r.clientes?.nombre_tienda;
+        if(!map.has(key))map.set(key,{
+          tienda:r.clientes?.nombre_tienda||"",
+          cliente:[r.clientes?.nombre,r.clientes?.apellidos].filter(Boolean).join(" "),
+          cif:r.clientes?.dni_cif||"",
+          localidad:r.clientes?.localidad_facturacion||"",
+          provincia:r.clientes?.provincia_facturacion||"",
+          base:0,iva:0,re:0,total:0,facturas:0
+        });
+        const x=map.get(key);
+        x.base+=Number(r.base_imponible||0);x.iva+=Number(r.iva||0);x.re+=Number(r.recargo||0);x.total+=Number(r.total||0);x.facturas++;
+      });
+      currentRows=[...map.values()].filter(r=>r.base>minimo).sort((a,b)=>b.base-a.base);
+      currentCriteria={report:"fiscal3000",year,minimo};
+      NOC.App.hideProgress();
+      drawFiscal3000Result();
+    }catch(e){
+      NOC.App.hideProgress();
+      NOC.App.alertMessage("Error al generar informe","No se ha podido generar el informe. "+(e.message||e),"error");
+    }
+  }
+
+  function drawFiscal3000Result(){
+    const box=document.getElementById("reportResult"),c=currentCriteria;
+    const totals=currentRows.reduce((a,r)=>{a.base+=r.base;a.iva+=r.iva;a.re+=r.re;a.total+=r.total;return a},{base:0,iva:0,re:0,total:0});
+    box.style.display="";
+    box.innerHTML=`
+      <div class="report-head">
+        <div><div class="report-brand">NOC THE BRAND</div><h2 style="margin:2px 0 5px">Puntos de venta con más de ${NOC.App.money(c.minimo)} de base</h2><div class="muted">Año ${c.year}</div></div>
+        <div class="toolbar-right"><button class="btn" onclick="NOC.Informes.exportCsv()">Exportar CSV</button><button class="btn btn-primary" onclick="NOC.Informes.imprimir()">Imprimir / Guardar PDF</button></div>
+      </div>
+      <div class="table-wrap"><table class="report-table">
+        <thead><tr><th>Tienda</th><th>Cliente</th><th>CIF/NIF</th><th>Localidad</th><th>Provincia</th><th class="num">Nº facturas</th><th class="num">Base</th><th class="num">IVA</th><th class="num">RE</th><th class="num">Total</th></tr></thead>
+        <tbody>${currentRows.map(r=>`<tr><td><strong>${NOC.App.esc(r.tienda)}</strong></td><td>${NOC.App.esc(r.cliente)}</td><td>${NOC.App.esc(r.cif)}</td><td>${NOC.App.esc(r.localidad)}</td><td>${NOC.App.esc(r.provincia)}</td><td class="num">${r.facturas}</td><td class="num">${NOC.App.money(r.base)}</td><td class="num">${NOC.App.money(r.iva)}</td><td class="num">${NOC.App.money(r.re)}</td><td class="num"><strong>${NOC.App.money(r.total)}</strong></td></tr>`).join("")||`<tr><td colspan="10" class="empty">No hay puntos de venta que superen la base indicada.</td></tr>`}</tbody>
+        ${currentRows.length?`<tfoot><tr class="report-total-row"><td colspan="6"><strong>TOTALES</strong></td><td class="num"><strong>${NOC.App.money(totals.base)}</strong></td><td class="num"><strong>${NOC.App.money(totals.iva)}</strong></td><td class="num"><strong>${NOC.App.money(totals.re)}</strong></td><td class="num"><strong>${NOC.App.money(totals.total)}</strong></td></tr></tfoot>`:""}
+      </table></div>
+      <div class="report-count muted">${currentRows.length} punto(s) de venta</div>`;
+    box.scrollIntoView({behavior:"smooth",block:"start"});
   }
 
   async function drawArticulosFilters(){
@@ -359,6 +431,16 @@ NOC.Informes=(()=>{
 
   function exportCsv(){
     if(!currentCriteria||!currentRows.length)return NOC.App.alertMessage("Sin datos","No hay registros que exportar.","info");
+    if(currentCriteria.report==="fiscal3000"){
+      const headers=["Tienda","Cliente","CIF/NIF","Localidad","Provincia","Nº facturas","Base","IVA","RE","Total"];
+      const lines=[headers.map(csvCell).join(";")];
+      currentRows.forEach(r=>lines.push([r.tienda,r.cliente,r.cif,r.localidad,r.provincia,r.facturas,
+        r.base.toFixed(2).replace(".",","),r.iva.toFixed(2).replace(".",","),r.re.toFixed(2).replace(".",","),r.total.toFixed(2).replace(".",",")
+      ].map(csvCell).join(";")));
+      downloadBlob(`puntos_venta_mas_${currentCriteria.minimo}_${currentCriteria.year}.csv`,"\uFEFF"+lines.join("\r\n"),"text/csv;charset=utf-8");
+      return NOC.App.alertMessage("Exportación finalizada",`${currentRows.length} punto(s) de venta exportados.`,"success");
+    }
+
     if(currentCriteria.report==="articulos"){
       const headers=["Artículo","SKU","Tipo","Fábrica","Unidades vendidas","Importe facturado"];
       const lines=[headers.map(csvCell).join(";")];
@@ -417,6 +499,12 @@ NOC.Informes=(()=>{
     const w=window.open("","_blank","width=1200,height=800");
     if(!w)return NOC.App.alertMessage("Ventana bloqueada","Permite ventanas emergentes para imprimir el informe.","error");
 
+    if(c.report==="fiscal3000"){
+      const body=currentRows.map(r=>`<tr><td>${NOC.App.esc(r.tienda)}</td><td>${NOC.App.esc(r.cliente)}</td><td>${NOC.App.esc(r.cif)}</td><td>${NOC.App.esc(r.localidad)}</td><td>${NOC.App.esc(r.provincia)}</td><td class="n">${r.facturas}</td><td class="n">${NOC.App.money(r.base)}</td><td class="n">${NOC.App.money(r.iva)}</td><td class="n">${NOC.App.money(r.re)}</td><td class="n">${NOC.App.money(r.total)}</td></tr>`).join("");
+      w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Puntos de venta +3.000</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial,sans-serif;font-size:9px;color:#171717}.brand{font-size:11px;font-weight:800;letter-spacing:2px}h1{font-size:18px;margin:4px 0 4px}.meta{color:#555;margin-bottom:14px}table{width:100%;border-collapse:collapse}th{background:#eef3cf;text-align:left;padding:6px;border:1px solid #ddd}td{padding:6px;border:1px solid #e3e3e3}.n{text-align:right}</style></head><body><div class="brand">NOC THE BRAND</div><h1>Puntos de venta con más de ${NOC.App.money(c.minimo)} de base</h1><div class="meta">Año ${c.year}</div><table><thead><tr><th>Tienda</th><th>Cliente</th><th>CIF/NIF</th><th>Localidad</th><th>Provincia</th><th>Nº facturas</th><th>Base</th><th>IVA</th><th>RE</th><th>Total</th></tr></thead><tbody>${body}</tbody></table><script>window.onload=()=>window.print();</script></body></html>`);
+      return w.document.close();
+    }
+
     if(c.report==="articulos"){
       const totalU=currentRows.reduce((a,r)=>a+Number(r.unidades||0),0);
       const totalF=currentRows.reduce((a,r)=>a+Number(r.facturado||0),0);
@@ -454,5 +542,5 @@ NOC.Informes=(()=>{
     w.document.close();
   }
 
-  return{render,cambiarInforme,generarComercial,generarVentas,generarArticulos,exportCsv,imprimir};
+  return{render,cambiarInforme,generarComercial,generarVentas,generarArticulos,generarFiscal3000,exportCsv,imprimir};
 })();
