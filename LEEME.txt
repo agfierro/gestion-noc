@@ -1,42 +1,57 @@
-V3.6.0 - PRIMER DISEÑO DASHBOARD DE INICIO
+V3.6.1 - INICIO LIMPIO + INFORME DE ARTÍCULOS
 
-PRIVACIDAD
-- Al entrar en Inicio NO muestra ninguna cifra económica.
-- Tampoco conserva el último dashboard mostrado.
-- Solo aparecen datos tras pulsar "Mostrar dashboard".
-- Botón "Ocultar datos" vuelve a ocultarlo.
+INICIO
+- Ya no muestra cifras ni dashboard.
+- Solo acciones rápidas:
+  Nueva proforma
+  Clientes
+  Artículos
+  Informes
 
-FILTROS
-- Periodo:
-  Año completo
-  Trimestre
-  Semestre
-  Fechas personalizadas
-- Año principal
-- Categoría:
-  Todas
-  Puntos de venta
-  Particulares
-- Comparar con uno o varios años disponibles.
+INFORMES
+Ahora contiene:
+- Dashboard
+- Por comercial
+- Ventas
+- Artículos
+
+DASHBOARD
+- Se conserva el dashboard comparativo creado en V3.6.0.
+- Ahora está dentro de Informes, no en Inicio.
+
+INFORME DE ARTÍCULOS
+Todos los filtros son OPCIONALES:
+- Fecha inicio
+- Fecha fin
+- Fábrica
+- Tipo
+- Artículo
+
+Si no seleccionas filtros, muestra todas las ventas facturadas.
 
 RESULTADOS
-- Facturación del periodo.
-- Puntos de venta.
-- Particulares.
-- Número de facturas.
-- Porcentaje de variación frente a los años seleccionados.
-- Gráfica mensual comparativa.
-- Tabla mensual con total a la derecha.
+- Artículo
+- SKU
+- Tipo
+- Fábrica
+- Unidades vendidas netas
+- Importe facturado de las líneas
 
-Los datos proceden únicamente de FACTURAS.
-Particular se identifica por Nombre de tienda = "Particular".
+Orden por defecto: unidades vendidas de mayor a menor.
+Los abonos con cantidades negativas RESTAN unidades e importe.
 
-INSTALACIÓN
+Incluye:
+- Total unidades netas
+- Facturación total de líneas
+- Nº artículos distintos
+- Ranking #1, #2 y #3
+- Exportar CSV
+- Imprimir / Guardar PDF
+
+NO HAY SQL.
+
 Sustituye:
 - index.html
 - css/styles.css
 - modules/dashboard.js
-
-NO HAY SQL.
-
-Esta es una primera propuesta de diseño para verla funcionando y después ajustar distribución, filtros, tarjetas o gráfica.
+- modules/informes.js

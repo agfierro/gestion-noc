@@ -259,3 +259,10 @@ td.actions{display:flex;gap:6px}
  .dashboard-result-head,.dashboard-card-head{flex-direction:column}
  .dash-svg-wrap{height:220px}
 }
+
+/* V3.6.1 - Inicio limpio + Informe de artículos */
+.home-clean{padding:28px}
+.home-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.article-report-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}
+.rank-badge{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;background:#eef3cf;font-size:10px;font-weight:850}
+@media(max-width:700px){.article-report-metrics{grid-template-columns:1fr}}

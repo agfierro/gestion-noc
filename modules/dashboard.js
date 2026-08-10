@@ -13,7 +13,7 @@ NOC.Dashboard=(()=>{
     return `${sign}${n.toLocaleString("es-ES",{minimumFractionDigits:1,maximumFractionDigits:1})} %`;
   };
 
-  async function render(){
+  async function renderReport(containerId="viewContainer"){
     // Solo fechas: sirven para ofrecer los años disponibles sin mostrar información económica.
     try{
       const {data,error}=await NOC.API.db().from("facturas").select("fecha").order("fecha",{ascending:false});
@@ -25,7 +25,7 @@ NOC.Dashboard=(()=>{
     if(!years.length)years=[new Date().getFullYear()];
 
     const current=years[0]||new Date().getFullYear();
-    document.getElementById("viewContainer").innerHTML=`
+    document.getElementById(containerId).innerHTML=`
       <div class="dashboard-shell">
         <div class="card dashboard-filter-card">
           <div class="dashboard-heading">
@@ -107,14 +107,6 @@ NOC.Dashboard=(()=>{
 
         <div id="dashboardResults" style="display:none"></div>
 
-        <div class="card">
-          <h2>Acciones rápidas</h2>
-          <div class="toolbar-left">
-            <button class="btn btn-primary" onclick="NOC.App.openNewProforma()">Nueva proforma</button>
-            <button class="btn" onclick="NOC.App.show('clientes')">Clientes</button>
-            <button class="btn" onclick="NOC.App.show('articulos')">Artículos</button>
-          </div>
-        </div>
       </div>`;
     yearChanged();
   }
@@ -337,5 +329,22 @@ NOC.Dashboard=(()=>{
     return [...Array.from({length:13-start},(_,i)=>start+i),...Array.from({length:end},(_,i)=>i+1)];
   }
 
-  return{render,periodChanged,yearChanged,showDashboard,hideDashboard};
+  async function render(){
+    document.getElementById("viewContainer").innerHTML=`
+      <div class="grid">
+        <div class="card col-12 home-clean">
+          <div class="dashboard-eyebrow">NOC THE BRAND</div>
+          <h2>Inicio</h2>
+          <p class="muted">Acceso rápido a las operaciones habituales.</p>
+          <div class="home-actions">
+            <button class="btn btn-primary" onclick="NOC.App.openNewProforma()">+ Nueva proforma</button>
+            <button class="btn" onclick="NOC.App.show('clientes')">Clientes</button>
+            <button class="btn" onclick="NOC.App.show('articulos')">Artículos</button>
+            <button class="btn" onclick="NOC.App.show('informes')">Informes</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  return{render,renderReport,periodChanged,yearChanged,showDashboard,hideDashboard};
 })();
