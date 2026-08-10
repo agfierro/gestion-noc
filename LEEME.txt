@@ -1,31 +1,27 @@
-V3.8.1 - PROFORMAS CORREGIDAS
+V3.8.2 - CORRECCIÓN SAFARI ICONOS PROFORMAS
 
-CORRECCIONES
-- Checkboxes pequeños, cuadrados y compactos (16 x 16 px).
-- Ya no se ven ovalados ni agrandan la fila.
-- Iconos reales SVG para:
-  Ver
-  Editar
-  Cambiar estado
-- Filas compactas.
+PROBLEMA
+Safari estaba reutilizando archivos JS/CSS anteriores aunque Chrome y Edge ya mostraban los iconos correctamente.
 
-BARRA INFERIOR
-Siempre visible:
-- Marcar enviadas
-- Marcar facturadas
-- Marcar pendientes
-- Marcar canceladas
-- Eliminar
-- Facturar
+CORRECCIÓN
+Se usan nombres de archivo NUEVOS:
+- modules/proformas-v382.js
+- css/noc-fashion-v382.css
 
-ELIMINAR
-Elimina primero las líneas de la proforma y después la cabecera.
-Pide confirmación antes de borrar.
+Esto obliga a Safari a descargar archivos nuevos en vez de reutilizar la caché anterior.
 
-NO HAY SQL.
-NO SE CAMBIA LA LÓGICA DE FACTURACIÓN CORRELATIVA.
+También se refuerza el renderizado SVG de los botones de acción para Safari.
 
-Sustituye:
+INSTALACIÓN
+Añade / sustituye:
 - index.html
-- css/noc-fashion.css
-- modules/proformas.js
+- modules/proformas-v382.js
+- css/noc-fashion-v382.css
+
+NO borres de momento los archivos antiguos; simplemente deja estos nuevos también.
+NO HAY SQL.
+
+Después de publicar:
+1. Cierra las pestañas de Gestión NOC en Safari.
+2. Abre la web de nuevo.
+3. Safari ya deberá solicitar los archivos con nombres nuevos.
