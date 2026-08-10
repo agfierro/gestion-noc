@@ -429,3 +429,125 @@ body.noc-fashion-ui .modal-head,body.noc-fashion-ui .modal-foot{padding-left:20p
  .modern-filter-card{grid-template-columns:1fr}.modern-kpis{grid-template-columns:1fr 1fr}
  .modern-bulk-bar{align-items:flex-start;gap:10px;flex-direction:column}
 }
+
+/* V3.8.1 — correcciones visuales Proformas */
+
+/* Checkbox: override global input min-height/rounding */
+body.noc-fashion-ui .noc-proformas-modern input.modern-check,
+body.noc-fashion-ui .noc-proformas-modern thead input.modern-check,
+body.noc-fashion-ui .noc-proformas-modern tbody input.modern-check{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  display:inline-block!important;
+  box-sizing:border-box!important;
+  width:16px!important;
+  min-width:16px!important;
+  max-width:16px!important;
+  height:16px!important;
+  min-height:16px!important;
+  max-height:16px!important;
+  padding:0!important;
+  margin:0!important;
+  border:1px solid #c9cdd2!important;
+  border-radius:3px!important;
+  background:#fff!important;
+  box-shadow:none!important;
+  vertical-align:middle!important;
+  cursor:pointer!important;
+}
+body.noc-fashion-ui .noc-proformas-modern input.modern-check:checked{
+  background:#111!important;
+  border-color:#111!important;
+  box-shadow:inset 0 0 0 3px #fff!important;
+}
+body.noc-fashion-ui .modern-check-col{
+  width:42px!important;
+  min-width:42px!important;
+  max-width:42px!important;
+  padding-left:18px!important;
+  padding-right:8px!important;
+  text-align:center!important;
+}
+
+/* Row actions: proper line icons */
+body.noc-fashion-ui .modern-actions{
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+}
+body.noc-fashion-ui .modern-icon-btn{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:32px!important;
+  min-width:32px!important;
+  height:32px!important;
+  min-height:32px!important;
+  padding:0!important;
+  border:1px solid #e0e3e6!important;
+  border-radius:7px!important;
+  background:#fff!important;
+  color:#111!important;
+  cursor:pointer!important;
+}
+body.noc-fashion-ui .modern-icon-btn svg{
+  width:16px!important;
+  height:16px!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:1.8!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+  pointer-events:none!important;
+}
+body.noc-fashion-ui .modern-icon-btn:hover{
+  background:#f3f5f4!important;
+  border-color:#cbd0cd!important;
+}
+
+/* Compact rows */
+body.noc-fashion-ui .modern-data-table tbody td{
+  height:48px!important;
+  padding-top:6px!important;
+  padding-bottom:6px!important;
+}
+
+/* Bulk quick-action bar, always visible */
+body.noc-fashion-ui .modern-bulk-bar{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:14px!important;
+  min-height:68px!important;
+  padding:12px 18px!important;
+  border-top:1px solid #e5e7e9!important;
+  background:#fff!important;
+}
+body.noc-fashion-ui .modern-bulk-bar:not(.has-selection) .modern-bulk-actions{
+  opacity:1!important;
+  pointer-events:auto!important;
+}
+body.noc-fashion-ui .modern-bulk-actions{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  flex-wrap:wrap!important;
+}
+body.noc-fashion-ui .modern-bulk-actions .btn{
+  min-height:36px!important;
+  padding:7px 13px!important;
+  background:#fff!important;
+  text-transform:uppercase!important;
+  letter-spacing:.015em!important;
+  font-size:10px!important;
+}
+body.noc-fashion-ui .modern-bulk-actions .bulk-enviada{color:#2364e8!important;border-color:#a9c3ff!important}
+body.noc-fashion-ui .modern-bulk-actions .bulk-facturada{color:#188244!important;border-color:#92d6aa!important}
+body.noc-fashion-ui .modern-bulk-actions .bulk-pendiente{color:#c87800!important;border-color:#f1bf6b!important}
+body.noc-fashion-ui .modern-bulk-actions .bulk-cancelada{color:#e13030!important;border-color:#ff9f9f!important}
+body.noc-fashion-ui .modern-bulk-actions .bulk-delete{color:#666!important;border-color:#d7d9dc!important}
+body.noc-fashion-ui .modern-bulk-actions .bulk-invoice{background:#111!important;color:#fff!important;border-color:#111!important}
+
+@media(max-width:900px){
+ body.noc-fashion-ui .modern-bulk-bar{align-items:flex-start!important;flex-direction:column!important}
+}

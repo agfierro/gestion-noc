@@ -112,8 +112,17 @@ NOC.Proformas=(()=>{
              <td><span class="modern-status ${pfStatusClass(r.estado)}">${NOC.App.esc(r.estado)}</span></td>
              <td>${NOC.App.esc(r.forma_pago||"Transferencia")}</td>
              <td class="modern-actions">
-               <button class="modern-icon-btn" title="Ver" onclick="NOC.Proformas.ver('${r.id}')">○</button>
-               ${esEnviada(r.estado)?`<button class="modern-icon-btn" title="Editar" onclick="NOC.Proformas.openEditor('${r.id}')">✎</button><button class="modern-icon-btn" title="Estado" onclick="NOC.Proformas.openStatus('${r.id}')">•••</button>`:(esCancelada(r.estado)?`<button class="modern-icon-btn" title="Estado" onclick="NOC.Proformas.openStatus('${r.id}')">•••</button>`:"")}
+               <button class="modern-icon-btn" title="Ver proforma" aria-label="Ver proforma" onclick="NOC.Proformas.ver('${r.id}')">
+                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.8 12s3.5-6 9.2-6 9.2 6 9.2 6-3.5 6-9.2 6-9.2-6-9.2-6Z"/><circle cx="12" cy="12" r="2.6"/></svg>
+               </button>
+               ${esEnviada(r.estado)?`<button class="modern-icon-btn" title="Editar" aria-label="Editar" onclick="NOC.Proformas.openEditor('${r.id}')">
+                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.4-10.4a2.2 2.2 0 0 0-3.1-3.1L5 16.8 4 20Z"/><path d="m14 7.8 3.1 3.1"/></svg>
+               </button>
+               <button class="modern-icon-btn" title="Cambiar estado" aria-label="Cambiar estado" onclick="NOC.Proformas.openStatus('${r.id}')">
+                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>
+               </button>`:(esCancelada(r.estado)?`<button class="modern-icon-btn" title="Cambiar estado" aria-label="Cambiar estado" onclick="NOC.Proformas.openStatus('${r.id}')">
+                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>
+               </button>`:"")}
              </td>
            </tr>`).join("")||`<tr><td colspan="8" class="empty modern-empty">No hay proformas que coincidan con los filtros.</td></tr>`}
            </tbody>
@@ -122,8 +131,12 @@ NOC.Proformas=(()=>{
        <div id="pfBulkBar" class="modern-bulk-bar">
          <span><strong>${selectedIds.size}</strong> seleccionada(s)</span>
          <div class="modern-bulk-actions">
-           <button class="btn" onclick="NOC.Proformas.openBulkStatus()">Cambiar estado</button>
-           <button class="btn btn-primary" onclick="NOC.Proformas.facturarSeleccionadas()">Facturar seleccionadas</button>
+           <button class="btn bulk-enviada" onclick="NOC.Proformas.bulkSetStatus('Enviada')">Marcar enviadas</button>
+           <button class="btn bulk-facturada" onclick="NOC.Proformas.bulkSetStatus('Facturada')">Marcar facturadas</button>
+           <button class="btn bulk-pendiente" onclick="NOC.Proformas.bulkSetStatus('Pendiente')">Marcar pendientes</button>
+           <button class="btn bulk-cancelada" onclick="NOC.Proformas.bulkSetStatus('Cancelada')">Marcar canceladas</button>
+           <button class="btn bulk-delete" onclick="NOC.Proformas.deleteSelected()">Eliminar</button>
+           <button class="btn btn-primary bulk-invoice" onclick="NOC.Proformas.facturarSeleccionadas()">Facturar</button>
          </div>
        </div>
      </div>
@@ -235,8 +248,42 @@ function taxFor(c){
   NOC.App.closeModal();NOC.App.toast("Proforma guardada.");render()
  }
  function toggle(id,on){on?selectedIds.add(id):selectedIds.delete(id)}
- function openStatus(id){NOC.App.modal(`<div class="modal-head"><strong>Cambiar estado</strong><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div><div class="modal-body"><select id="statusSelect"><option>Enviada</option><option>Cancelada</option><option>Facturada</option></select></div><div class="modal-foot"><button class="btn btn-primary" onclick="NOC.Proformas.setStatus('${id}',document.getElementById('statusSelect').value)">Aplicar</button></div>`,true)}
- function openBulkStatus(){if(!selectedIds.size)return NOC.App.toast("Selecciona proformas.");NOC.App.modal(`<div class="modal-head"><strong>Cambiar estado (${selectedIds.size})</strong><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div><div class="modal-body"><select id="bulkStatus"><option>Enviada</option><option>Cancelada</option><option>Facturada</option></select></div><div class="modal-foot"><button class="btn btn-primary" onclick="NOC.Proformas.applyBulkStatus()">Aplicar</button></div>`,true)}
+ async function bulkSetStatus(status){
+   if(!selectedIds.size)return NOC.App.toast("Selecciona al menos una proforma.");
+   NOC.App.showProgress("Actualizando proformas…",`Marcando como ${status}`);
+   try{
+     for(const id of [...selectedIds])await NOC.API.update("proformas",id,{estado:status});
+     selectedIds.clear();
+     NOC.App.hideProgress();
+     await render();
+     NOC.App.alertMessage("Estado actualizado",`Las proformas seleccionadas se han marcado como ${status}.`,"success");
+   }catch(e){
+     NOC.App.hideProgress();
+     NOC.App.alertMessage("Error al actualizar",e.message||String(e),"error");
+   }
+ }
+ async function deleteSelected(){
+   if(!selectedIds.size)return NOC.App.toast("Selecciona al menos una proforma.");
+   const ids=[...selectedIds];
+   if(!confirm(`¿Eliminar definitivamente ${ids.length} proforma(s) seleccionada(s)?`))return;
+   NOC.App.showProgress("Eliminando proformas…",`${ids.length} seleccionada(s)`);
+   try{
+     const db=NOC.API.db();
+     const {error:e1}=await db.from("lineas_proforma").delete().in("proforma_id",ids);
+     if(e1)throw e1;
+     const {error:e2}=await db.from("proformas").delete().in("id",ids);
+     if(e2)throw e2;
+     selectedIds.clear();
+     NOC.App.hideProgress();
+     await render();
+     NOC.App.alertMessage("Proformas eliminadas",`${ids.length} proforma(s) eliminada(s).`,"success");
+   }catch(e){
+     NOC.App.hideProgress();
+     NOC.App.alertMessage("No se pudieron eliminar",e.message||String(e),"error");
+   }
+ }
+ function openStatus(id){NOC.App.modal(`<div class="modal-head"><strong>Cambiar estado</strong><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div><div class="modal-body"><select id="statusSelect"><option>Enviada</option><option>Pendiente</option><option>Cancelada</option><option>Facturada</option></select></div><div class="modal-foot"><button class="btn btn-primary" onclick="NOC.Proformas.setStatus('${id}',document.getElementById('statusSelect').value)">Aplicar</button></div>`,true)}
+ function openBulkStatus(){if(!selectedIds.size)return NOC.App.toast("Selecciona proformas.");NOC.App.modal(`<div class="modal-head"><strong>Cambiar estado (${selectedIds.size})</strong><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div><div class="modal-body"><select id="bulkStatus"><option>Enviada</option><option>Pendiente</option><option>Cancelada</option><option>Facturada</option></select></div><div class="modal-foot"><button class="btn btn-primary" onclick="NOC.Proformas.applyBulkStatus()">Aplicar</button></div>`,true)}
  async function setStatus(id,s){await NOC.API.update("proformas",id,{estado:s});NOC.App.closeModal();render()}
  async function applyBulkStatus(){const s=document.getElementById("bulkStatus").value;for(const id of selectedIds)await NOC.API.update("proformas",id,{estado:s});selectedIds.clear();NOC.App.closeModal();render()}
  async function facturar(id){
@@ -289,5 +336,5 @@ function taxFor(c){
   const html=NOC.Documentos.render({tipo:"PROFORMA",doc:p,lineas:ls||[],config});
   NOC.App.modal(`<div class="modal-head"><strong>Proforma ${NOC.App.esc(p.numero)}</strong><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div><div class="modal-body">${html}</div><div class="modal-foot"><button class="btn" onclick="window.print()">Imprimir / Guardar PDF</button></div>`,false,"document-modal");
 }
- return{render,openEditor,addLine,removeLine,patchLine,save,toggle,openStatus,openBulkStatus,setStatus,applyBulkStatus,facturar,facturarSeleccionadas,ver,refreshModern,clearModernFilters,toggleAllVisible,updateBulkBar}
+ return{render,openEditor,addLine,removeLine,patchLine,save,toggle,openStatus,openBulkStatus,setStatus,applyBulkStatus,facturar,facturarSeleccionadas,ver,refreshModern,clearModernFilters,toggleAllVisible,updateBulkBar,bulkSetStatus,deleteSelected}
 })();

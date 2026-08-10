@@ -1,44 +1,31 @@
-V3.8.0 - FRONTEND MODERNO NOC
+V3.8.1 - PROFORMAS CORREGIDAS
 
-CAMBIO PRINCIPAL
-Proformas se ha rediseñado de verdad, no solo con CSS:
-- Cabecera moderna
-- Buscador por número o cliente
-- Filtros de fecha, estado y pago
-- KPIs de proformas, importe, enviadas, facturadas y canceladas
-- Filas compactas
-- Checkboxes pequeños (16 px)
-- Estados tipo badge
-- Acciones compactas
-- Barra inferior para acciones masivas
-- Responsive
+CORRECCIONES
+- Checkboxes pequeños, cuadrados y compactos (16 x 16 px).
+- Ya no se ven ovalados ni agrandan la fila.
+- Iconos reales SVG para:
+  Ver
+  Editar
+  Cambiar estado
+- Filas compactas.
 
-RESTO DE LA APP
-Se refuerza el nuevo lenguaje visual:
-- sidebar oscuro
-- activo verde
-- tarjetas más planas y modernas
-- botones y formularios más compactos
-- tablas con menos altura
-- modales más limpios
-- Informes/Dashboard adaptados al mismo estilo
+BARRA INFERIOR
+Siempre visible:
+- Marcar enviadas
+- Marcar facturadas
+- Marcar pendientes
+- Marcar canceladas
+- Eliminar
+- Facturar
 
-INFORME DE ARTÍCULOS
-- Se elimina la columna SKU de pantalla, CSV y PDF.
-
-IMPORTANTE
-NO se ha modificado:
-- lógica de facturación
-- numeración
-- impuestos
-- Supabase
-- abonos
-- datos existentes
+ELIMINAR
+Elimina primero las líneas de la proforma y después la cabecera.
+Pide confirmación antes de borrar.
 
 NO HAY SQL.
+NO SE CAMBIA LA LÓGICA DE FACTURACIÓN CORRELATIVA.
 
 Sustituye:
 - index.html
 - css/noc-fashion.css
 - modules/proformas.js
-- modules/informes.js
