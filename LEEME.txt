@@ -1,34 +1,42 @@
-V3.5.6 - INFORME VENTAS MAYORISTA / PARTICULARES
+V3.6.0 - PRIMER DISEÑO DASHBOARD DE INICIO
 
-CAMBIOS
-1. Informe de ventas incorpora filtro TIPO DE VENTA:
-   - Mayorista
-   - Particulares
-   - Todas
+PRIVACIDAD
+- Al entrar en Inicio NO muestra ninguna cifra económica.
+- Tampoco conserva el último dashboard mostrado.
+- Solo aparecen datos tras pulsar "Mostrar dashboard".
+- Botón "Ocultar datos" vuelve a ocultarlo.
 
-2. Identificación:
-   - Particular = Nombre de tienda exactamente "Particular" (ignorando mayúsculas/minúsculas y espacios).
-   - Mayorista = resto de clientes.
-   - NO se usa Num Prof = 0 como condición, porque no siempre tiene por qué cumplirse.
+FILTROS
+- Periodo:
+  Año completo
+  Trimestre
+  Semestre
+  Fechas personalizadas
+- Año principal
+- Categoría:
+  Todas
+  Puntos de venta
+  Particulares
+- Comparar con uno o varios años disponibles.
 
-3. Se mantiene:
-   - Fecha inicio y fecha fin incluidas.
-   - Las mismas 10 columnas.
-   - Totales Base, IVA, RE y Total.
-   - Exportar CSV.
-   - Imprimir / Guardar PDF.
+RESULTADOS
+- Facturación del periodo.
+- Puntos de venta.
+- Particulares.
+- Número de facturas.
+- Porcentaje de variación frente a los años seleccionados.
+- Gráfica mensual comparativa.
+- Tabla mensual con total a la derecha.
 
-4. Cabecera:
-   NOC THE BRAND
-   Informe de ventas · Mayorista / Particulares / Todas las ventas
-   Periodo
-
-La marca también aparece al imprimir/guardar PDF.
+Los datos proceden únicamente de FACTURAS.
+Particular se identifica por Nombre de tienda = "Particular".
 
 INSTALACIÓN
 Sustituye:
 - index.html
 - css/styles.css
-- modules/informes.js
+- modules/dashboard.js
 
 NO HAY SQL.
+
+Esta es una primera propuesta de diseño para verla funcionando y después ajustar distribución, filtros, tarjetas o gráfica.
