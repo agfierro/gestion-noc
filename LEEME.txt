@@ -1,27 +1,21 @@
-V3.8.2 - CORRECCIÓN SAFARI ICONOS PROFORMAS
+V3.8.3 - CORRECCIÓN ESPACIO ENTRE MENÚ Y CONTENIDO
 
 PROBLEMA
-Safari estaba reutilizando archivos JS/CSS anteriores aunque Chrome y Edge ya mostraban los iconos correctamente.
+El layout ya reservaba espacio para el menú lateral, pero noc-fashion añadía además
+un margin-left a .main. Se estaba reservando dos veces el ancho del menú.
 
 CORRECCIÓN
-Se usan nombres de archivo NUEVOS:
-- modules/proformas-v382.js
-- css/noc-fashion-v382.css
-
-Esto obliga a Safari a descargar archivos nuevos en vez de reutilizar la caché anterior.
-
-También se refuerza el renderizado SVG de los botones de acción para Safari.
+- .main ya no tiene margin-left adicional.
+- El contenido utiliza todo el ancho disponible.
+- Proformas se extiende hasta el espacio real disponible.
+- Corrección aplicada también a tablet y móvil.
 
 INSTALACIÓN
-Añade / sustituye:
+Sustituye / añade:
 - index.html
-- modules/proformas-v382.js
-- css/noc-fashion-v382.css
+- css/noc-fashion-v383.css
 
-NO borres de momento los archivos antiguos; simplemente deja estos nuevos también.
+Deja los archivos anteriores; no es necesario borrarlos.
+
 NO HAY SQL.
-
-Después de publicar:
-1. Cierra las pestañas de Gestión NOC en Safari.
-2. Abre la web de nuevo.
-3. Safari ya deberá solicitar los archivos con nombres nuevos.
+NO SE TOCA NINGUNA LÓGICA DE LA APLICACIÓN.
