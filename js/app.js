@@ -16,9 +16,63 @@ NOC.App=(()=>{
     try{NOC.API.init();setConnection(true)}
     catch(e){console.error(e);setConnection(false,e.message);return}
     document.querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>show(b.dataset.view)));
-    document.getElementById("menuBtn").addEventListener("click",()=>document.getElementById("sidebar").classList.toggle("open"));
+    setupMobileMenu();
     await NOC.Auth.init();
     if(NOC.Auth.isAuthenticated())await startAuthenticated();
+  }
+
+  function setupMobileMenu(){
+    const sidebar=document.getElementById("sidebar");
+    const menuBtn=document.getElementById("menuBtn");
+    if(!sidebar||!menuBtn)return;
+
+    let backdrop=document.getElementById("mobileMenuBackdrop");
+    if(!backdrop){
+      backdrop=document.createElement("div");
+      backdrop.id="mobileMenuBackdrop";
+      backdrop.className="mobile-menu-backdrop";
+      backdrop.setAttribute("aria-hidden","true");
+      document.body.appendChild(backdrop);
+    }
+
+    const close=()=>{
+      sidebar.classList.remove("open");
+      document.body.classList.remove("mobile-menu-open");
+      menuBtn.setAttribute("aria-expanded","false");
+      backdrop.classList.remove("open");
+    };
+    const open=()=>{
+      sidebar.classList.add("open");
+      document.body.classList.add("mobile-menu-open");
+      menuBtn.setAttribute("aria-expanded","true");
+      backdrop.classList.add("open");
+    };
+
+    menuBtn.setAttribute("aria-controls","sidebar");
+    menuBtn.setAttribute("aria-expanded","false");
+    menuBtn.addEventListener("click",e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      sidebar.classList.contains("open")?close():open();
+    });
+    backdrop.addEventListener("click",close);
+
+    // Cerrar al elegir cualquier opción.
+    sidebar.querySelectorAll(".nav-item").forEach(btn=>btn.addEventListener("click",close));
+
+    // Escape y cambio a escritorio.
+    document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
+    window.addEventListener("resize",()=>{if(window.innerWidth>980)close()});
+  }
+
+  function closeMobileMenu(){
+    const sidebar=document.getElementById("sidebar");
+    const menuBtn=document.getElementById("menuBtn");
+    const backdrop=document.getElementById("mobileMenuBackdrop");
+    sidebar?.classList.remove("open");
+    document.body.classList.remove("mobile-menu-open");
+    if(menuBtn)menuBtn.setAttribute("aria-expanded","false");
+    backdrop?.classList.remove("open");
   }
 
   async function startAuthenticated(){
@@ -36,7 +90,7 @@ NOC.App=(()=>{
     document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===name));
     const v=views[name];if(!v)return;
     document.getElementById("pageTitle").textContent=v[0];document.getElementById("pageSubtitle").textContent=v[1];
-    document.getElementById("sidebar").classList.remove("open");
+    closeMobileMenu();
     document.getElementById("viewContainer").innerHTML='<div class="card">Cargando…</div>';
     try{await v[2]()}catch(e){console.error(e);document.getElementById("viewContainer").innerHTML=`<div class="card"><h3>Error</h3><p class="muted">${esc(e.message)}</p></div>`}
   }
