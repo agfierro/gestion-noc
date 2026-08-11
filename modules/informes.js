@@ -2,7 +2,7 @@ window.NOC=window.NOC||{};
 NOC.Informes=(()=>{
   let currentRows=[];
   let currentCriteria=null;
-  let currentReport="comercial";
+  let currentReport=localStorage.getItem("noc_current_report")||"comercial";
   let articuloCatalogo=[];
 
   function isoToday(){return new Date().toISOString().slice(0,10)}
@@ -65,6 +65,7 @@ NOC.Informes=(()=>{
 
   async function cambiarInforme(tipo){
     currentReport=tipo;
+    localStorage.setItem("noc_current_report",tipo);
     currentRows=[];
     currentCriteria=null;
     await render();
@@ -224,7 +225,7 @@ NOC.Informes=(()=>{
     NOC.App.showProgress("Generando informe de artículos…","Analizando ventas facturadas");
     try{
       let q=NOC.API.db().from("lineas_factura")
-        .select("id,articulo_id,descripcion,cantidad,precio_unitario,descuento,es_envio,facturas!inner(fecha),articulos(id,nombre_producto,sku,fabrica,tipo_articulo,tipo_prenda)")
+        .select("id,articulo_id,descripcion,cantidad,precio_unitario,descuento,es_envio,facturas!inner(fecha,numero),articulos(id,nombre_producto,sku,fabrica,tipo_articulo,tipo_prenda)")
         .eq("es_envio",false);
 
       if(desde)q=q.gte("facturas.fecha",desde);
@@ -233,7 +234,13 @@ NOC.Informes=(()=>{
 
       const {data,error}=await q;
       if(error)throw error;
-      let rows=data||[];
+      let rows=(data||[]).filter(r=>{
+        const numero=String(r.facturas?.numero||"").trim().toUpperCase();
+        // Las facturas WEB históricas no tienen artículo real desglosado.
+        // Se excluyen del informe de artículos para no mostrar "Particular"
+        // como si fuera un producto.
+        return !numero.startsWith("WEB");
+      });
 
       if(fabrica)rows=rows.filter(r=>String(r.articulos?.fabrica||"")===fabrica);
       if(tipo)rows=rows.filter(r=>String(r.articulos?.tipo_prenda||r.articulos?.tipo_articulo||"")===tipo);
