@@ -9,7 +9,7 @@ NOC.Clientes=(()=>{
     <div class="table-wrap"><table><thead><tr><th>Tienda</th><th>Contacto</th><th>Localidad</th><th>Provincia</th><th>Comercial</th><th>Fiscal</th><th>Acciones</th></tr></thead><tbody>
     ${f.map(r=>`<tr><td><strong>${NOC.App.esc(r.nombre_tienda||"")}</strong></td><td>${NOC.App.esc([r.nombre,r.apellidos].filter(Boolean).join(" "))}<br><span class="muted">${NOC.App.esc(r.email||"")}</span></td><td>${NOC.App.esc(r.localidad_facturacion||"")}</td><td>${NOC.App.esc(r.provincia_facturacion||"")}</td><td>${NOC.App.esc(r.comercial||"")}</td><td>${NOC.App.esc(r.tipo_fiscal||"")}</td><td class="actions"><button class="btn btn-small" onclick="NOC.Clientes.openEditor('${r.id}')">Editar</button><button class="btn btn-small btn-danger" onclick="NOC.Clientes.del('${r.id}')">Eliminar</button></td></tr>`).join("")||`<tr><td colspan="7" class="empty">No hay clientes.</td></tr>`}
     </tbody></table></div></div>`;
-   document.getElementById("clienteSearch").addEventListener("input",e=>render(e.target.value))
+   document.getElementById("clienteSearch").addEventListener("input",async e=>{const v=e.target.value,pos=e.target.selectionStart;await render(v);const n=document.getElementById("clienteSearch");if(n){n.focus({preventScroll:true});try{n.setSelectionRange(pos,pos)}catch(_){}}})
  }
  async function openEditor(id){
    const r=id?await NOC.API.one("clientes",id):{};
