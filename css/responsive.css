@@ -160,3 +160,67 @@
     padding-bottom:8px!important;
   }
 }
+
+
+/* =========================================================
+   NOC V3.9.7 — AJUSTE FINAL MENÚ MÓVIL
+   ========================================================= */
+
+/* VERTICAL: más ancho para que los textos no se corten */
+@media (max-width:980px) and (orientation:portrait){
+  body.noc-fashion-ui .sidebar,
+  .sidebar{
+    width:min(92vw,360px)!important;
+  }
+
+  body.noc-fashion-ui .sidebar .nav-item,
+  .sidebar .nav-item{
+    white-space:normal!important;
+    line-height:1.2!important;
+    padding-left:18px!important;
+    padding-right:18px!important;
+  }
+}
+
+/* HORIZONTAL: scroll real hasta la última opción */
+@media (max-width:980px) and (orientation:landscape){
+  body.noc-fashion-ui .sidebar,
+  .sidebar{
+    width:min(52vw,360px)!important;
+    height:100vh!important;
+    max-height:100vh!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    padding-bottom:24px!important;
+    display:block!important;
+    -webkit-overflow-scrolling:touch!important;
+    touch-action:pan-y!important;
+  }
+
+  body.noc-fashion-ui .sidebar .brand,
+  .sidebar .brand{
+    position:relative!important;
+    flex:none!important;
+  }
+
+  body.noc-fashion-ui .sidebar #mainNav,
+  .sidebar #mainNav{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:4px!important;
+    padding-bottom:18px!important;
+  }
+
+  body.noc-fashion-ui .sidebar .nav-item,
+  .sidebar .nav-item{
+    min-height:40px!important;
+    padding:8px 14px!important;
+    flex:0 0 auto!important;
+  }
+
+  body.noc-fashion-ui .sidebar .sidebar-footer,
+  .sidebar .sidebar-footer{
+    margin-top:8px!important;
+    padding-bottom:28px!important;
+  }
+}
