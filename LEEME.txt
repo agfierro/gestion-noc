@@ -1,33 +1,33 @@
-V3.8.4 - BOTONES RÁPIDOS DE ESTADO
+V3.9.0 - BUSCADOR, ORDENACIÓN Y RELACIÓN PROFORMA ↔ FACTURA
 
-CORRECCIÓN
-Los botones del pie de Proformas ahora actúan directamente sobre las filas marcadas:
-- Marcar enviadas -> Estado = Enviada
-- Marcar facturadas -> Estado = Facturada
-- Marcar pendientes -> Estado = Pendiente
-- Marcar canceladas -> Estado = Cancelada
+PROFORMAS
+- Buscador por número de proforma o tienda.
+- Ordenación ascendente/descendente pulsando cualquier columna de datos:
+  Nº, Fecha, Cliente, Importe, Estado, Pago y Factura.
+- Nueva columna Factura.
+- Si la proforma está facturada, muestra su factura vinculada y permite abrirla.
+- Al visualizar la proforma también se muestra la factura vinculada.
 
-CAMBIO IMPORTANTE
-La selección ya no depende únicamente de una variable interna.
-Cada vez que pulsas uno de los botones, la aplicación lee directamente qué checkboxes
-están marcados en pantalla. Esto evita que el botón parezca no hacer nada si la selección
-visual y la selección interna se desincronizan.
+FACTURAS
+- Nuevo listado moderno.
+- Buscador por número de factura o tienda.
+- Ordenación ascendente/descendente en todas las columnas de datos:
+  Nº, Fecha, Tienda, Base, IVA, RE, Total, Pago y Proforma.
+- La columna Proforma permite abrir directamente la proforma de origen.
+- En ventas web/particulares sin proforma se muestra 0.
+- Al visualizar la factura se muestra la proforma de origen.
 
-FEEDBACK
-- Si no hay nada seleccionado: muestra un mensaje claro.
-- Mientras cambia estados: muestra progreso.
-- Al terminar: indica cuántas proformas se han actualizado.
-- Si hay error: lo muestra en pantalla.
-
-También se aplica la misma lectura directa de selección al botón Eliminar.
+ORDENACIÓN
+- Primer clic: ascendente.
+- Segundo clic: descendente.
+- Flecha visible en la columna activa.
 
 INSTALACIÓN
-Añade / sustituye:
+Sustituye / añade:
 - index.html
-- modules/proformas-v384.js
-
-Mantén:
-- css/noc-fashion-v383.css
-- los demás archivos existentes
+- css/noc-fashion-v390.css
+- modules/proformas-v390.js
+- modules/facturas-v390.js
 
 NO HAY SQL.
+NO SE MODIFICAN DATOS, NUMERACIÓN, IMPUESTOS NI LÓGICA DE FACTURACIÓN.
