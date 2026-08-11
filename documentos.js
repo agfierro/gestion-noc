@@ -15,31 +15,14 @@ NOC.Documentos=(()=>{
     return data||{};
   }
 
-  function isCanariasCliente(c){
-    const norm=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
-    const fiscal=norm(c?.tipo_fiscal);
-    const provFact=norm(c?.provincia_facturacion);
-    const provEnt=norm(c?.provincia_entrega);
-    const cpFact=String(c?.cp_facturacion||"").trim();
-    const cpEnt=String(c?.cp_entrega||"").trim();
-
-    if(fiscal==="canarias")return true;
-    if(["las palmas","santa cruz de tenerife","canarias"].some(p=>provFact.includes(p)||provEnt.includes(p)))return true;
-    if(/^(35|38)\d{3}$/.test(cpFact)||/^(35|38)\d{3}$/.test(cpEnt))return true;
-    return false;
-  }
-
-  function taxRates(doc,config={}){
-    const c=doc?.clientes||{};
-    if(isCanariasCliente(c))return{ivaPct:0,rePct:0};
-
-    const ivaGeneral=Number(config.iva_general??21);
-    const reGeneral=Number(config.recargo_general??5.2);
-
-    if(c.tipo_fiscal==="Autónomo con RE"){
-      return{ivaPct:ivaGeneral,rePct:reGeneral};
-    }
-    return{ivaPct:ivaGeneral,rePct:0};
+  function taxRates(doc){
+    const base=Number(doc.base_imponible||0);
+    const iva=Number(doc.iva||0);
+    const re=Number(doc.recargo||0);
+    return{
+      ivaPct:base>0?iva/base*100:0,
+      rePct:base>0?re/base*100:0
+    };
   }
 
   function clientBlock(title,c,shipping=false){
@@ -63,7 +46,7 @@ NOC.Documentos=(()=>{
 
   function render({tipo,doc,lineas,config}){
     const isPf=tipo==="PROFORMA";
-    const rates=taxRates(doc,config);
+    const rates=taxRates(doc);
     const logo=config.logo_url||"assets/logo-noc.png";
     const footerAddress=config.direccion_pie||config.direccion||"";
     const footerCp=config.cp_pie||config.codigo_postal||"";
@@ -131,9 +114,9 @@ NOC.Documentos=(()=>{
         <img class="doc-footer-logo" src="${val(logo)}" alt="">
         <div class="doc-footer-company">
           <strong>${val(empresa)}</strong>
-          ${config.cif?`<p>NIF/CIF: ${val(config.cif)}</p>`:""}
           ${footerAddress?`<p>${val(footerAddress)}</p>`:""}
           ${(footerCp||footerLoc)?`<p>${val([footerCp,footerLoc].filter(Boolean).join(" "))}</p>`:""}
+          ${config.cif?`<p>NIF/CIF: ${val(config.cif)}</p>`:""}
         </div>
         <div class="doc-thanks">${val(config.pie_documentos||"GRACIAS POR SU CONFIANZA")}</div>
       </div>

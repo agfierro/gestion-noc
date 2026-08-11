@@ -1,30 +1,33 @@
-NOC V3.9.2 — REPARACIÓN LISTADOS
+V3.8.4 - BOTONES RÁPIDOS DE ESTADO
 
-CORRIGE LOS 4 PUNTOS:
-1. Ordenación por todas las columnas de datos en Proformas y Facturas.
-   Click = ascendente; segundo click = descendente.
-2. Proformas muestra columna FACTURA solo cuando existe factura vinculada.
-   El número es pulsable.
-3. Facturas muestra columna PROFORMA.
-   El número es pulsable. Las ventas web sin proforma muestran 0.
-4. Corrección GLOBAL del foco de los buscadores.
-   Ya se puede escribir seguido sin tener que volver a hacer click con cada letra.
+CORRECCIÓN
+Los botones del pie de Proformas ahora actúan directamente sobre las filas marcadas:
+- Marcar enviadas -> Estado = Enviada
+- Marcar facturadas -> Estado = Facturada
+- Marcar pendientes -> Estado = Pendiente
+- Marcar canceladas -> Estado = Cancelada
 
-IMPORTANTE SOBRE CACHÉ:
-Los cambios funcionales usan nombres de fichero NUEVOS:
-- modules/proformas-v392.js
-- modules/facturas-v392.js
-- js/search-focus-v392.js
-- css/noc-v392.css
+CAMBIO IMPORTANTE
+La selección ya no depende únicamente de una variable interna.
+Cada vez que pulsas uno de los botones, la aplicación lee directamente qué checkboxes
+están marcados en pantalla. Esto evita que el botón parezca no hacer nada si la selección
+visual y la selección interna se desincronizan.
 
-La app conserva además los módulos antiguos como respaldo. Los nuevos se cargan después
-y los sustituyen en memoria. Así evitamos tanto la caché antigua como el error "render"
-de la versión anterior.
+FEEDBACK
+- Si no hay nada seleccionado: muestra un mensaje claro.
+- Mientras cambia estados: muestra progreso.
+- Al terminar: indica cuántas proformas se han actualizado.
+- Si hay error: lo muestra en pantalla.
 
-INSTALACIÓN:
-- Sustituye index.html.
-- AÑADE los cuatro ficheros nuevos en sus carpetas correspondientes.
-- No hace falta borrar los módulos anteriores.
+También se aplica la misma lectura directa de selección al botón Eliminar.
+
+INSTALACIÓN
+Añade / sustituye:
+- index.html
+- modules/proformas-v384.js
+
+Mantén:
+- css/noc-fashion-v383.css
+- los demás archivos existentes
 
 NO HAY SQL.
-NO SE TOCAN DATOS, ESTADOS, FACTURACIÓN NI IMPUESTOS.
