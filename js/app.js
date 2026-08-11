@@ -77,7 +77,12 @@ NOC.App=(()=>{
 
   async function startAuthenticated(){
     if(!NOC.Auth.isAuthenticated())return;
-    try{await NOC.API.list("clientes",{limit:1});setConnection(true);await show("dashboard")}
+    try{
+      await NOC.API.list("clientes",{limit:1});
+      setConnection(true);
+      const saved=localStorage.getItem("noc_current_view");
+      await show(saved&&views[saved]?saved:"dashboard");
+    }
     catch(e){console.error(e);setConnection(false,e.message);toast("Sesión iniciada, pero no se puede acceder a los datos.")}
   }
 
@@ -87,6 +92,7 @@ NOC.App=(()=>{
   }
 
   async function show(name){
+    if(views[name])localStorage.setItem("noc_current_view",name);
     document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===name));
     const v=views[name];if(!v)return;
     document.getElementById("pageTitle").textContent=v[0];document.getElementById("pageSubtitle").textContent=v[1];
