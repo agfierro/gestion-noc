@@ -1,0 +1,30 @@
+
+/* NOC V3.9.2 — ordenación y vínculos */
+body.noc-fashion-ui th.sortable-th{
+  cursor:pointer!important;
+  user-select:none!important;
+  white-space:nowrap!important;
+}
+body.noc-fashion-ui th.sortable-th:hover{background:#f0f3f1!important;color:#111!important}
+body.noc-fashion-ui th.sortable-th .sort-mark{
+  margin-left:6px!important;font-size:11px!important;color:#a1a6ad!important;font-weight:800!important
+}
+body.noc-fashion-ui th.sortable-th.sort-active{background:#f2f6f3!important;color:#111!important}
+body.noc-fashion-ui th.sortable-th.sort-active .sort-mark{color:#24844f!important}
+body.noc-fashion-ui .doc-link{
+  appearance:none!important;border:0!important;background:transparent!important;padding:0!important;margin:0!important;
+  color:#176b42!important;font:inherit!important;font-weight:800!important;cursor:pointer!important;
+  border-bottom:1px solid rgba(23,107,66,.28)!important
+}
+body.noc-fashion-ui .doc-link:hover{color:#0f4f30!important;border-bottom-color:#0f4f30!important}
+body.noc-fashion-ui .muted-link{color:#a0a5aa!important}
+body.noc-fashion-ui .document-relation{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;
+  margin:0 0 18px!important;padding:11px 14px!important;border:1px solid #dfe5e1!important;border-radius:9px!important;
+  background:#f7faf8!important;font-size:12px!important
+}
+body.noc-fashion-ui .document-relation>span{color:#6a7076!important;font-weight:700!important}
+body.noc-fashion-ui .noc-facturas-modern,
+body.noc-fashion-ui .noc-proformas-modern{width:100%!important;max-width:none!important;margin:0!important}
+body.noc-fashion-ui .invoice-table{min-width:1180px!important}
+body.noc-fashion-ui .invoice-table tbody td{height:48px!important;padding-top:6px!important;padding-bottom:6px!important}

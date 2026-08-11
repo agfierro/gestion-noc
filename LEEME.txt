@@ -1,24 +1,30 @@
-V3.9.1 - FIX ERROR RENDER
+NOC V3.9.2 — REPARACIÓN LISTADOS
 
-Corrige:
-Cannot read properties of undefined (reading 'render')
+CORRIGE LOS 4 PUNTOS:
+1. Ordenación por todas las columnas de datos en Proformas y Facturas.
+   Click = ascendente; segundo click = descendente.
+2. Proformas muestra columna FACTURA solo cuando existe factura vinculada.
+   El número es pulsable.
+3. Facturas muestra columna PROFORMA.
+   El número es pulsable. Las ventas web sin proforma muestran 0.
+4. Corrección GLOBAL del foco de los buscadores.
+   Ya se puede escribir seguido sin tener que volver a hacer click con cada letra.
 
-Se mantienen los nombres de archivo que ya funcionaban en la app:
-- modules/proformas-v384.js
-- modules/facturas.js
-- css/noc-fashion-v383.css
+IMPORTANTE SOBRE CACHÉ:
+Los cambios funcionales usan nombres de fichero NUEVOS:
+- modules/proformas-v392.js
+- modules/facturas-v392.js
+- js/search-focus-v392.js
+- css/noc-v392.css
 
-Incluye:
-- Buscar por número o tienda en Proformas y Facturas.
-- Ordenar por todas las columnas de datos.
-- Factura vinculada visible/pulsable desde Proformas.
-- Proforma vinculada visible/pulsable desde Facturas.
-- Ventas web sin proforma muestran 0.
+La app conserva además los módulos antiguos como respaldo. Los nuevos se cargan después
+y los sustituyen en memoria. Así evitamos tanto la caché antigua como el error "render"
+de la versión anterior.
 
-SUSTITUIR:
-- index.html
-- modules/proformas-v384.js
-- modules/facturas.js
-- css/noc-fashion-v383.css
+INSTALACIÓN:
+- Sustituye index.html.
+- AÑADE los cuatro ficheros nuevos en sus carpetas correspondientes.
+- No hace falta borrar los módulos anteriores.
 
 NO HAY SQL.
+NO SE TOCAN DATOS, ESTADOS, FACTURACIÓN NI IMPUESTOS.
