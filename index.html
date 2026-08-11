@@ -5,18 +5,13 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Gestión NOC</title>
-  <link rel="icon" type="image/png" sizes="64x64" href="./noc-safari-icon-351.png">
-  <link rel="shortcut icon" href="./noc-safari-icon-351.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="./noc-safari-touch-351.png">
-
-  <link rel="manifest" href="./noc-manifest-v350.webmanifest">
   <meta name="theme-color" content="#111318">
 
 
   <link rel="stylesheet" href="css/styles.css?v=3.7.1">
-  <link rel="stylesheet" href="css/responsive.css?v=3.9.8">
+  <link rel="stylesheet" href="css/responsive.css?v=3.9.9">
   <link rel="stylesheet" href="css/noc-fashion-v383.css?v=3.9.3">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="config/config.js"></script>
@@ -34,6 +29,61 @@
   <script defer src="modules/configuracion.js"></script>
   <script defer src="modules/herramientas.js?v=3.4.3"></script>
   <script defer src="js/app.js?v=3.9.6"></script>
+
+  <style id="noc-mobile-sidebar-final">
+    @media screen and (max-width: 980px) {
+      #sidebar.sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: auto !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        z-index: 1002 !important;
+        box-sizing: border-box !important;
+      }
+      #sidebar.sidebar:not(.open) {
+        transform: translate3d(-105%,0,0) !important;
+      }
+      #sidebar.sidebar.open {
+        transform: translate3d(0,0,0) !important;
+      }
+      #sidebar #mainNav,
+      #sidebar .nav-item {
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+      }
+      #sidebar .nav-item {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+      }
+    }
+    @media screen and (max-width: 980px) and (orientation: portrait) {
+      #sidebar.sidebar {
+        width: calc(100vw - 18px) !important;
+        min-width: calc(100vw - 18px) !important;
+        max-width: calc(100vw - 18px) !important;
+      }
+    }
+    @media screen and (max-width: 980px) and (orientation: landscape) {
+      #sidebar.sidebar {
+        width: min(52vw, 360px) !important;
+      }
+    }
+  </style>
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="noc-skull-tab-32-v350.png?v=3.9.9">
+  <link rel="icon" type="image/png" sizes="16x16" href="noc-skull-tab-16-v350.png?v=3.9.9">
+  <link rel="apple-touch-icon" sizes="180x180" href="noc-skull-touch-180-v350.png?v=3.9.9">
+
+  <link rel="manifest" href="noc-manifest-v350.webmanifest?v=3.9.9">
 </head>
 <body class="noc-fashion-ui">
 <div id="authGate" class="auth-gate">
