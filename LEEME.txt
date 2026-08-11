@@ -1,33 +1,24 @@
-V3.9.0 - BUSCADOR, ORDENACIÓN Y RELACIÓN PROFORMA ↔ FACTURA
+V3.9.1 - FIX ERROR RENDER
 
-PROFORMAS
-- Buscador por número de proforma o tienda.
-- Ordenación ascendente/descendente pulsando cualquier columna de datos:
-  Nº, Fecha, Cliente, Importe, Estado, Pago y Factura.
-- Nueva columna Factura.
-- Si la proforma está facturada, muestra su factura vinculada y permite abrirla.
-- Al visualizar la proforma también se muestra la factura vinculada.
+Corrige:
+Cannot read properties of undefined (reading 'render')
 
-FACTURAS
-- Nuevo listado moderno.
-- Buscador por número de factura o tienda.
-- Ordenación ascendente/descendente en todas las columnas de datos:
-  Nº, Fecha, Tienda, Base, IVA, RE, Total, Pago y Proforma.
-- La columna Proforma permite abrir directamente la proforma de origen.
-- En ventas web/particulares sin proforma se muestra 0.
-- Al visualizar la factura se muestra la proforma de origen.
+Se mantienen los nombres de archivo que ya funcionaban en la app:
+- modules/proformas-v384.js
+- modules/facturas.js
+- css/noc-fashion-v383.css
 
-ORDENACIÓN
-- Primer clic: ascendente.
-- Segundo clic: descendente.
-- Flecha visible en la columna activa.
+Incluye:
+- Buscar por número o tienda en Proformas y Facturas.
+- Ordenar por todas las columnas de datos.
+- Factura vinculada visible/pulsable desde Proformas.
+- Proforma vinculada visible/pulsable desde Facturas.
+- Ventas web sin proforma muestran 0.
 
-INSTALACIÓN
-Sustituye / añade:
+SUSTITUIR:
 - index.html
-- css/noc-fashion-v390.css
-- modules/proformas-v390.js
-- modules/facturas-v390.js
+- modules/proformas-v384.js
+- modules/facturas.js
+- css/noc-fashion-v383.css
 
 NO HAY SQL.
-NO SE MODIFICAN DATOS, NUMERACIÓN, IMPUESTOS NI LÓGICA DE FACTURACIÓN.
