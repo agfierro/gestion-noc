@@ -277,9 +277,21 @@ NOC.Dashboard=(()=>{
       const normName=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLocaleLowerCase("es");
       const articuloPorId=new Map((catalogo||[]).map(a=>[a.id,a]));
       const articuloPorNombre=new Map();
+      const metadataScore=a=>{
+        if(!a)return -1;
+        let s=0;
+        if(String(a.fabrica||"").trim())s+=4;
+        if(Number(a.precio_coste)>0)s+=8;
+        if(String(a.nombre_producto||"").trim())s+=1;
+        return s;
+      };
+      // Si existen artículos históricos duplicados con el mismo nombre,
+      // conservar la ficha más completa (coste/fábrica), no la primera.
       (catalogo||[]).forEach(a=>{
         const k=normName(a.nombre_producto);
-        if(k&&!articuloPorNombre.has(k))articuloPorNombre.set(k,a);
+        if(!k)return;
+        const prev=articuloPorNombre.get(k);
+        if(!prev||metadataScore(a)>metadataScore(prev))articuloPorNombre.set(k,a);
       });
 
       const artMap=new Map(),fabMap=new Map();
@@ -288,15 +300,27 @@ NOC.Dashboard=(()=>{
         const name=joined.nombre_producto||l.descripcion||"Sin artículo";
         if(normName(name)==="venta web historica")return;
 
-        const cat=articuloPorId.get(l.articulo_id)||articuloPorNombre.get(normName(name))||null;
-        const fab=joined.fabrica||cat?.fabrica||"Sin fábrica";
+        const byId=articuloPorId.get(l.articulo_id)||null;
+        const byName=articuloPorNombre.get(normName(name))||null;
+
+        // Resolver cada dato por separado. Una relación histórica puede apuntar
+        // a una ficha incompleta aunque exista otra ficha del mismo artículo
+        // con fábrica y coste correctamente informados.
+        const candidates=[joined,byId,byName].filter(Boolean);
+        const fabCandidate=candidates.find(a=>String(a.fabrica||"").trim());
+        const costCandidate=candidates
+          .filter(a=>Number(a.precio_coste)>0)
+          .sort((a,b)=>metadataScore(b)-metadataScore(a))[0];
+
+        const fab=String(fabCandidate?.fabrica||"").trim()||null;
         const qty=Number(l.cantidad||0);
         const netUnit=Number(l.precio_unitario||0)*(1-Number(l.descuento||0)/100);
         const amount=netUnit*qty;
 
-        // Nunca convertir un coste desconocido en 0.
-        const costeRaw=joined.precio_coste ?? cat?.precio_coste;
-        const costeConocido=costeRaw!==null&&costeRaw!==undefined&&costeRaw!=="";
+        // Coste 0/vacío se considera desconocido: nunca puede hacer que
+        // facturación y margen aparezcan artificialmente iguales.
+        const costeRaw=costCandidate?.precio_coste;
+        const costeConocido=Number(costeRaw)>0;
         const margin=costeConocido?(netUnit-Number(costeRaw))*qty:null;
 
         if(!artMap.has(name))artMap.set(name,{name,unidades:0,facturado:0,margen:0,margenCompleto:true});
@@ -306,8 +330,10 @@ NOC.Dashboard=(()=>{
         if(margin===null)ar.margenCompleto=false;
         else ar.margen+=margin;
 
-        if(!fabMap.has(fab))fabMap.set(fab,{name:fab,unidades:0,facturado:0,margen:0});
-        const fr=fabMap.get(fab);fr.unidades+=qty;fr.facturado+=amount;if(margin!==null)fr.margen+=margin;
+        if(fab){
+          if(!fabMap.has(fab))fabMap.set(fab,{name:fab,unidades:0,facturado:0,margen:0});
+          const fr=fabMap.get(fab);fr.unidades+=qty;fr.facturado+=amount;if(margin!==null)fr.margen+=margin;
+        }
       });
       const arts=[...artMap.values()];
       const fabs=[...fabMap.values()];
