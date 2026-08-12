@@ -269,26 +269,53 @@ NOC.Dashboard=(()=>{
         lineas=ld||[];
       }
 
+      // Catálogo de artículos: sirve para recuperar el coste incluso en líneas
+      // históricas que no conservaron articulo_id pero sí la descripción.
+      const {data:catalogo,error:ce}=await NOC.API.db().from("articulos")
+        .select("id,nombre_producto,fabrica,precio_coste");
+      if(ce)throw ce;
+      const normName=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLocaleLowerCase("es");
+      const articuloPorId=new Map((catalogo||[]).map(a=>[a.id,a]));
+      const articuloPorNombre=new Map();
+      (catalogo||[]).forEach(a=>{
+        const k=normName(a.nombre_producto);
+        if(k&&!articuloPorNombre.has(k))articuloPorNombre.set(k,a);
+      });
+
       const artMap=new Map(),fabMap=new Map();
       lineas.forEach(l=>{
-        const a=l.articulos||{};
-        const name=a.nombre_producto||l.descripcion||"Sin artículo";
-        if(String(name).trim().toLowerCase()==="venta web histórica")return;
-        const fab=a.fabrica||"Sin fábrica";
+        const joined=l.articulos||{};
+        const name=joined.nombre_producto||l.descripcion||"Sin artículo";
+        if(normName(name)==="venta web historica")return;
+
+        const cat=articuloPorId.get(l.articulo_id)||articuloPorNombre.get(normName(name))||null;
+        const fab=joined.fabrica||cat?.fabrica||"Sin fábrica";
         const qty=Number(l.cantidad||0);
         const netUnit=Number(l.precio_unitario||0)*(1-Number(l.descuento||0)/100);
         const amount=netUnit*qty;
-        const margin=(netUnit-Number(a.precio_coste||0))*qty;
-        if(!artMap.has(name))artMap.set(name,{name,unidades:0,facturado:0,margen:0});
-        const ar=artMap.get(name);ar.unidades+=qty;ar.facturado+=amount;ar.margen+=margin;
+
+        // Nunca convertir un coste desconocido en 0.
+        const costeRaw=joined.precio_coste ?? cat?.precio_coste;
+        const costeConocido=costeRaw!==null&&costeRaw!==undefined&&costeRaw!=="";
+        const margin=costeConocido?(netUnit-Number(costeRaw))*qty:null;
+
+        if(!artMap.has(name))artMap.set(name,{name,unidades:0,facturado:0,margen:0,margenCompleto:true});
+        const ar=artMap.get(name);
+        ar.unidades+=qty;
+        ar.facturado+=amount;
+        if(margin===null)ar.margenCompleto=false;
+        else ar.margen+=margin;
+
         if(!fabMap.has(fab))fabMap.set(fab,{name:fab,unidades:0,facturado:0,margen:0});
-        const fr=fabMap.get(fab);fr.unidades+=qty;fr.facturado+=amount;fr.margen+=margin;
+        const fr=fabMap.get(fab);fr.unidades+=qty;fr.facturado+=amount;if(margin!==null)fr.margen+=margin;
       });
       const arts=[...artMap.values()];
       const fabs=[...fabMap.values()];
       const topArticulo=[...arts].sort((a,b)=>b.unidades-a.unidades)[0]||null;
       const topArticuloFacturacion=[...arts].sort((a,b)=>b.facturado-a.facturado)[0]||null;
-      const topRentable=[...arts].sort((a,b)=>b.margen-a.margen)[0]||null;
+      const topRentable=[...arts]
+        .filter(a=>a.margenCompleto)
+        .sort((a,b)=>b.margen-a.margen)[0]||null;
       const topFabrica=[...fabs].sort((a,b)=>b.facturado-a.facturado)[0]||null;
       const soloPuntosVenta=baseFacturas.filter(r=>!isParticular(r));
       const [topTienda,topTiendaBase]=topBy(soloPuntosVenta,r=>r.clientes?.nombre_tienda,r=>r.base_imponible);
@@ -371,7 +398,7 @@ NOC.Dashboard=(()=>{
         <div class="dash-insight-grid">
           <div class="dash-insight"><span>Artículo nº1 por unidades</span><strong>${NOC.App.esc(insights?.topArticulo?.name||"—")}</strong><em>${insights?.topArticulo?`${Number(insights.topArticulo.unidades).toLocaleString("es-ES")} unidades vendidas`:"Sin datos"}</em></div>
           <div class="dash-insight"><span>Artículo nº1 por facturación de líneas</span><strong>${NOC.App.esc(insights?.topArticuloFacturacion?.name||"—")}</strong><em>${insights?.topArticuloFacturacion?`${money(insights.topArticuloFacturacion.facturado)} de venta neta de líneas`:"Sin datos"}</em></div>
-          <div class="dash-insight"><span>Artículo nº1 por margen bruto estimado</span><strong>${NOC.App.esc(insights?.topRentable?.name||"—")}</strong><em>${insights?.topRentable?`${money(insights.topRentable.margen)} de margen estimado`:"Sin datos"} · venta neta − coste registrado</em></div>
+          <div class="dash-insight"><span>Artículo nº1 por margen bruto estimado</span><strong>${NOC.App.esc(insights?.topRentable?.name||"—")}</strong><em>${insights?.topRentable?`${money(insights.topRentable.margen)} de margen bruto estimado`:"Sin artículos con coste conocido"} · venta neta − coste registrado</em></div>
           <div class="dash-insight"><span>Punto de venta nº1 por base imponible</span><strong>${NOC.App.esc(insights?.topTienda||"—")}</strong><em>${insights?.topTiendaBase?`${money(insights.topTiendaBase)} de base imponible`:"Sin datos"}</em></div>
           <div class="dash-insight"><span>Fábrica nº1 por facturación de líneas</span><strong>${NOC.App.esc(insights?.topFabrica?.name||"—")}</strong><em>${insights?.topFabrica?`${money(insights.topFabrica.facturado)} de venta neta de líneas`:"Sin datos"}</em></div>
           <div class="dash-insight"><span>Localidad nº1 por base imponible</span><strong>${NOC.App.esc(insights?.topLocalidad||"—")}</strong><em>${insights?.topLocalidadBase?`${money(insights.topLocalidadBase)} de base imponible`:"Sin datos"}</em></div>
