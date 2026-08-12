@@ -612,3 +612,22 @@ body.noc-fashion-ui .noc-proformas-modern{
     margin-left:0!important;
   }
 }
+
+
+/* V4.0.1 — claridad dashboard / selección proformas */
+body.noc-fashion-ui .dash-metric-note{
+  margin-top:6px;
+  font-size:11px;
+  line-height:1.35;
+  color:#858a86;
+}
+body.noc-fashion-ui .dash-insight em{
+  display:block;
+  margin-top:5px;
+  line-height:1.35;
+}
+body.noc-fashion-ui .bulk-status-change{
+  border-color:#b8c8bf!important;
+  background:#f3f7f4!important;
+  font-weight:800!important;
+}
