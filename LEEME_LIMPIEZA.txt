@@ -1,0 +1,9 @@
+GESTIÓN NOC — REPOSITORIO LIMPIO
+
+Esta carpeta contiene únicamente los archivos que usa actualmente la aplicación,
+más favicon.ico como compatibilidad de navegador.
+
+Se han eliminado copias antiguas, módulos sustituidos, CSS históricos, iconos
+duplicados, SQL de migraciones y documentos LEEME de versiones anteriores.
+
+Base revisada: V4.0.4.
