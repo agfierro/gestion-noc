@@ -226,7 +226,7 @@ NOC.Dashboard=(()=>{
       const maxTo=ranges.map(r=>r.to).sort().slice(-1)[0];
 
       const {data,error}=await NOC.API.db().from("facturas")
-        .select("id,fecha,base_imponible,total,cliente_id,clientes(nombre_tienda,localidad_facturacion,provincia_facturacion)")
+        .select("id,numero,fecha,base_imponible,total,cliente_id,clientes(nombre_tienda,localidad_facturacion,provincia_facturacion)")
         .gte("fecha",minFrom).lte("fecha",maxTo)
         .order("fecha",{ascending:true});
       if(error)throw error;
@@ -256,7 +256,9 @@ NOC.Dashboard=(()=>{
       // Insights directos únicamente para el periodo principal.
       const baseRange=ranges.find(r=>r.year===cfg.baseYear)||ranges[0];
       const baseFacturas=filtered.filter(r=>r.fecha>=baseRange.from&&r.fecha<=baseRange.to);
-      const baseIds=baseFacturas.map(r=>r.id);
+      const baseIds=baseFacturas
+        .filter(r=>!String(r.numero||"").trim().toUpperCase().startsWith("WEB"))
+        .map(r=>r.id);
       let lineas=[];
       if(baseIds.length){
         const {data:ld,error:le}=await NOC.API.db().from("lineas_factura")
@@ -271,6 +273,7 @@ NOC.Dashboard=(()=>{
       lineas.forEach(l=>{
         const a=l.articulos||{};
         const name=a.nombre_producto||l.descripcion||"Sin artículo";
+        if(String(name).trim().toLowerCase()==="venta web histórica")return;
         const fab=a.fabrica||"Sin fábrica";
         const qty=Number(l.cantidad||0);
         const netUnit=Number(l.precio_unitario||0)*(1-Number(l.descuento||0)/100);
@@ -284,13 +287,15 @@ NOC.Dashboard=(()=>{
       const arts=[...artMap.values()];
       const fabs=[...fabMap.values()];
       const topArticulo=[...arts].sort((a,b)=>b.unidades-a.unidades)[0]||null;
+      const topArticuloFacturacion=[...arts].sort((a,b)=>b.facturado-a.facturado)[0]||null;
       const topRentable=[...arts].sort((a,b)=>b.margen-a.margen)[0]||null;
       const topFabrica=[...fabs].sort((a,b)=>b.facturado-a.facturado)[0]||null;
-      const [topTienda,topTiendaBase]=topBy(baseFacturas,r=>r.clientes?.nombre_tienda,r=>r.base_imponible);
+      const soloPuntosVenta=baseFacturas.filter(r=>!isParticular(r));
+      const [topTienda,topTiendaBase]=topBy(soloPuntosVenta,r=>r.clientes?.nombre_tienda,r=>r.base_imponible);
       const [topLocalidad,topLocalidadBase]=topBy(baseFacturas,r=>r.clientes?.localidad_facturacion,r=>r.base_imponible);
       const [topComunidad,topComunidadBase]=topBy(baseFacturas,r=>comunidadDe(r.clientes?.provincia_facturacion),r=>r.base_imponible);
 
-      lastResult={cfg,category,yearly,insights:{topArticulo,topRentable,topFabrica,topTienda,topTiendaBase,topLocalidad,topLocalidadBase,topComunidad,topComunidadBase}};
+      lastResult={cfg,category,yearly,insights:{topArticulo,topArticuloFacturacion,topRentable,topFabrica,topTienda,topTiendaBase,topLocalidad,topLocalidadBase,topComunidad,topComunidadBase}};
       NOC.App.hideProgress();
       drawResults();
     }catch(e){
@@ -353,10 +358,10 @@ NOC.Dashboard=(()=>{
       </div>
 
       <div class="dashboard-metrics">
-        <div class="dash-metric-card primary"><div class="dash-metric-label">Facturación</div><div class="dash-metric-value">${money(base.total)}</div><div class="dash-comparisons">${compHtml}</div></div>
-        <div class="dash-metric-card"><div class="dash-metric-label">Puntos de venta</div><div class="dash-metric-value">${money(base.pos)}</div><div class="muted">${base.year}</div></div>
-        <div class="dash-metric-card"><div class="dash-metric-label">Particulares</div><div class="dash-metric-value">${money(base.particular)}</div><div class="muted">${base.year}</div></div>
-        <div class="dash-metric-card"><div class="dash-metric-label">N.º facturas</div><div class="dash-metric-value">${base.count}</div><div class="muted">${catLabel}</div></div>
+        <div class="dash-metric-card primary"><div class="dash-metric-label">Facturación total</div><div class="dash-metric-value">${money(base.total)}</div><div class="dash-metric-note">Importe total de las facturas del periodo</div><div class="dash-comparisons">${compHtml}</div></div>
+        <div class="dash-metric-card"><div class="dash-metric-label">Facturación puntos de venta</div><div class="dash-metric-value">${money(base.pos)}</div><div class="dash-metric-note">Total facturado a tiendas · ${base.year}</div></div>
+        <div class="dash-metric-card"><div class="dash-metric-label">Facturación particulares</div><div class="dash-metric-value">${money(base.particular)}</div><div class="dash-metric-note">Ventas web / particulares · ${base.year}</div></div>
+        <div class="dash-metric-card"><div class="dash-metric-label">N.º de facturas</div><div class="dash-metric-value">${base.count}</div><div class="dash-metric-note">${catLabel}</div></div>
       </div>
 
       <div class="card dash-insights-card">
@@ -364,12 +369,13 @@ NOC.Dashboard=(()=>{
           <div><div class="dashboard-eyebrow">INSIGHTS</div><h2>Lo más destacado del periodo</h2><div class="muted">Consultas directas sobre ventas reales</div></div>
         </div>
         <div class="dash-insight-grid">
-          <div class="dash-insight"><span>Artículo más vendido</span><strong>${NOC.App.esc(insights?.topArticulo?.name||"—")}</strong><em>${insights?.topArticulo?`${Number(insights.topArticulo.unidades).toLocaleString("es-ES")} uds.`:"Sin datos"}</em></div>
-          <div class="dash-insight"><span>Artículo más rentable</span><strong>${NOC.App.esc(insights?.topRentable?.name||"—")}</strong><em>${insights?.topRentable?`${money(insights.topRentable.margen)} margen`:"Sin datos"}</em></div>
-          <div class="dash-insight"><span>Fábrica nº1</span><strong>${NOC.App.esc(insights?.topFabrica?.name||"—")}</strong><em>${insights?.topFabrica?`${money(insights.topFabrica.facturado)} facturado`:"Sin datos"}</em></div>
-          <div class="dash-insight"><span>Punto de venta nº1</span><strong>${NOC.App.esc(insights?.topTienda||"—")}</strong><em>${insights?.topTiendaBase?`${money(insights.topTiendaBase)} base`:"Sin datos"}</em></div>
-          <div class="dash-insight"><span>Localidad nº1</span><strong>${NOC.App.esc(insights?.topLocalidad||"—")}</strong><em>${insights?.topLocalidadBase?`${money(insights.topLocalidadBase)} base`:"Sin datos"}</em></div>
-          <div class="dash-insight"><span>Comunidad nº1</span><strong>${NOC.App.esc(insights?.topComunidad||"—")}</strong><em>${insights?.topComunidadBase?`${money(insights.topComunidadBase)} base`:"Sin datos"}</em></div>
+          <div class="dash-insight"><span>Artículo nº1 por unidades</span><strong>${NOC.App.esc(insights?.topArticulo?.name||"—")}</strong><em>${insights?.topArticulo?`${Number(insights.topArticulo.unidades).toLocaleString("es-ES")} unidades vendidas`:"Sin datos"}</em></div>
+          <div class="dash-insight"><span>Artículo nº1 por facturación de líneas</span><strong>${NOC.App.esc(insights?.topArticuloFacturacion?.name||"—")}</strong><em>${insights?.topArticuloFacturacion?`${money(insights.topArticuloFacturacion.facturado)} de venta neta de líneas`:"Sin datos"}</em></div>
+          <div class="dash-insight"><span>Artículo nº1 por margen bruto estimado</span><strong>${NOC.App.esc(insights?.topRentable?.name||"—")}</strong><em>${insights?.topRentable?`${money(insights.topRentable.margen)} de margen estimado`:"Sin datos"} · venta neta − coste registrado</em></div>
+          <div class="dash-insight"><span>Punto de venta nº1 por base imponible</span><strong>${NOC.App.esc(insights?.topTienda||"—")}</strong><em>${insights?.topTiendaBase?`${money(insights.topTiendaBase)} de base imponible`:"Sin datos"}</em></div>
+          <div class="dash-insight"><span>Fábrica nº1 por facturación de líneas</span><strong>${NOC.App.esc(insights?.topFabrica?.name||"—")}</strong><em>${insights?.topFabrica?`${money(insights.topFabrica.facturado)} de venta neta de líneas`:"Sin datos"}</em></div>
+          <div class="dash-insight"><span>Localidad nº1 por base imponible</span><strong>${NOC.App.esc(insights?.topLocalidad||"—")}</strong><em>${insights?.topLocalidadBase?`${money(insights.topLocalidadBase)} de base imponible`:"Sin datos"}</em></div>
+          <div class="dash-insight"><span>Comunidad nº1 por base imponible</span><strong>${NOC.App.esc(insights?.topComunidad||"—")}</strong><em>${insights?.topComunidadBase?`${money(insights.topComunidadBase)} de base imponible`:"Sin datos"}</em></div>
         </div>
       </div>
 

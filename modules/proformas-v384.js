@@ -160,10 +160,11 @@ NOC.Proformas=(()=>{
        <div id="pfBulkBar" class="modern-bulk-bar">
          <span><strong>${selectedIds.size}</strong> seleccionada(s)</span>
          <div class="modern-bulk-actions">
-           <button class="btn bulk-enviada" onclick="NOC.Proformas.bulkSetStatus('Enviada')">Marcar enviadas</button>
-           <button class="btn bulk-facturada" onclick="NOC.Proformas.bulkSetStatus('Facturada')">Marcar facturadas</button>
-           <button class="btn bulk-pendiente" onclick="NOC.Proformas.bulkSetStatus('Pendiente')">Marcar pendientes</button>
-           <button class="btn bulk-cancelada" onclick="NOC.Proformas.bulkSetStatus('Cancelada')">Marcar canceladas</button>
+           <button class="btn bulk-enviada" onclick="NOC.Proformas.selectByStatus('Enviada')">Marcar enviadas</button>
+           <button class="btn bulk-facturada" onclick="NOC.Proformas.selectByStatus('Facturada')">Marcar facturadas</button>
+           <button class="btn bulk-pendiente" onclick="NOC.Proformas.selectByStatus('Pendiente')">Marcar pendientes</button>
+           <button class="btn bulk-cancelada" onclick="NOC.Proformas.selectByStatus('Cancelada')">Marcar canceladas</button>
+           <button class="btn bulk-status-change" onclick="NOC.Proformas.openBulkStatus()">Cambiar estado selección</button>
            <button class="btn bulk-delete" onclick="NOC.Proformas.deleteSelected()">Eliminar</button>
            <button class="btn btn-primary bulk-invoice" onclick="NOC.Proformas.facturarSeleccionadas()">Facturar</button>
          </div>
@@ -293,6 +294,17 @@ function taxFor(c){
  function toggle(id,on){
    if(on)selectedIds.add(id);else selectedIds.delete(id);
  }
+ function selectByStatus(status){
+   const target=normalizarEstado(status);
+   const visibles=filteredPfRows().filter(r=>normalizarEstado(r.estado)===target);
+   selectedIds=new Set(visibles.map(r=>r.id));
+   drawModernPage();
+   NOC.App.toast(
+     visibles.length
+       ?`${visibles.length} proforma(s) ${String(status).toLowerCase()} seleccionada(s).`
+       :`No hay proformas ${String(status).toLowerCase()} en la vista actual.`
+   );
+ }
  function selectedFromScreen(){
    const domIds=[...document.querySelectorAll(".pf-row-check:checked")]
      .map(el=>el.dataset.id)
@@ -358,7 +370,11 @@ function taxFor(c){
    }
  }
  function openStatus(id){NOC.App.modal(`<div class="modal-head"><strong>Cambiar estado</strong><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div><div class="modal-body"><select id="statusSelect"><option>Enviada</option><option>Pendiente</option><option>Cancelada</option><option>Facturada</option></select></div><div class="modal-foot"><button class="btn btn-primary" onclick="NOC.Proformas.setStatus('${id}',document.getElementById('statusSelect').value)">Aplicar</button></div>`,true)}
- function openBulkStatus(){if(!selectedIds.size)return NOC.App.toast("Selecciona proformas.");NOC.App.modal(`<div class="modal-head"><strong>Cambiar estado (${selectedIds.size})</strong><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div><div class="modal-body"><select id="bulkStatus"><option>Enviada</option><option>Pendiente</option><option>Cancelada</option><option>Facturada</option></select></div><div class="modal-foot"><button class="btn btn-primary" onclick="NOC.Proformas.applyBulkStatus()">Aplicar</button></div>`,true)}
+ function openBulkStatus(){
+   const ids=selectedFromScreen();
+   if(!ids.length)return NOC.App.toast("Selecciona proformas.");
+   NOC.App.modal(`<div class="modal-head"><strong>Cambiar estado (${ids.length})</strong><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div><div class="modal-body"><p class="muted">Este botón sí modifica el estado de toda la selección.</p><select id="bulkStatus"><option>Enviada</option><option>Pendiente</option><option>Cancelada</option><option>Facturada</option></select></div><div class="modal-foot"><button class="btn btn-primary" onclick="NOC.Proformas.applyBulkStatus()">Aplicar cambio</button></div>`,true)
+ }
  async function setStatus(id,s){await NOC.API.update("proformas",id,{estado:s});NOC.App.closeModal();render()}
  async function applyBulkStatus(){const s=document.getElementById("bulkStatus").value;for(const id of selectedIds)await NOC.API.update("proformas",id,{estado:s});selectedIds.clear();NOC.App.closeModal();render()}
  async function facturar(id){
@@ -411,5 +427,5 @@ function taxFor(c){
   const html=NOC.Documentos.render({tipo:"PROFORMA",doc:p,lineas:ls||[],config});
   NOC.App.modal(`<div class="modal-head"><strong>Proforma ${NOC.App.esc(p.numero)}</strong><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div><div class="modal-body">${html}</div><div class="modal-foot"><button class="btn" onclick="window.print()">Imprimir / Guardar PDF</button></div>`,false,"document-modal");
 }
- return{render,openEditor,addLine,removeLine,patchLine,save,toggle,openStatus,openBulkStatus,setStatus,applyBulkStatus,facturar,facturarSeleccionadas,ver,refreshModern,clearModernFilters,toggleAllVisible,updateBulkBar,bulkSetStatus,deleteSelected,selectedFromScreen,setSort,searchModern,openLinkedInvoice}
+ return{render,openEditor,addLine,removeLine,patchLine,save,toggle,openStatus,openBulkStatus,setStatus,applyBulkStatus,facturar,facturarSeleccionadas,ver,refreshModern,clearModernFilters,toggleAllVisible,updateBulkBar,bulkSetStatus,deleteSelected,selectedFromScreen,setSort,searchModern,openLinkedInvoice,selectByStatus}
 })();
