@@ -24,7 +24,7 @@
   <script defer src="modules/articulos.js?v=4.0.0"></script>
   <script defer src="modules/documentos-v411.js?v=4.0.11"></script>
   <script defer src="modules/proformas-v411.js?v=4.0.11"></script>
-  <script defer src="modules/facturas-v411.js?v=4.0.11"></script>
+  <script defer src="modules/facturas-v412.js?v=4.0.12"></script>
   <script defer src="modules/gastos.js"></script>
   <script defer src="modules/informes-v408.js?v=4.0.8"></script>
   <script defer src="modules/empresa.js?v=3.5.4"></script>
@@ -86,6 +86,13 @@
 
   <link rel="manifest" href="noc-manifest-v350.webmanifest?v=3.9.9">
   <link rel="apple-touch-icon" sizes="180x180" href="noc-icon-iphone-v400.png">
+
+  <style id="noc-brand-v412">
+    #sidebar .brand { display:flex; align-items:center; gap:10px; }
+    #sidebar .brand .brand-mark { flex:0 0 auto; }
+    #sidebar .brand .brand-copy { display:flex; align-items:center; min-height:100%; }
+    #sidebar .brand .brand-copy strong { display:block; margin:0; line-height:1.28; }
+  </style>
 </head>
 <body class="noc-fashion-ui">
 <div id="authGate" class="auth-gate">
@@ -106,7 +113,7 @@
   <aside id="sidebar" class="sidebar">
     <div class="brand">
       <div class="brand-mark brand-logo"><img src="assets/logo-noc-skull.png?v=3.4.6" alt="NOC"></div>
-      <div><strong>Gestión NOC</strong><small>V3</small></div>
+      <div class="brand-copy"><strong>Gestión<br>NOC</strong></div>
     </div>
     <nav id="mainNav">
       <button class="nav-item active" data-view="dashboard">Inicio</button>
