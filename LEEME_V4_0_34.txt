@@ -1,0 +1,38 @@
+NOC V4.0.34 — DETALLE DE ARTÍCULOS + INFORME MODELO 347
+
+1. ARTÍCULOS
+Se conserva el informe Resumen existente.
+Nueva vista "Detalle por artículo":
+- exige seleccionar un artículo concreto;
+- muestra Fecha, Proforma, Tienda, Cantidad, Precio, Dto. e Importe;
+- excluye proformas Canceladas;
+- mantiene recuperación del histórico importado por descripción cuando articulo_id es NULL;
+- cabeceras ordenables;
+- resumen de tiendas distintas, proformas, unidades e importe;
+- CSV y PDF propios.
+
+2. MODELO 347
+El antiguo informe +3.000 se convierte en un informe de apoyo al Modelo 347:
+- umbral fijo: operaciones anuales superiores a 3.005,06 €;
+- criterio: TOTAL anual con impuestos, no base;
+- excluye "Particular";
+- cada tienda muestra 1T, 2T, 3T y 4T;
+- cada trimestre muestra las facturas concretas, fecha e importe;
+- muestra Base, IVA, RE y Total por trimestre;
+- total anual por tienda;
+- CSV exporta una fila por factura con su trimestre;
+- PDF/impresión reproduce el desglose.
+
+NOTA FISCAL
+Es un informe de apoyo basado en las facturas almacenadas en Gestión NOC.
+El Modelo 347 tiene reglas especiales para determinadas operaciones,
+rectificaciones, criterio de caja, etc.; esas casuísticas deberán revisarse
+en la adaptación fiscal definitiva.
+
+3. ESTILO
+Se mantiene la línea NOC editorial, negra, limpia, premium y responsive.
+
+NO HAY SQL.
+DESDE V4.0.33 SUBIR:
+- index.html
+- modules/informes-v434.js
