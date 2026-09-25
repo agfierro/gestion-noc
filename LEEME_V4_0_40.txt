@@ -1,0 +1,22 @@
+GESTIÓN NOC V4.0.40
+
+CAMBIOS
+1. Añadido “Metálico” a las formas de pago de proformas.
+2. Al crear una proforma se muestra junto a “Nueva proforma” el próximo número PF previsto, sin consumir la secuencia hasta Guardar.
+3. Impresión/PDF: eliminado el relleno artificial A4 en la impresión del navegador que podía crear una página vacía al final. Se imprimen solo las páginas necesarias.
+4. En Proformas y Facturas, “Imprimir / Guardar PDF” está ahora en la cabecera, junto al nº de documento y cliente.
+5. Nuevo campo “Nº envíos” en proforma. Precio × nº envíos × descuento. La línea de envío guarda esa cantidad, por lo que al facturar se conserva y los informes “sin gastos de envío” descuentan todos los portes.
+6. Herramientas/backup CSV actualizado para incluir envio_cantidad.
+
+ANTES DE USAR EL NUEVO CAMPO
+Ejecutar MIGRACION_V4_0_40.sql en Supabase > SQL Editor.
+No borra datos. Las proformas antiguas quedan con envio_cantidad=1.
+
+ARCHIVOS MODIFICADOS/NUEVOS
+- index.html
+- modules/proformas-v425.js
+- modules/facturas-v415.js
+- modules/documentos-v428.js
+- modules/informes-v440.js
+- modules/herramientas-v440.js
+- MIGRACION_V4_0_40.sql
