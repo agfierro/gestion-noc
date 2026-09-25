@@ -1,0 +1,40 @@
+
+/* Gestión NOC V4.0.42 · selector rápido de tallajes */
+.noc-tallaje-input-row{display:flex;gap:7px;align-items:center}
+.noc-tallaje-input-row input{min-width:0;flex:1}
+.noc-tallaje-open{height:38px;padding:0 12px;border:1px solid #1d1d1d;border-radius:9px;background:#111;color:#fff;font-weight:800;font-size:11px;letter-spacing:.03em;cursor:pointer}
+.noc-tallaje-open:hover{background:#2a2a2a}
+.noc-tallaje-overlay{position:fixed;inset:0;z-index:10050;background:rgba(14,14,14,.58);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(3px)}
+.noc-tallaje-modal{width:min(820px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.28);color:#151515}
+.noc-tallaje-head{display:flex;justify-content:space-between;align-items:center;padding:22px 24px 18px;border-bottom:1px solid #e8e8e5;position:sticky;top:0;background:#fff;z-index:2}
+.noc-tallaje-head h3{font-size:22px;margin:2px 0 0;letter-spacing:-.02em}
+.noc-tallaje-kicker{font-size:10px;letter-spacing:.16em;font-weight:900;color:#8b8b86}
+.noc-tallaje-close{border:0;background:transparent;font-size:28px;line-height:1;cursor:pointer;color:#333}
+.noc-tallaje-section{padding:20px 24px;border-bottom:1px solid #ecece8}
+.noc-tallaje-section-title{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.noc-tallaje-section-title>span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#111;color:#fff;font-size:11px;font-weight:900}
+.noc-tallaje-section-title strong{display:block;font-size:14px}
+.noc-tallaje-section-title small{display:block;margin-top:2px;color:#777;font-size:11px}
+.noc-preset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.noc-preset{padding:11px 12px;border:1px solid #d8d8d3;border-radius:10px;background:#fafaf8;color:#171717;font-weight:750;font-size:12px;cursor:pointer;text-align:center}
+.noc-preset:hover,.noc-preset.is-active{border-color:#111;background:#111;color:#fff}
+.noc-size-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.noc-size-stepper{border:1px solid #dfdfda;border-radius:11px;padding:10px 7px;background:#fafaf8;text-align:center}
+.noc-size-name{font-size:12px;font-weight:900;margin-bottom:8px}
+.noc-stepper-controls{display:grid;grid-template-columns:28px 1fr 28px;align-items:center;gap:3px}
+.noc-stepper-controls button{height:28px;border:1px solid #d4d4cf;border-radius:7px;background:#fff;font-size:17px;cursor:pointer}
+.noc-stepper-controls strong{font-size:14px}
+.noc-tallaje-result{display:grid;grid-template-columns:80px 1fr;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;background:#f4f4f1;border-radius:10px}
+.noc-tallaje-result label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+.noc-tallaje-result input{border:0!important;background:transparent!important;font-weight:850!important;padding:0!important}
+.noc-manual-row{display:flex;gap:8px}
+.noc-manual-row input{flex:1}
+.noc-tallaje-foot{display:flex;justify-content:flex-end;gap:8px;padding:17px 24px;position:sticky;bottom:0;background:#fff;border-top:1px solid #ecece8}
+@media(max-width:700px){
+  .noc-tallaje-overlay{padding:8px;align-items:flex-end}
+  .noc-tallaje-modal{width:100%;max-height:94vh;border-radius:17px 17px 10px 10px}
+  .noc-tallaje-head,.noc-tallaje-section,.noc-tallaje-foot{padding-left:16px;padding-right:16px}
+  .noc-preset-grid{grid-template-columns:1fr}
+  .noc-size-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .noc-manual-row{flex-direction:column}
+}
