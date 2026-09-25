@@ -316,7 +316,119 @@ NOC.Proformas=(()=>{
  function addLine(){window._pfLines=window._pfLines||[];window._pfLines.push({_key:Date.now()+Math.random(),cantidad:1,descuento:0,tallaje:""});drawLines()}
  function removeLine(k){window._pfLines=window._pfLines.filter(x=>String(x._key)!==String(k));drawLines()}
  function patchLine(k,key,val){const l=window._pfLines.find(x=>String(x._key)===String(k));l[key]=["cantidad","descuento"].includes(key)?Number(val):val}
- function drawLines(){const box=document.getElementById("lineEditor");if(!box)return;box.innerHTML=window._pfLines.map(l=>`<div class="line-editor"><div class="field wide"><label>Artículo</label><input class="art-input" data-key="${l._key}" value="${NOC.App.esc(l.descripcion||"")}" placeholder="Escribe para buscar…" oninput="NOC.Proformas.patchLine('${l._key}','descripcion',this.value)"><div class="search-holder"></div></div><div class="field"><label>Cantidad</label><input type="number" step="1" value="${Number(l.cantidad??1)}" onchange="NOC.Proformas.patchLine('${l._key}','cantidad',this.value)"></div><div class="field"><label>Dto. %</label><input type="number" min="0" max="100" value="${Number(l.descuento||0)}" onchange="NOC.Proformas.patchLine('${l._key}','descuento',this.value)"></div><div class="field"><label>Tallaje</label><input value="${NOC.App.esc(l.tallaje||"")}" onchange="NOC.Proformas.patchLine('${l._key}','tallaje',this.value)"></div><button class="btn btn-danger" onclick="NOC.Proformas.removeLine('${l._key}')">×</button></div>`).join("");box.querySelectorAll(".art-input").forEach(i=>{i.addEventListener("input",()=>searchFor(i));i.addEventListener("focus",()=>searchFor(i))})}
+ function drawLines(){const box=document.getElementById("lineEditor");if(!box)return;box.innerHTML=window._pfLines.map(l=>`<div class="line-editor"><div class="field wide"><label>Artículo</label><input class="art-input" data-key="${l._key}" value="${NOC.App.esc(l.descripcion||"")}" placeholder="Escribe para buscar…" oninput="NOC.Proformas.patchLine('${l._key}','descripcion',this.value)"><div class="search-holder"></div></div><div class="field"><label>Cantidad</label><input type="number" step="1" value="${Number(l.cantidad??1)}" onchange="NOC.Proformas.patchLine('${l._key}','cantidad',this.value)"></div><div class="field"><label>Dto. %</label><input type="number" min="0" max="100" value="${Number(l.descuento||0)}" onchange="NOC.Proformas.patchLine('${l._key}','descuento',this.value)"></div><div class="field noc-tallaje-field"><label>Tallaje</label><div class="noc-tallaje-input-row"><input value="${NOC.App.esc(l.tallaje||"")}" onchange="NOC.Proformas.patchLine('${l._key}','tallaje',this.value)"><button type="button" class="noc-tallaje-open" title="Tallajes rápidos" onclick="NOC.Proformas.openTallaje('${l._key}')">Tallas</button></div></div><button class="btn btn-danger" onclick="NOC.Proformas.removeLine('${l._key}')">×</button></div>`).join("");box.querySelectorAll(".art-input").forEach(i=>{i.addEventListener("input",()=>searchFor(i));i.addEventListener("focus",()=>searchFor(i))})}
+
+ const TALLAJES_RAPIDOS=[
+   "1XS,1S,1M,1L",
+   "1XS,1S,1M,1L,1XL,1XXL",
+   "1S,1M,1L",
+   "1XS,1S,1M,1L,1XL",
+   "1XS,1S,1M",
+   "1S,1M,1L,1XL",
+   "1S,1M",
+   "1XS,2S,1M",
+   "2XS,1S,1M",
+   "1XS,1S"
+ ];
+ const TALLA_ORDEN=["XS","S","M","L","XL","XXL"];
+
+ function parseTallaje(texto){
+   const out={XS:0,S:0,M:0,L:0,XL:0,XXL:0};
+   String(texto||"").toUpperCase().replace(/\s+/g,"").split(",").forEach(p=>{
+     const m=p.match(/^(\d+)(XXL|XL|XS|S|M|L)$/);
+     if(m&&Object.prototype.hasOwnProperty.call(out,m[2]))out[m[2]]+=Number(m[1]);
+   });
+   return out;
+ }
+ function tallajeDesdeCantidades(c){
+   return TALLA_ORDEN.filter(t=>Number(c[t]||0)>0).map(t=>`${Number(c[t])}${t}`).join(",");
+ }
+ function tallajeOverlay(){
+   return document.getElementById("nocTallajeOverlay");
+ }
+ function cerrarTallaje(){
+   tallajeOverlay()?.remove();
+ }
+ function renderTallajeBuilder(){
+   const overlay=tallajeOverlay();
+   if(!overlay)return;
+   const counts=window._nocTallajeCounts||parseTallaje("");
+   const builder=overlay.querySelector("#nocTallajeBuilder");
+   if(builder)builder.innerHTML=TALLA_ORDEN.map(t=>`
+     <div class="noc-size-stepper">
+       <div class="noc-size-name">${t}</div>
+       <div class="noc-stepper-controls">
+         <button type="button" onclick="NOC.Proformas.changeTalla('${t}',-1)">−</button>
+         <strong>${Number(counts[t]||0)}</strong>
+         <button type="button" onclick="NOC.Proformas.changeTalla('${t}',1)">+</button>
+       </div>
+     </div>`).join("");
+   const resultado=tallajeDesdeCantidades(counts);
+   const out=overlay.querySelector("#nocTallajeResultado");
+   if(out)out.value=resultado;
+   overlay.querySelectorAll(".noc-preset").forEach(b=>b.classList.toggle("is-active",b.dataset.value===resultado));
+ }
+ function cargarTallajeRapido(valor){
+   window._nocTallajeCounts=parseTallaje(valor);
+   renderTallajeBuilder();
+ }
+ function changeTalla(talla,delta){
+   window._nocTallajeCounts=window._nocTallajeCounts||parseTallaje("");
+   window._nocTallajeCounts[talla]=Math.max(0,Number(window._nocTallajeCounts[talla]||0)+Number(delta||0));
+   renderTallajeBuilder();
+ }
+ function usarTallajeManual(){
+   const overlay=tallajeOverlay();
+   if(!overlay)return;
+   const texto=overlay.querySelector("#nocTallajeManual")?.value||"";
+   window._nocTallajeCounts=parseTallaje(texto);
+   const resultado=overlay.querySelector("#nocTallajeResultado");
+   if(resultado)resultado.value=texto.trim();
+ }
+ function aplicarTallaje(){
+   const overlay=tallajeOverlay();
+   if(!overlay)return;
+   const key=overlay.dataset.lineKey;
+   const valor=(overlay.querySelector("#nocTallajeResultado")?.value||"").trim();
+   const l=window._pfLines.find(x=>String(x._key)===String(key));
+   if(l)l.tallaje=valor;
+   cerrarTallaje();
+   drawLines();
+ }
+ function openTallaje(key){
+   cerrarTallaje();
+   const l=window._pfLines.find(x=>String(x._key)===String(key));
+   if(!l)return;
+   window._nocTallajeCounts=parseTallaje(l.tallaje||"");
+   const overlay=document.createElement("div");
+   overlay.id="nocTallajeOverlay";
+   overlay.className="noc-tallaje-overlay";
+   overlay.dataset.lineKey=String(key);
+   overlay.innerHTML=`
+     <div class="noc-tallaje-modal" role="dialog" aria-modal="true" aria-label="Seleccionar tallaje">
+       <div class="noc-tallaje-head">
+         <div><div class="noc-tallaje-kicker">NOC · PROFORMA</div><h3>Seleccionar tallaje</h3></div>
+         <button type="button" class="noc-tallaje-close" onclick="NOC.Proformas.cerrarTallaje()">×</button>
+       </div>
+       <div class="noc-tallaje-section">
+         <div class="noc-tallaje-section-title"><span>01</span><div><strong>Tallajes frecuentes</strong><small>Los más utilizados en vuestro histórico de proformas</small></div></div>
+         <div class="noc-preset-grid">${TALLAJES_RAPIDOS.map(v=>`<button type="button" class="noc-preset" data-value="${v}" onclick="NOC.Proformas.cargarTallajeRapido('${v}')">${v}</button>`).join("")}</div>
+       </div>
+       <div class="noc-tallaje-section">
+         <div class="noc-tallaje-section-title"><span>02</span><div><strong>Ajustar tallas</strong><small>Parte de un frecuente y cambia solo lo necesario</small></div></div>
+         <div id="nocTallajeBuilder" class="noc-size-grid"></div>
+         <div class="noc-tallaje-result"><label>Resultado</label><input id="nocTallajeResultado" readonly></div>
+       </div>
+       <div class="noc-tallaje-section noc-manual-section">
+         <div class="noc-tallaje-section-title"><span>03</span><div><strong>Escritura manual</strong><small>Para cualquier combinación especial</small></div></div>
+         <div class="noc-manual-row"><input id="nocTallajeManual" value="${NOC.App.esc(l.tallaje||"")}" placeholder="Ej. 1XS,1S,2M,1L"><button type="button" class="btn" onclick="NOC.Proformas.usarTallajeManual()">Usar texto</button></div>
+       </div>
+       <div class="noc-tallaje-foot"><button type="button" class="btn" onclick="NOC.Proformas.cerrarTallaje()">Cancelar</button><button type="button" class="btn btn-primary" onclick="NOC.Proformas.aplicarTallaje()">Aplicar tallaje</button></div>
+     </div>`;
+   overlay.addEventListener("click",e=>{if(e.target===overlay)cerrarTallaje()});
+   document.body.appendChild(overlay);
+   renderTallajeBuilder();
+ }
  async function searchFor(inp){const items=await NOC.Articulos.search(inp.value.trim()),h=inp.parentElement.querySelector(".search-holder");h.innerHTML=`<div class="search-results">${items.map(a=>`<div class="search-result" data-id="${a.id}" data-name="${NOC.App.esc(a.nombre_producto)}" data-price="${a.precio_venta}"><span>${NOC.App.esc(a.nombre_producto)}</span><strong>${NOC.App.money(a.precio_venta)}</strong></div>`).join("")}</div>`;h.querySelectorAll(".search-result").forEach(el=>el.addEventListener("click",()=>{const l=window._pfLines.find(x=>String(x._key)===String(inp.dataset.key));Object.assign(l,{articulo_id:el.dataset.id,descripcion:el.dataset.name,precio_unitario:Number(el.dataset.price)});h.innerHTML="";drawLines()}))}
  function isCanariasCliente(c){
   const norm=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
@@ -542,5 +654,5 @@ function taxFor(c){
   const html=NOC.Documentos.render({tipo:"PROFORMA",doc:p,lineas:ls||[],config});
   NOC.App.modal(`<div class="modal-head"><strong>Proforma ${NOC.App.esc(p.numero)} · ${NOC.App.esc(p.clientes?.nombre_tienda||"")}</strong><div style="display:flex;gap:8px;align-items:center"><button class="btn" onclick="NOC.Documentos.imprimirActual()">Imprimir / Guardar PDF</button><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div></div><div class="modal-body">${html}</div>`,false,"document-modal");
 }
- return{render,openEditor,addLine,removeLine,patchLine,save,toggle,openStatus,openBulkStatus,recuperarCancelada,setStatus,applyBulkStatus,facturar,facturarSeleccionadas,ver,refreshModern,clearModernFilters,toggleAllVisible,updateBulkBar,deleteSelected,selectedFromScreen,setSort,searchModern,openLinkedInvoice,selectByStatus,pdfSeleccionadas}
+ return{render,openEditor,addLine,removeLine,patchLine,openTallaje,cerrarTallaje,cargarTallajeRapido,changeTalla,usarTallajeManual,aplicarTallaje,save,toggle,openStatus,openBulkStatus,recuperarCancelada,setStatus,applyBulkStatus,facturar,facturarSeleccionadas,ver,refreshModern,clearModernFilters,toggleAllVisible,updateBulkBar,deleteSelected,selectedFromScreen,setSort,searchModern,openLinkedInvoice,selectByStatus,pdfSeleccionadas}
 })();
