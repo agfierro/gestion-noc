@@ -1,0 +1,15 @@
+GESTIÓN NOC V4.0.55 — FILTROS MULTISELECCIÓN
+
+Cambios sobre V4.0.54:
+- Proformas: filtro Estado permite seleccionar varios estados simultáneamente.
+- Proformas: filtro Pago permite seleccionar varias formas de pago simultáneamente.
+- Facturas: filtro Pago permite seleccionar varias formas de pago simultáneamente.
+- Sin selección equivale a "Todos".
+- "Limpiar filtros" borra todas las selecciones.
+- El número de versión vuelve a mostrarse dentro del lateral negro, debajo de "Supabase conectado".
+- Se mantienen los buscadores añadidos en V4.0.54 y el resto de funciones sin cambios intencionados.
+
+Archivos incluidos para sustituir en el repositorio:
+- index.html
+- modules/proformas-v427.js
+- modules/facturas-v416.js
