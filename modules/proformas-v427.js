@@ -106,7 +106,7 @@ NOC.Proformas=(()=>{
  function drawModernPage(){
    const rows=[...filteredPfRows()].sort(pfCompare);
    const st=pfStats(rows);
-   const pagos=[...new Set(pfRows.map(r=>String(r.forma_pago||"Transferencia")).filter(Boolean))].sort();
+   const pagos=[...new Set(["Transferencia","Tarjeta","Bizum","PayPal","Metálico",...pfRows.map(r=>String(r.forma_pago||"Transferencia")).filter(Boolean)])];
    const mf=window._pfModernFilters||{estados:[],pagos:[]};
    const container=document.getElementById("viewContainer");
    container.innerHTML=`<div class="noc-modern-page noc-proformas-modern">

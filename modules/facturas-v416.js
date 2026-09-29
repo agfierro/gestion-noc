@@ -42,7 +42,7 @@ NOC.Facturas=(()=>{
    return [pdfRange.numeroDesde,pdfRange.numeroHasta].filter(Boolean).join(" a ")||"rango_numeracion";
  }
  function filterPanel(){
-   const pagos=[...new Set(rows.map(r=>String(r.forma_pago||"")).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+   const pagos=[...new Set(["Transferencia","Tarjeta","Bizum","PayPal","Metálico",...rows.map(r=>String(r.forma_pago||"")).filter(Boolean)])];
    const esc=NOC.App.esc;
    return `<div class="modern-filter-card invoice-main-filters">
      <div class="modern-filter-field"><label>Desde</label><input id="invoiceFilterDesde" type="date" value="${esc(filters.desde)}" onchange="NOC.Facturas.setFilter('desde',this.value)"></div>
