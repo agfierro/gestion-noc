@@ -24,8 +24,8 @@
   <script defer src="modules/clientes.js?v=4.0.0"></script>
   <script defer src="modules/articulos-v417.js?v=4.0.17"></script>
   <script defer src="modules/documentos-v439.js?v=4.0.53"></script>
-  <script defer src="modules/proformas-v427.js?v=4.0.55"></script>
-  <script defer src="modules/facturas-v416.js?v=4.0.55"></script>
+  <script defer src="modules/proformas-v427.js?v=4.0.56"></script>
+  <script defer src="modules/facturas-v416.js?v=4.0.56"></script>
   <script defer src="modules/gastos.js"></script>
   <script defer src="modules/informes-v440.js?v=4.0.40"></script>
   <script defer src="modules/empresa.js?v=3.5.4"></script>
@@ -135,6 +135,16 @@
     }
   </style>
 
+  <style id="noc-multi-filter-v456">
+    /* V4.0.56 — checks compactos en filtros multiselección */
+    .noc-multi-filter input[type="checkbox"]{
+      appearance:auto !important; -webkit-appearance:checkbox !important;
+      width:16px !important; height:16px !important; min-width:16px !important; min-height:16px !important;
+      margin:0 !important; padding:0 !important; border-radius:3px !important; box-shadow:none !important;
+      flex:0 0 16px !important; vertical-align:middle !important;
+    }
+    .noc-multi-filter label{font-size:14px !important; line-height:1.25 !important;}
+  </style>
 </head>
 <body class="noc-fashion-ui">
 <div id="authGate" class="auth-gate">
@@ -172,7 +182,7 @@
     <div class="sidebar-footer" style="flex-wrap:wrap">
       <span id="connectionDot" class="status-dot"></span>
       <span id="connectionText">Conectando…</span>
-      <small style="flex-basis:100%;padding-left:18px;opacity:.65;margin-top:4px">v4.0.55</small>
+      <small style="flex-basis:100%;padding-left:18px;opacity:.65;margin-top:4px">v4.0.56</small>
     </div>
   </aside>
 
