@@ -1,7 +1,7 @@
 window.NOC=window.NOC||{};
 NOC.Facturas=(()=>{
  let rows=[],query="",sort={key:"numero",dir:"desc"};
- let filters={desde:"",hasta:"",pago:""};
+ let filters={desde:"",hasta:"",pagos:[]};
  let selectedIds=new Set();
  let pdfRange={mode:"fecha",fechaDesde:"",fechaHasta:"",numeroDesde:"",numeroHasta:""};
  const dateEs=v=>{if(!v)return"";const [y,m,d]=String(v).split("-");return `${d}/${m}/${y}`};
@@ -17,7 +17,7 @@ NOC.Facturas=(()=>{
      if(q && !numero.includes(q) && !tienda.includes(q))return false;
      if(filters.desde && String(r.fecha||"")<filters.desde)return false;
      if(filters.hasta && String(r.fecha||"")>filters.hasta)return false;
-     if(filters.pago && String(r.forma_pago||"")!==filters.pago)return false;
+     if(filters.pagos.length && !filters.pagos.includes(String(r.forma_pago||"")))return false;
      return true;
    }).sort(compare);
  }
@@ -47,7 +47,7 @@ NOC.Facturas=(()=>{
    return `<div class="modern-filter-card invoice-main-filters">
      <div class="modern-filter-field"><label>Desde</label><input id="invoiceFilterDesde" type="date" value="${esc(filters.desde)}" onchange="NOC.Facturas.setFilter('desde',this.value)"></div>
      <div class="modern-filter-field"><label>Hasta</label><input id="invoiceFilterHasta" type="date" value="${esc(filters.hasta)}" onchange="NOC.Facturas.setFilter('hasta',this.value)"></div>
-     <div class="modern-filter-field"><label>Pago</label><select id="invoiceFilterPago" onchange="NOC.Facturas.setFilter('pago',this.value)"><option value="">Todos</option>${pagos.map(x=>`<option value="${esc(x)}" ${filters.pago===x?"selected":""}>${esc(x)}</option>`).join("")}</select></div>
+     <div class="modern-filter-field"><label>Pago</label><details class="noc-multi-filter" style="position:relative;min-width:150px"><summary style="cursor:pointer;list-style:none;border:1px solid #d7dbe2;border-radius:8px;padding:9px 34px 9px 11px;background:#fff;white-space:nowrap;position:relative">${esc(!filters.pagos.length?"Todos":filters.pagos.length===1?filters.pagos[0]:`${filters.pagos.length} seleccionados`)}<span style="position:absolute;right:11px">⌄</span></summary><div style="position:absolute;z-index:30;top:calc(100% + 5px);left:0;min-width:190px;background:#fff;border:1px solid #d7dbe2;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.14);padding:8px">${pagos.map(x=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 5px;cursor:pointer"><input type="checkbox" ${filters.pagos.includes(x)?"checked":""} onchange="NOC.Facturas.togglePagoFilter('${String(x).replace(/'/g,"\\'")}',this.checked)"><span>${esc(x)}</span></label>`).join("")}</div></details></div>
      <button class="btn modern-clear-btn" onclick="NOC.Facturas.clearFilters()">Limpiar filtros</button>
    </div>`;
  }
@@ -56,8 +56,14 @@ NOC.Facturas=(()=>{
    filters[k]=v||"";
    draw();
  }
+ function togglePagoFilter(value,checked){
+   const vals=new Set(filters.pagos||[]);
+   checked?vals.add(value):vals.delete(value);
+   filters.pagos=[...vals];
+   draw();
+ }
  function clearFilters(){
-   filters={desde:"",hasta:"",pago:""};
+   filters={desde:"",hasta:"",pagos:[]};
    query="";
    draw();
  }
@@ -171,5 +177,5 @@ NOC.Facturas=(()=>{
    const rel=f.proformas?.id?`<div class="document-relation"><span>Proforma de origen</span><button class="doc-link" onclick="NOC.Facturas.openProforma('${f.proformas.id}')">${NOC.App.esc(f.proformas.numero)}</button></div>`:"";
    NOC.App.modal(`<div class="modal-head"><strong>Factura ${NOC.App.esc(f.numero)} · ${NOC.App.esc(f.clientes?.nombre_tienda||"")}</strong><div style="display:flex;gap:8px;align-items:center"><button class="btn" onclick="NOC.Facturas.imprimirActual()">Imprimir / Guardar PDF</button><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div></div><div class="modal-body">${rel}${html}</div>`,false,"document-modal");
  }
- return{render,ver,search,setSort,openProforma,imprimirActual,pdfMode,pdfField,generarPdfZip,toggle,toggleAllVisible,updateSelectionUi,setFilter,clearFilters}
+ return{render,ver,search,togglePagoFilter,setSort,openProforma,imprimirActual,pdfMode,pdfField,generarPdfZip,toggle,toggleAllVisible,updateSelectionUi,setFilter,clearFilters}
 })();

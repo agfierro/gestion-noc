@@ -42,13 +42,23 @@ NOC.Proformas=(()=>{
    return"status-pendiente";
  }
  function getPfFilters(){
+   const saved=window._pfModernFilters||{};
    return{
      q:pfQuery.trim().toLocaleLowerCase("es"),
-     desde:document.getElementById("pfFilterDesde")?.value||"",
-     hasta:document.getElementById("pfFilterHasta")?.value||"",
-     estado:document.getElementById("pfFilterEstado")?.value||"",
-     pago:document.getElementById("pfFilterPago")?.value||""
+     desde:document.getElementById("pfFilterDesde")?.value??saved.desde??"",
+     hasta:document.getElementById("pfFilterHasta")?.value??saved.hasta??"",
+     estados:Array.isArray(saved.estados)?saved.estados:[],
+     pagos:Array.isArray(saved.pagos)?saved.pagos:[]
    };
+ }
+ function multiLabel(values,allLabel="Todos"){
+   if(!values?.length)return allLabel;
+   if(values.length===1)return values[0];
+   return `${values.length} seleccionados`;
+ }
+ function multiFilter(label,key,options,values){
+   const esc=NOC.App.esc;
+   return `<div class="modern-filter-field"><label>${label}</label><details class="noc-multi-filter" style="position:relative;min-width:150px"><summary style="cursor:pointer;list-style:none;border:1px solid #d7dbe2;border-radius:8px;padding:9px 34px 9px 11px;background:#fff;white-space:nowrap;position:relative">${esc(multiLabel(values))}<span style="position:absolute;right:11px">⌄</span></summary><div style="position:absolute;z-index:30;top:calc(100% + 5px);left:0;min-width:190px;background:#fff;border:1px solid #d7dbe2;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.14);padding:8px">${options.map(x=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 5px;cursor:pointer"><input type="checkbox" ${values.includes(x)?"checked":""} onchange="NOC.Proformas.toggleFilterValue('${key}','${String(x).replace(/'/g,"\\'")}',this.checked)"><span>${esc(x)}</span></label>`).join("")}</div></details></div>`;
  }
  function filteredPfRows(){
    const f=getPfFilters();
@@ -58,8 +68,8 @@ NOC.Proformas=(()=>{
      if(f.q && !num.includes(f.q) && !client.includes(f.q))return false;
      if(f.desde && String(r.fecha)<f.desde)return false;
      if(f.hasta && String(r.fecha)>f.hasta)return false;
-     if(f.estado && normalizarEstado(r.estado)!==normalizarEstado(f.estado))return false;
-     if(f.pago && String(r.forma_pago||"Transferencia")!==f.pago)return false;
+     if(f.estados.length && !f.estados.some(x=>normalizarEstado(r.estado)===normalizarEstado(x)))return false;
+     if(f.pagos.length && !f.pagos.includes(String(r.forma_pago||"Transferencia")))return false;
      return true;
    });
  }
@@ -97,6 +107,7 @@ NOC.Proformas=(()=>{
    const rows=[...filteredPfRows()].sort(pfCompare);
    const st=pfStats(rows);
    const pagos=[...new Set(pfRows.map(r=>String(r.forma_pago||"Transferencia")).filter(Boolean))].sort();
+   const mf=window._pfModernFilters||{estados:[],pagos:[]};
    const container=document.getElementById("viewContainer");
    container.innerHTML=`<div class="noc-modern-page noc-proformas-modern">
      <div class="modern-page-head">
@@ -115,10 +126,10 @@ NOC.Proformas=(()=>{
      </div>
 
      <div class="modern-filter-card">
-       <div class="modern-filter-field"><label>Desde</label><input id="pfFilterDesde" type="date" onchange="NOC.Proformas.refreshModern()"></div>
-       <div class="modern-filter-field"><label>Hasta</label><input id="pfFilterHasta" type="date" onchange="NOC.Proformas.refreshModern()"></div>
-       <div class="modern-filter-field"><label>Estado</label><select id="pfFilterEstado" onchange="NOC.Proformas.refreshModern()"><option value="">Todos</option><option>Pendiente</option><option>Enviada</option><option>Facturada</option><option>Cancelada</option></select></div>
-       <div class="modern-filter-field"><label>Pago</label><select id="pfFilterPago" onchange="NOC.Proformas.refreshModern()"><option value="">Todos</option>${pagos.map(x=>`<option>${NOC.App.esc(x)}</option>`).join("")}</select></div>
+       <div class="modern-filter-field"><label>Desde</label><input id="pfFilterDesde" type="date" value="${NOC.App.esc(mf.desde||"")}" onchange="NOC.Proformas.refreshModern()"></div>
+       <div class="modern-filter-field"><label>Hasta</label><input id="pfFilterHasta" type="date" value="${NOC.App.esc(mf.hasta||"")}" onchange="NOC.Proformas.refreshModern()"></div>
+       ${multiFilter("Estado","estados",["Pendiente","Enviada","Facturada","Cancelada"],mf.estados||[])}
+       ${multiFilter("Pago","pagos",pagos,mf.pagos||[])}
        <button class="btn modern-clear-btn" onclick="NOC.Proformas.clearModernFilters()">Limpiar filtros</button>
      </div>
 
@@ -183,7 +194,7 @@ NOC.Proformas=(()=>{
    // restore current filter values after redraw
    if(window._pfModernFilters){
      const f=window._pfModernFilters;
-     ["Desde","Hasta","Estado","Pago"].forEach(k=>{
+     ["Desde","Hasta"].forEach(k=>{
        const el=document.getElementById("pfFilter"+k);
        if(el)el.value=f[k.toLowerCase()]||"";
      });
@@ -212,11 +223,20 @@ NOC.Proformas=(()=>{
    await NOC.Facturas.ver(id);
  }
  function refreshModern(){
-   window._pfModernFilters=getPfFilters();
+   window._pfModernFilters={...(window._pfModernFilters||{}),...getPfFilters(),q:pfQuery};
+   drawModernPage();
+ }
+ function toggleFilterValue(key,value,checked){
+   const f={q:pfQuery,desde:"",hasta:"",estados:[],pagos:[],...(window._pfModernFilters||{}),...getPfFilters()};
+   const vals=new Set(Array.isArray(f[key])?f[key]:[]);
+   checked?vals.add(value):vals.delete(value);
+   f[key]=[...vals];
+   window._pfModernFilters=f;
    drawModernPage();
  }
  function clearModernFilters(){
-   window._pfModernFilters={q:"",desde:"",hasta:"",estado:"",pago:""};
+   window._pfModernFilters={q:"",desde:"",hasta:"",estados:[],pagos:[]};
+   pfQuery="";
    drawModernPage();
  }
  function visibleRows(){
@@ -712,5 +732,5 @@ function taxFor(c){
   const html=NOC.Documentos.render({tipo:"PROFORMA",doc:p,lineas:ls||[],config});
   NOC.App.modal(`<div class="modal-head"><strong>Proforma ${NOC.App.esc(p.numero)} · ${NOC.App.esc(p.clientes?.nombre_tienda||"")}</strong><div style="display:flex;gap:8px;align-items:center"><button class="btn" onclick="NOC.Documentos.imprimirActual()">Imprimir / Guardar PDF</button><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div></div><div class="modal-body">${html}</div>`,false,"document-modal");
 }
- return{render,openEditor,addLine,removeLine,patchLine,openTallaje,cerrarTallaje,cargarTallajeRapido,changeTalla,usarTallajeManual,aplicarTallaje,save,toggle,openStatus,openBulkStatus,recuperarCancelada,setStatus,applyBulkStatus,facturar,facturarSeleccionadas,ver,refreshModern,clearModernFilters,toggleAllVisible,updateBulkBar,deleteSelected,selectedFromScreen,setSort,searchModern,openLinkedInvoice,selectByStatus,pdfSeleccionadas}
+ return{render,toggleFilterValue,openEditor,addLine,removeLine,patchLine,openTallaje,cerrarTallaje,cargarTallajeRapido,changeTalla,usarTallajeManual,aplicarTallaje,save,toggle,openStatus,openBulkStatus,recuperarCancelada,setStatus,applyBulkStatus,facturar,facturarSeleccionadas,ver,refreshModern,clearModernFilters,toggleAllVisible,updateBulkBar,deleteSelected,selectedFromScreen,setSort,searchModern,openLinkedInvoice,selectByStatus,pdfSeleccionadas}
 })();
