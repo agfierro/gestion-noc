@@ -1,0 +1,12 @@
+GESTIÓN NOC V4.0.62
+BASE: V4.0.61 estable.
+
+CAMBIO:
+Informe Agencia Tributaria (> 3.005,06 € impuestos incluidos):
+- Pantalla sin cambios.
+- Al imprimir/PDF: Imprimir completo o Imprimir separado por clientes.
+- Completo conserva el funcionamiento actual.
+- Separado genera automáticamente un PDF por cada cliente incluido, sin preguntar cuál.
+- El navegador puede pedir permiso para descargas múltiples.
+
+SQL nuevo: NO.
