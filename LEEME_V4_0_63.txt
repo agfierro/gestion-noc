@@ -1,0 +1,13 @@
+GESTIÓN NOC V4.0.63
+BASE: V4.0.62 / V4.0.61 estable.
+
+CORRECCIÓN AEAT:
+- Se elimina el intento de menú emergente de V62.
+- En el informe Agencia Tributaria aparecen DOS botones visibles:
+  * Imprimir completo
+  * Imprimir separado por clientes
+- "Imprimir completo" conserva el mecanismo de impresión actual.
+- "Imprimir separado por clientes" genera automáticamente un PDF por cada cliente del informe.
+- No pregunta qué cliente.
+- La pantalla del informe no cambia salvo por los dos botones.
+- No requiere SQL.
