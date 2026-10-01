@@ -1,0 +1,20 @@
+GESTIÓN NOC V4.0.68
+CORRECCIÓN MYSTIC + NULL HISTÓRICO
+
+1. Corrige el fallo por el que un campo histórico NULL volvía a mostrar el dato actual de Clientes.
+2. El SQL corrige Mystic en ficha actual, facturas y proformas.
+3. Facturación: Mystic / C/ San Miguel, 20.
+4. Envío: NULL (misma dirección que facturación).
+5. No modifica NIF, importes, fechas, numeración ni líneas.
+6. Conserva el resto de V67. El 347 separado sigue pendiente y no se considera resuelto.
+
+ORDEN:
+A) Ejecutar el SQL incluido.
+B) Comprobar la tabla que devuelve al final.
+C) Subir V68 y refresco fuerte.
+D) Abrir una factura y una proforma antiguas de Mystic.
+
+CORRECCIÓN R2 DEL SQL:
+- PostgreSQL no admite min(uuid) en esta instalación.
+- La identificación de Mystic se hace ahora con COUNT(*) y SELECT id LIMIT 1 por separado.
+- Usar únicamente el SQL de esta carpeta R2.
