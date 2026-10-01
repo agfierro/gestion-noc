@@ -38,3 +38,6 @@
   justify-content:flex-end;
   margin:10px 0 14px;
 }
+
+/* V4.0.64 · Modelo 347 */
+.noc-347-buttons{display:inline-flex;margin-left:8px;vertical-align:middle}
