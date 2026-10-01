@@ -1,0 +1,13 @@
+GESTIÓN NOC V4.0.66
+BASE: V4.0.65 R2 comprobada.
+
+MODELO 347:
+- Corregida la causa real por la que V64 no mostraba los dos botones.
+- El código anterior encontraba el encabezado superior "Informe Modelo 347 · Operaciones con terceros",
+  no el bloque inferior del informe generado donde está el botón real.
+- V66 se ancla directamente al botón exacto "Imprimir / Guardar PDF".
+- Ese botón pasa a "Imprimir completo".
+- A su derecha se añade "Imprimir separado por clientes".
+- No se toca "Generar informe 347" ni "Exportar CSV".
+- Conserva la corrección urgente de histórico de clientes de V65 R2.
+- SQL nuevo: NO.
