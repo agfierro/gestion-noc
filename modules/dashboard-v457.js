@@ -1,7 +1,7 @@
 window.NOC=window.NOC||{};
 NOC.Dashboard=(()=>{
   const MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  let year=new Date().getFullYear(), period="year", cache=null;
+  let year=new Date().getFullYear(), period="year", cache=null, showChart=false;
 
   const esc=s=>NOC.App.esc(s), money=n=>NOC.App.money(Number(n||0));
   async function all(table,select="*"){
@@ -96,8 +96,12 @@ NOC.Dashboard=(()=>{
         <div class="dash-kpi"><small>Web</small><strong>${money(s.web)}</strong><span>${webShare.toLocaleString("es-ES",{maximumFractionDigits:1})} % del total</span></div>
         <div class="dash-kpi"><small>Artículos proformados</small><strong>${s.uds.toLocaleString("es-ES")}</strong><span>${pct(s.uds,ps.uds)} vs ${year-1}</span></div>
       </div>
-      <div class="dash-table-card"><div class="dash-card-title"><div><h3>Evolución mensual · ${periodLabel()}</h3><p>El detalle mensual se mantiene siempre visible.</p></div></div>${miniBars(cur,idxs)}</div>
+      <div class="dash-priority-head">
+        <div><h2>Detalle por mes</h2><p>La información principal del periodo, con todos los meses visibles.</p></div>
+        <button class="btn btn-small" onclick="NOC.Dashboard.toggleChart()">${showChart?"Ocultar gráfico":"Mostrar gráfico"}</button>
+      </div>
       ${tableFor(year,cur,idxs,`Facturación por meses ${year}`)}
+      ${showChart?`<div class="dash-table-card"><div class="dash-card-title"><div><h3>Evolución mensual · ${periodLabel()}</h3><p>Vista gráfica opcional.</p></div></div>${miniBars(cur,idxs)}</div>`:""}
       <div class="dash-section-title"><h2>Comparativa histórica</h2><p>Mismo periodo y mismos meses para comparar correctamente.</p></div>
       ${tableFor(year-1,prev,idxs,`Facturación por meses ${year-1}`)}
       ${tableFor(year-2,calc(year-2),idxs,`Facturación por meses ${year-2}`)}
@@ -105,5 +109,6 @@ NOC.Dashboard=(()=>{
   }
   function setYear(v){year=Number(v);paint([...new Set([year,year-1,year-2])]);}
   function setPeriod(v){period=v;paint([...new Set([year,year-1,year-2])]);}
-  return{render,setYear,setPeriod};
+  function toggleChart(){showChart=!showChart;paint([...new Set([year,year-1,year-2])]);}
+  return{render,setYear,setPeriod,toggleChart};
 })();
