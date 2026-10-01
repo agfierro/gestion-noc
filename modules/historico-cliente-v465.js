@@ -3,13 +3,16 @@ NOC.HistoricoCliente=(()=>{
   const fields=["nombre","apellidos","nombre_tienda","telefono","email","dni_cif","direccion_facturacion","cp_facturacion","localidad_facturacion","provincia_facturacion","direccion_entrega","cp_entrega","localidad_entrega","provincia_entrega","tipo_fiscal"];
   function frozen(doc){
     if(!doc)return doc;
+    // Si existe snapshot histórico, NULL también es un valor histórico intencionado.
+    // Nunca volver a la ficha actual del cliente por estar el campo a NULL.
+    const hasSnapshot=doc.cliente_nombre_tienda!==undefined && doc.cliente_nombre_tienda!==null;
+    if(!hasSnapshot)return doc;
     const c={...(doc.clientes||{})};
-    let has=false;
     fields.forEach(k=>{
       const key="cliente_"+k;
-      if(doc[key]!==undefined && doc[key]!==null){c[k]=doc[key];has=true;}
+      if(doc[key]!==undefined)c[k]=doc[key];
     });
-    return has?{...doc,clientes:c}:doc;
+    return {...doc,clientes:c};
   }
   function install(){
     if(!NOC.Documentos||typeof NOC.Documentos.render!=="function"||NOC.Documentos.render.__nocFrozen)return;
