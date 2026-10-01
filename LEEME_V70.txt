@@ -1,0 +1,20 @@
+GESTIÓN NOC V4.0.70 — NUEVO MÉTODO DE PAGINACIÓN
+
+BASE: V4.0.68 del ZIP completo de GitHub aportado por el usuario.
+V69 queda descartada.
+
+CAMBIO DE MÉTODO:
+- Ya NO se rellena la página calculando un spacer en píxeles.
+- Primero se mide el documento SIN ningún relleno.
+- Si cabe en una A4, se construye una hoja física única de 296 mm mediante flexbox.
+- El espacio libre central es flexible; forma de pago, totales y pie quedan dentro de esa única hoja.
+- Para una factura de una página se desactiva el motor automático de pagebreak de html2pdf.
+- Si el documento de verdad no cabe, pasa a flujo multipágina sin rellenos artificiales.
+
+OBJETIVO:
+- Las facturas cortas/medias que caben en A4 deben producir exactamente 1 página.
+- No debe existir una segunda página blanca o sólo con el pie.
+- Los documentos realmente largos sí pueden tener varias páginas.
+
+NO HAY SQL.
+SUBIR SOLO index.html y modules/documentos-v470.js.
