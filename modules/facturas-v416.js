@@ -5,7 +5,7 @@ NOC.Facturas=(()=>{
  let selectedIds=new Set();
  let pdfRange={mode:"fecha",fechaDesde:"",fechaHasta:"",numeroDesde:"",numeroHasta:""};
  const dateEs=v=>{if(!v)return"";const [y,m,d]=String(v).split("-");return `${d}/${m}/${y}`};
- const value=(r,k)=>({numero:r.numero||"",fecha:r.fecha||"",cliente:r.clientes?.nombre_tienda||"",
+ const value=(r,k)=>({numero:r.numero||"",fecha:r.fecha||"",cliente:r.cliente_nombre_tienda||r.clientes?.nombre_tienda||"",
    base:Number(r.base_imponible||0),iva:Number(r.iva||0),recargo:Number(r.recargo||0),
    total:Number(r.total||0),pago:r.forma_pago||"",proforma:r.proformas?.numero||""})[k];
  function compare(a,b){const va=value(a,sort.key),vb=value(b,sort.key);let c=(typeof va==="number"||typeof vb==="number")?Number(va||0)-Number(vb||0):String(va??"").localeCompare(String(vb??""),"es",{numeric:true,sensitivity:"base"});return sort.dir==="asc"?c:-c}
@@ -13,7 +13,7 @@ NOC.Facturas=(()=>{
    const q=query.trim().toLocaleLowerCase("es");
    return rows.filter(r=>{
      const numero=String(r.numero||"").toLocaleLowerCase("es");
-     const tienda=String(r.clientes?.nombre_tienda||"").toLocaleLowerCase("es");
+     const tienda=String(r.cliente_nombre_tienda||r.clientes?.nombre_tienda||"").toLocaleLowerCase("es");
      if(q && !numero.includes(q) && !tienda.includes(q))return false;
      if(filters.desde && String(r.fecha||"")<filters.desde)return false;
      if(filters.hasta && String(r.fecha||"")>filters.hasta)return false;
@@ -105,7 +105,7 @@ NOC.Facturas=(()=>{
    <div class="modern-table-card"><div class="table-wrap modern-table-wrap"><table class="modern-data-table invoice-table"><thead><tr>
    <th class="modern-check-col"><input id="invoiceCheckAll" class="modern-check" type="checkbox" onchange="NOC.Facturas.toggleAllVisible(this.checked)"></th>
    ${head("numero","Nº")}${head("fecha","Fecha")}${head("cliente","Tienda")}${head("base","Base","num")}${head("iva","IVA","num")}${head("recargo","RE","num")}${head("total","Total","num")}${head("pago","Pago")}${head("proforma","Proforma")}<th>Acciones</th>
-   </tr></thead><tbody>${rr.map(r=>`<tr><td class="modern-check-col"><input class="modern-check invoice-row-check" data-id="${r.id}" type="checkbox" ${selectedIds.has(r.id)?"checked":""} onchange="NOC.Facturas.toggle('${r.id}',this.checked)"></td><td><strong>${NOC.App.esc(r.numero)}</strong></td><td>${dateEs(r.fecha)}</td><td>${NOC.App.esc(r.clientes?.nombre_tienda||"")}</td><td class="num">${NOC.App.money(r.base_imponible)}</td><td class="num">${NOC.App.money(r.iva)}</td><td class="num">${NOC.App.money(r.recargo)}</td><td class="num"><strong>${NOC.App.money(r.total)}</strong></td><td>${NOC.App.esc(r.forma_pago||"")}</td><td>${r.proformas?.id?`<button class="doc-link" onclick="NOC.Facturas.openProforma('${r.proformas.id}')">${NOC.App.esc(r.proformas.numero)}</button>`:(String(r.numero||"").startsWith("WEB")?"0":"—")}</td><td><button class="modern-icon-btn" onclick="NOC.Facturas.ver('${r.id}')"><svg class="noc-eye-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.7" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button></td></tr>`).join("")||`<tr><td colspan="11" class="empty">No hay resultados.</td></tr>`}</tbody></table></div></div></div>`;
+   </tr></thead><tbody>${rr.map(r=>`<tr><td class="modern-check-col"><input class="modern-check invoice-row-check" data-id="${r.id}" type="checkbox" ${selectedIds.has(r.id)?"checked":""} onchange="NOC.Facturas.toggle('${r.id}',this.checked)"></td><td><strong>${NOC.App.esc(r.numero)}</strong></td><td>${dateEs(r.fecha)}</td><td>${NOC.App.esc(r.cliente_nombre_tienda||r.clientes?.nombre_tienda||"")}</td><td class="num">${NOC.App.money(r.base_imponible)}</td><td class="num">${NOC.App.money(r.iva)}</td><td class="num">${NOC.App.money(r.recargo)}</td><td class="num"><strong>${NOC.App.money(r.total)}</strong></td><td>${NOC.App.esc(r.forma_pago||"")}</td><td>${r.proformas?.id?`<button class="doc-link" onclick="NOC.Facturas.openProforma('${r.proformas.id}')">${NOC.App.esc(r.proformas.numero)}</button>`:(String(r.numero||"").startsWith("WEB")?"0":"—")}</td><td><button class="modern-icon-btn" onclick="NOC.Facturas.ver('${r.id}')"><svg class="noc-eye-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.7" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button></td></tr>`).join("")||`<tr><td colspan="11" class="empty">No hay resultados.</td></tr>`}</tbody></table></div></div></div>`;
    updateSelectionUi();
  }
  function search(inp){
@@ -175,7 +175,7 @@ NOC.Facturas=(()=>{
    const {data:ls,error:e}=await NOC.API.db().from("lineas_factura").select("*").eq("factura_id",id).order("orden");if(e)throw e;
    const config=await NOC.Documentos.getConfig(),html=NOC.Documentos.render({tipo:"FACTURA",doc:f,lineas:ls||[],config});
    const rel=f.proformas?.id?`<div class="document-relation"><span>Proforma de origen</span><button class="doc-link" onclick="NOC.Facturas.openProforma('${f.proformas.id}')">${NOC.App.esc(f.proformas.numero)}</button></div>`:"";
-   NOC.App.modal(`<div class="modal-head"><strong>Factura ${NOC.App.esc(f.numero)} · ${NOC.App.esc(f.clientes?.nombre_tienda||"")}</strong><div style="display:flex;gap:8px;align-items:center"><button class="btn" onclick="NOC.Facturas.imprimirActual()">Imprimir / Guardar PDF</button><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div></div><div class="modal-body">${rel}${html}</div>`,false,"document-modal");
+   NOC.App.modal(`<div class="modal-head"><strong>Factura ${NOC.App.esc(f.numero)} · ${NOC.App.esc(f.cliente_nombre_tienda||f.clientes?.nombre_tienda||"")}</strong><div style="display:flex;gap:8px;align-items:center"><button class="btn" onclick="NOC.Facturas.imprimirActual()">Imprimir / Guardar PDF</button><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div></div><div class="modal-body">${rel}${html}</div>`,false,"document-modal");
  }
  return{render,ver,search,togglePagoFilter,setSort,openProforma,imprimirActual,pdfMode,pdfField,generarPdfZip,toggle,toggleAllVisible,updateSelectionUi,setFilter,clearFilters}
 })();

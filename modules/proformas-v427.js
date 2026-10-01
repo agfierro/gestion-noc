@@ -63,7 +63,7 @@ NOC.Proformas=(()=>{
  function filteredPfRows(){
    const f=getPfFilters();
    return pfRows.filter(r=>{
-     const client=String(r.clientes?.nombre_tienda||"").toLocaleLowerCase("es");
+     const client=String(r.cliente_nombre_tienda||r.clientes?.nombre_tienda||"").toLocaleLowerCase("es");
      const num=String(r.numero||"").toLocaleLowerCase("es");
      if(f.q && !num.includes(f.q) && !client.includes(f.q))return false;
      if(f.desde && String(r.fecha)<f.desde)return false;
@@ -75,7 +75,7 @@ NOC.Proformas=(()=>{
  }
  function pfSortValue(r,key){
    const f=pfInvoiceByProforma.get(r.id);
-   const v={numero:r.numero||"",fecha:r.fecha||"",cliente:r.clientes?.nombre_tienda||"",
+   const v={numero:r.numero||"",fecha:r.fecha||"",cliente:r.cliente_nombre_tienda||r.clientes?.nombre_tienda||"",
      total:Number(r.total||0),estado:r.estado||"",pago:r.forma_pago||"Transferencia",factura:f?.numero||""};
    return v[key];
  }
@@ -153,7 +153,7 @@ NOC.Proformas=(()=>{
              <td class="modern-check-col"><input class="modern-check pf-row-check" data-id="${r.id}" type="checkbox" ${selectedIds.has(r.id)?"checked":""} onchange="NOC.Proformas.toggle('${r.id}',this.checked);NOC.Proformas.updateBulkBar()"></td>
              <td><strong class="doc-number">${NOC.App.esc(r.numero)}</strong></td>
              <td>${pfDateEs(r.fecha)}</td>
-             <td>${NOC.App.esc(r.clientes?.nombre_tienda||"")}</td>
+             <td>${NOC.App.esc(r.cliente_nombre_tienda||r.clientes?.nombre_tienda||"")}</td>
              <td class="num"><strong>${NOC.App.money(r.total)}</strong></td>
              <td><span class="modern-status ${pfStatusClass(r.estado)}">${NOC.App.esc(r.estado)}</span></td>
              <td>${NOC.App.esc(r.forma_pago||"Transferencia")}</td>
@@ -730,7 +730,7 @@ function taxFor(c){
   if(e2)throw e2;
   const config=await NOC.Documentos.getConfig();
   const html=NOC.Documentos.render({tipo:"PROFORMA",doc:p,lineas:ls||[],config});
-  NOC.App.modal(`<div class="modal-head"><strong>Proforma ${NOC.App.esc(p.numero)} · ${NOC.App.esc(p.clientes?.nombre_tienda||"")}</strong><div style="display:flex;gap:8px;align-items:center"><button class="btn" onclick="NOC.Documentos.imprimirActual()">Imprimir / Guardar PDF</button><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div></div><div class="modal-body">${html}</div>`,false,"document-modal");
+  NOC.App.modal(`<div class="modal-head"><strong>Proforma ${NOC.App.esc(p.numero)} · ${NOC.App.esc(p.cliente_nombre_tienda||p.clientes?.nombre_tienda||"")}</strong><div style="display:flex;gap:8px;align-items:center"><button class="btn" onclick="NOC.Documentos.imprimirActual()">Imprimir / Guardar PDF</button><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div></div><div class="modal-body">${html}</div>`,false,"document-modal");
 }
  return{render,toggleFilterValue,openEditor,addLine,removeLine,patchLine,openTallaje,cerrarTallaje,cargarTallajeRapido,changeTalla,usarTallajeManual,aplicarTallaje,save,toggle,openStatus,openBulkStatus,recuperarCancelada,setStatus,applyBulkStatus,facturar,facturarSeleccionadas,ver,refreshModern,clearModernFilters,toggleAllVisible,updateBulkBar,deleteSelected,selectedFromScreen,setSort,searchModern,openLinkedInvoice,selectByStatus,pdfSeleccionadas}
 })();
