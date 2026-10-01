@@ -1,0 +1,7 @@
+GESTIÓN NOC V4.0.56 — AJUSTE FILTROS MULTISELECCIÓN
+
+Cambios sobre V4.0.55:
+- Checkboxes de los filtros multiselección reducidos a 16x16 px, acordes al tamaño del texto.
+- Proformas: Pago muestra siempre Transferencia, Tarjeta, Bizum, PayPal y Metálico, además de cualquier valor histórico distinto existente en datos.
+- Facturas: mismo listado completo de formas de pago.
+- Resto de funcionamiento sin cambios intencionados.
