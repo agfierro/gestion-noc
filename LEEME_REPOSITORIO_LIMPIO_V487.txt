@@ -1,0 +1,15 @@
+GESTIÓN NOC V4.0.87 — REPOSITORIO LIMPIO (sin cambios de código)
+
+Contenido: copia de archivos vigentes y recursos conservados del repositorio original.
+No se han modificado los contenidos de ningún archivo conservado.
+No requiere SQL. No se han modificado registros de Supabase.
+
+PRECAUCIONES:
+1. Conservar el ZIP original «20261010 backup github.zip» como copia de seguridad.
+2. Crear una rama o copia del repositorio en GitHub antes de eliminar archivos.
+3. Subir el contenido de este ZIP a la raíz del repositorio; eliminar solo los archivos indicados en INFORME_LIMPIEZA_GITHUB_V487.txt.
+4. Verificar carga, login, proformas, venta directa, facturas, informes, PDFs individual y masivo.
+5. Si algo falla, restaurar el ZIP original.
+
+La inspección ha sido estática: no equivale a una prueba de ejecución contra Supabase.
+No se ha borrado nada en tu GitHub.
