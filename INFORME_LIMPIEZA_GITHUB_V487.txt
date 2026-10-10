@@ -1,0 +1,183 @@
+AUDITORÍA DE LIMPIEZA GITHUB — V4.0.87
+ZIP ORIGINAL: 20261010 backup github.zip
+Ficheros útiles del ZIP original (sin __MACOSX): 163
+Ficheros conservados: 45
+Ficheros excluidos: 118
+Archivos auxiliares de macOS en ZIP original: 169
+
+NOTA: los archivos excluidos no se han encontrado en las dependencias estáticas del punto de entrada. Esto no garantiza ausencia de dependencias dinámicas.
+
+EXCLUIDOS:
+  LEEME_LIMPIEZA.txt
+  LEEME_V4_0_34.txt
+  LEEME_V4_0_40.txt
+  LEEME_V4_0_55.txt
+  LEEME_V4_0_56.txt
+  LEEME_V4_0_57.txt
+  LEEME_V4_0_62.txt
+  LEEME_V4_0_63.txt
+  LEEME_V4_0_65_URGENTE.txt
+  LEEME_V4_0_66.txt
+  LEEME_V4_0_68.txt
+  LEEME_V69_ACTUALIZACION.txt
+  LEEME_V70.txt
+  LEEME_V71.txt
+  MIGRACION_V4_0_40.sql
+  css/tallajes-v441.css
+  css/v457-dashboard.css
+  css/v459-dashboard.css
+  css/v460-dashboard.css
+  css/v462-dashboard.css
+  modules/aeat-print-v462.js
+  modules/aeat-print-v463.js
+  modules/dashboard-v457.js
+  modules/dashboard-v459.js
+  modules/dashboard-v460.js
+  modules/dashboard-v462.js
+  modules/documentos-v418.js
+  modules/documentos-v425.js
+  modules/documentos-v426.js
+  modules/documentos-v427.js
+  modules/documentos-v428.js
+  modules/documentos-v429.js
+  modules/documentos-v430.js
+  modules/documentos-v431.js
+  modules/documentos-v432.js
+  modules/documentos-v433.js
+  modules/documentos-v434.js
+  modules/documentos-v435.js
+  modules/documentos-v436.js
+  modules/documentos-v437.js
+  modules/documentos-v438.js
+  modules/documentos-v439.js
+  modules/documentos-v469.js
+  modules/documentos-v470.js
+  modules/documentos-v471.js
+  modules/documentos-v472.js
+  modules/documentos-v474.js
+  modules/documentos-v475.js
+  modules/documentos-v476.js
+  modules/documentos-v477.js
+  modules/documentos-v478.js
+  modules/documentos-v479.js
+  modules/documentos-v480.js
+  modules/documentos-v481.js
+  modules/documentos-v482.js
+  modules/facturas-v407.js
+  modules/facturas-v408.js
+  modules/facturas-v409.js
+  modules/facturas-v410.js
+  modules/facturas-v411.js
+  modules/facturas-v412.js
+  modules/facturas-v413.js
+  modules/facturas-v414.js
+  modules/facturas-v415.js
+  modules/facturas-v416.js
+  modules/facturas-v478.js
+  modules/facturas-v479.js
+  modules/facturas-v480.js
+  modules/facturas-v481.js
+  modules/facturas-v482.js
+  modules/facturas-v483.js
+  modules/facturas-v485.js
+  modules/facturas-v486.js
+  modules/informes-layout-v460.js
+  modules/informes-layout-v462.js
+  modules/informes-v408.js
+  modules/informes-v415.js
+  modules/informes-v417.js
+  modules/informes-v418.js
+  modules/informes-v420.js
+  modules/informes-v422.js
+  modules/informes-v423.js
+  modules/informes-v428.js
+  modules/informes-v429.js
+  modules/informes-v430.js
+  modules/informes-v431.js
+  modules/informes-v432.js
+  modules/informes-v433.js
+  modules/informes-v434.js
+  modules/informes-v435.js
+  modules/informes-v436.js
+  modules/informes-v437.js
+  modules/informes-v438.js
+  modules/informes-v439.js
+  modules/informes-v440.js
+  modules/informes-v474.js
+  modules/informes-v475.js
+  modules/informes-v476.js
+  modules/informes-v477.js
+  modules/informes-v478.js
+  modules/informes-v479.js
+  modules/informes-v480.js
+  modules/informes-v481.js
+  modules/modelo347-pdf-v464.js
+  modules/modelo347-pdf-v466.js
+  modules/modelo347-pdf-v467.js
+  modules/proformas-v405.js
+  modules/proformas-v406.js
+  modules/proformas-v410.js
+  modules/proformas-v411.js
+  modules/proformas-v415.js
+  modules/proformas-v418.js
+  modules/proformas-v419.js
+  modules/proformas-v422.js
+  modules/proformas-v424.js
+  modules/proformas-v425.js
+  modules/proformas-v426.js
+  modules/proformas-v427.js
+
+CONSERVADOS:
+  assets/logo-noc-skull.png
+  config/config.js
+  css/noc-fashion-v383.css
+  css/responsive.css
+  css/styles.css
+  css/tallajes-v442.css
+  css/v461-dashboard.css
+  favicon.ico
+  index.html
+  js/api.js
+  js/app.js
+  js/auth-v432.js
+  js/auth.js
+  js/heartbeat-v437.js
+  modules/articulos-v417.js
+  modules/articulos.js
+  modules/clientes.js
+  modules/configuracion.js
+  modules/dashboard-v461.js
+  modules/dashboard.js
+  modules/documentos-v423b.js
+  modules/documentos-v487.js
+  modules/documentos.js
+  modules/empresa.js
+  modules/facturas-v487.js
+  modules/facturas.js
+  modules/gastos.js
+  modules/herramientas-v440.js
+  modules/herramientas.js
+  modules/historico-cliente-v465.js
+  modules/informes-layout-v461.js
+  modules/informes-v482.js
+  modules/informes.js
+  modules/proformas-v484.js
+  modules/v57-patches.js
+  modules/v59-patches.js
+  modules/v60-patches.js
+  modules/v61-patches.js
+  modules/v62-patches.js
+  noc-icon-iphone-v400.png
+  noc-manifest-v350.webmanifest
+  noc-skull-app-192-v350.png
+  noc-skull-app-512-v350.png
+  noc-skull-tab-16-v350.png
+  noc-skull-tab-32-v350.png
+
+REFERENCIAS EXTERNAS/NO RESUELTAS (comprobar si son rutas dinámicas):
+  ('modules/documentos-v423b.js', '${val(logo)}')
+  ('modules/documentos-v423b.js', '${val(logo)}')
+  ('modules/documentos.js', '${val(logo)}')
+  ('modules/documentos.js', '${val(logo)}')
+  ('modules/documentos-v487.js', '${val(logo)}')
+  ('modules/documentos-v487.js', '${val(logo)}')
