@@ -2,7 +2,7 @@ window.NOC=window.NOC||{};
 NOC.Dashboard=(()=>{
   const LEGACY_DASHBOARD=NOC.Dashboard||{};
   const MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  let year=new Date().getFullYear(), period="year", cache=null, showChart=false;
+  let year=new Date().getFullYear(), period="year", cache=null, showChart=false, availableYears=[];
 
   const esc=s=>NOC.App.esc(s), money=n=>NOC.App.money(Number(n||0));
   async function all(table,select="*"){
@@ -69,14 +69,14 @@ NOC.Dashboard=(()=>{
       all("lineas_proforma","proforma_id,cantidad,es_envio")
     ]);
     cache={facturas,proformas,lineas};
-    const years=[...new Set([...facturas.map(x=>Number(fdate(x).slice(0,4))),...proformas.map(x=>Number(String(x.fecha||"").slice(0,4))),new Date().getFullYear()].filter(Number.isFinite))].sort((a,b)=>b-a);
-    if(!years.includes(year))year=years[0]||new Date().getFullYear();
-    paint(years);
+    availableYears=[...new Set([...facturas.map(x=>Number(fdate(x).slice(0,4))),...proformas.map(x=>Number(String(x.fecha||"").slice(0,4)))].filter(y=>Number.isInteger(y)&&y>=1900&&y<=2100))].sort((a,b)=>b-a);
+    if(!availableYears.includes(year))year=availableYears[0]||new Date().getFullYear();
+    paint();
   }
-  function paint(years){
+  function paint(){
     const idxs=monthsForPeriod(), cur=calc(year), prev=calc(year-1), s=sums(cur,idxs), ps=sums(prev,idxs);
     const pvShare=s.total?100*s.pv/s.total:0, webShare=s.total?100*s.web/s.total:0;
-    const yopts=years.map(y=>`<option value="${y}" ${y===year?"selected":""}>${y}</option>`).join("");
+    const yopts=availableYears.map(y=>`<option value="${y}" ${y===year?"selected":""}>${y}</option>`).join("");
     document.getElementById("viewContainer").innerHTML=`<div class="noc-dashboard57">
       <div class="dash-head">
         <div><div class="modern-kicker">VISIÓN DE NEGOCIO</div><h1>Dashboard ${year}</h1><p>Facturación, canal web, puntos de venta y actividad comercial mes a mes.</p></div>
@@ -108,8 +108,8 @@ NOC.Dashboard=(()=>{
       ${tableFor(year-2,calc(year-2),idxs,`Facturación por meses ${year-2}`)}
     </div>`;
   }
-  function setYear(v){year=Number(v);paint([...new Set([year,year-1,year-2])]);}
-  function setPeriod(v){period=v;paint([...new Set([year,year-1,year-2])]);}
-  function toggleChart(){showChart=!showChart;paint([...new Set([year,year-1,year-2])]);}
+  function setYear(v){year=Number(v);paint();}
+  function setPeriod(v){period=v;paint();}
+  function toggleChart(){showChart=!showChart;paint();}
   return{...LEGACY_DASHBOARD,render,setYear,setPeriod,toggleChart};
 })();
