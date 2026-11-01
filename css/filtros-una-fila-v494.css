@@ -1,0 +1,95 @@
+/* V4.0.94 - Filtros en una sola fila en escritorio, botones de año uniformes */
+/* El contenedor es la rejilla: los campos del panel interior se distribuyen en ella. */
+.noc-proformas-modern .pf-filter-wrap,
+.noc-facturas-modern .invoice-filter-wrap {
+  display:grid!important;
+  align-items:end!important;
+  gap:8px!important;
+  padding:9px 12px!important;
+  margin-bottom:10px!important;
+  background:#fff!important;
+  border:1px solid #e2e5e9!important;
+  border-radius:12px!important;
+  min-width:0;
+}
+.noc-proformas-modern .pf-filter-wrap {
+  grid-template-columns:minmax(110px,.85fr) minmax(110px,.85fr) minmax(125px,1fr) minmax(125px,1fr) auto minmax(85px,auto)!important;
+}
+.noc-facturas-modern .invoice-filter-wrap {
+  grid-template-columns:minmax(145px,1.3fr) minmax(110px,.85fr) minmax(110px,.85fr) minmax(120px,1fr) minmax(95px,.75fr) auto minmax(80px,auto)!important;
+}
+.noc-proformas-modern .pf-main-filters,
+.noc-facturas-modern .invoice-main-filters {
+  display:contents!important;
+}
+.noc-proformas-modern .pf-year-bar,
+.noc-facturas-modern .invoice-year-bar {
+  grid-row:1!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  align-self:end!important;
+  flex-wrap:wrap!important;
+  gap:5px!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0 0 2px!important;
+  background:transparent!important;
+  border:0!important;
+}
+.noc-proformas-modern .pf-year-bar {grid-column:5!important}
+.noc-facturas-modern .invoice-year-bar {grid-column:6!important}
+.noc-proformas-modern .pf-year-bar .invoice-year-btn,
+.noc-facturas-modern .invoice-year-bar .invoice-year-btn {
+  appearance:none!important;
+  font:700 12px/1.1 inherit!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  color:#364152!important;
+  background:#f3f5f7!important;
+  border:1px solid #e0e4e8!important;
+  border-radius:7px!important;
+  padding:7px 9px!important;
+  min-height:33px!important;
+  cursor:pointer!important;
+}
+.noc-proformas-modern .pf-year-bar .invoice-year-btn.active,
+.noc-facturas-modern .invoice-year-bar .invoice-year-btn.active {
+  color:#fff!important;
+  background:#192820!important;
+  border-color:#192820!important;
+}
+.noc-proformas-modern .pf-year-bar .invoice-year-label,
+.noc-facturas-modern .invoice-year-bar .invoice-year-label {
+  font-size:10px!important;
+  font-weight:750!important;
+  color:#5b6470!important;
+  margin-right:2px!important;
+}
+.noc-proformas-modern .pf-filter-wrap .modern-filter-field,
+.noc-facturas-modern .invoice-filter-wrap .modern-filter-field {min-width:0!important;width:auto!important}
+.noc-proformas-modern .pf-filter-wrap .modern-filter-field input,
+.noc-facturas-modern .invoice-filter-wrap .modern-filter-field input,
+.noc-proformas-modern .pf-filter-wrap .modern-filter-field select,
+.noc-facturas-modern .invoice-filter-wrap .modern-filter-field select {width:100%!important;min-width:0!important;box-sizing:border-box!important}
+.noc-proformas-modern .pf-filter-wrap .modern-clear-btn,
+.noc-facturas-modern .invoice-filter-wrap .modern-clear-btn {white-space:nowrap!important;align-self:end!important;min-height:35px!important}
+/* Tablet: controles de dos o tres columnas, sin desbordamiento horizontal. */
+@media (max-width:1250px){
+ .noc-proformas-modern .pf-filter-wrap,
+ .noc-facturas-modern .invoice-filter-wrap {grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ .noc-proformas-modern .pf-year-bar,
+ .noc-facturas-modern .invoice-year-bar {grid-column:auto!important;grid-row:auto!important}
+}
+@media (max-width:700px){
+ .noc-proformas-modern .pf-filter-wrap,
+ .noc-facturas-modern .invoice-filter-wrap {grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ .noc-proformas-modern .pf-year-bar,
+ .noc-facturas-modern .invoice-year-bar {grid-column:1/-1!important;grid-row:1!important}
+}
+@media (max-width:390px){
+ .noc-proformas-modern .pf-filter-wrap,
+ .noc-facturas-modern .invoice-filter-wrap {grid-template-columns:minmax(0,1fr)!important}
+ .noc-proformas-modern .pf-year-bar,
+ .noc-facturas-modern .invoice-year-bar {grid-column:1!important}
+}
