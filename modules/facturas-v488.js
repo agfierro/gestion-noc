@@ -96,9 +96,21 @@ NOC.Facturas=(()=>{
    </div>`;
  }
  async function render(){
-   const {data,error}=await NOC.API.db().from("facturas").select("*, clientes(nombre_tienda), proformas(id,numero,fecha)").order("created_at",{ascending:false});
-   if(error)throw error;
-   rows=data||[];
+   // Supabase limita cada respuesta (habitualmente 1000 filas): paginar para no ocultar ejercicios anteriores.
+   const todas=[];
+   const tamanoBloque=500;
+   for(let inicio=0;;inicio+=tamanoBloque){
+     const {data,error}=await NOC.API.db().from("facturas")
+       .select("*, clientes(nombre_tienda), proformas(id,numero,fecha)")
+       .order("created_at",{ascending:false})
+       .order("id",{ascending:false})
+       .range(inicio,inicio+tamanoBloque-1);
+     if(error)throw error;
+     const bloque=data||[];
+     todas.push(...bloque);
+     if(bloque.length<tamanoBloque)break;
+   }
+   rows=todas;
    const valid=new Set(rows.map(r=>r.id));
    selectedIds=new Set([...selectedIds].filter(id=>valid.has(id)));
    draw();
