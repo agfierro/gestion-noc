@@ -1,7 +1,7 @@
 window.NOC=window.NOC||{};
 NOC.Facturas=(()=>{
  let rows=[],query="",sort={key:"numero",dir:"desc"};
- let filters={desde:"",hasta:"",pagos:[],tipo:""};
+ let filters={desde:"",hasta:"",fechaTipo:"proforma",pagos:[],tipo:""};
  let selectedIds=new Set();
  let ventaClientes=[];
  let pdfRange={mode:"fecha",fechaDesde:"",fechaHasta:"",numeroDesde:"",numeroHasta:""};
@@ -10,14 +10,19 @@ NOC.Facturas=(()=>{
    base:Number(r.base_imponible||0),iva:Number(r.iva||0),recargo:Number(r.recargo||0),
    total:Number(r.total||0),pago:r.forma_pago||"",proforma:r.proformas?.numero||""})[k];
  function compare(a,b){const va=value(a,sort.key),vb=value(b,sort.key);let c=(typeof va==="number"||typeof vb==="number")?Number(va||0)-Number(vb||0):String(va??"").localeCompare(String(vb??""),"es",{numeric:true,sensitivity:"base"});return sort.dir==="asc"?c:-c}
+ // Fecha original de la proforma; las ventas directas usan su fecha de factura.
+ function fechaBusqueda(r){
+   if(filters.fechaTipo==="factura")return String(r.fecha_expedicion||r.fecha||"").slice(0,10);
+   return String(r.proformas?.fecha||r.fecha_expedicion||r.fecha||"").slice(0,10);
+ }
  function shown(){
    const q=query.trim().toLocaleLowerCase("es");
    return rows.filter(r=>{
      const numero=String(r.numero||"").toLocaleLowerCase("es");
      const tienda=String(r.cliente_nombre_tienda||r.clientes?.nombre_tienda||"").toLocaleLowerCase("es");
      if(q && !numero.includes(q) && !tienda.includes(q))return false;
-     if(filters.desde && String(r.fecha||"")<filters.desde)return false;
-     if(filters.hasta && String(r.fecha||"")>filters.hasta)return false;
+     if(filters.desde && fechaBusqueda(r)<filters.desde)return false;
+     if(filters.hasta && fechaBusqueda(r)>filters.hasta)return false;
      if(filters.pagos.length && !filters.pagos.includes(String(r.forma_pago||"")))return false;
      if(filters.tipo){
        const tienda=String(r.cliente_nombre_tienda||r.clientes?.nombre_tienda||"").trim().toLocaleLowerCase("es");
@@ -52,6 +57,7 @@ NOC.Facturas=(()=>{
    const pagos=[...new Set(["Transferencia","Tarjeta","Bizum","PayPal","Metálico",...rows.map(r=>String(r.forma_pago||"")).filter(Boolean)])];
    const esc=NOC.App.esc;
    return `<div class="modern-filter-card invoice-main-filters">
+     <div class="modern-filter-field"><label>Buscar por fecha de</label><select onchange="NOC.Facturas.setFilter('fechaTipo',this.value)"><option value="proforma" ${filters.fechaTipo==="proforma"?"selected":""}>Proforma (origen)</option><option value="factura" ${filters.fechaTipo==="factura"?"selected":""}>Factura (expedición)</option></select></div>
      <div class="modern-filter-field"><label>Desde</label><input id="invoiceFilterDesde" type="date" value="${esc(filters.desde)}" onchange="NOC.Facturas.setFilter('desde',this.value)"></div>
      <div class="modern-filter-field"><label>Hasta</label><input id="invoiceFilterHasta" type="date" value="${esc(filters.hasta)}" onchange="NOC.Facturas.setFilter('hasta',this.value)"></div>
      <div class="modern-filter-field"><label>Pago</label><details class="noc-multi-filter" style="position:relative;min-width:150px"><summary style="cursor:pointer;list-style:none;border:1px solid #d7dbe2;border-radius:8px;padding:9px 34px 9px 11px;background:#fff;white-space:nowrap;position:relative">${esc(!filters.pagos.length?"Todos":filters.pagos.length===1?filters.pagos[0]:`${filters.pagos.length} seleccionados`)}<span style="position:absolute;right:11px">⌄</span></summary><div style="position:absolute;z-index:30;top:calc(100% + 5px);left:0;min-width:190px;background:#fff;border:1px solid #d7dbe2;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.14);padding:8px">${pagos.map(x=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 5px;cursor:pointer"><input type="checkbox" ${filters.pagos.includes(x)?"checked":""} onchange="NOC.Facturas.togglePagoFilter('${String(x).replace(/'/g,"\\'")}',this.checked)"><span>${esc(x)}</span></label>`).join("")}</div></details></div>
@@ -71,7 +77,7 @@ NOC.Facturas=(()=>{
    draw();
  }
  function clearFilters(){
-   filters={desde:"",hasta:"",pagos:[],tipo:""};
+   filters={desde:"",hasta:"",fechaTipo:"proforma",pagos:[],tipo:""};
    query="";
    draw();
  }
@@ -90,7 +96,7 @@ NOC.Facturas=(()=>{
    </div>`;
  }
  async function render(){
-   const {data,error}=await NOC.API.db().from("facturas").select("*, clientes(nombre_tienda), proformas(id,numero)").order("created_at",{ascending:false});
+   const {data,error}=await NOC.API.db().from("facturas").select("*, clientes(nombre_tienda), proformas(id,numero,fecha)").order("created_at",{ascending:false});
    if(error)throw error;
    rows=data||[];
    const valid=new Set(rows.map(r=>r.id));
