@@ -53,17 +53,32 @@ NOC.Facturas=(()=>{
    if(pdfRange.mode==="fecha")return [pdfRange.fechaDesde,pdfRange.fechaHasta].filter(Boolean).join(" a ")||"rango_fecha";
    return [pdfRange.numeroDesde,pdfRange.numeroHasta].filter(Boolean).join(" a ")||"rango_numeracion";
  }
+ function yearsAvailable(){
+   const years=new Set();
+   for(const r of rows){
+     const dates=[r.proformas?.fecha,r.fecha_operacion,r.fecha_expedicion,r.fecha];
+     for(const d of dates){const y=String(d||"").slice(0,4);if(/^20\d{2}$/.test(y))years.add(y);}
+   }
+   return [...years].sort((a,b)=>Number(b)-Number(a));
+ }
+ function selectYear(y){
+   filters.desde=y?`${y}-01-01`:"";
+   filters.hasta=y?`${y}-12-31`:"";
+   draw();
+ }
  function filterPanel(){
    const pagos=[...new Set(["Transferencia","Tarjeta","Bizum","PayPal","Metálico",...rows.map(r=>String(r.forma_pago||"")).filter(Boolean)])];
    const esc=NOC.App.esc;
-   return `<div class="modern-filter-card invoice-main-filters">
+   const years=yearsAvailable();
+   const selectedYear=years.find(y=>filters.desde===`${y}-01-01`&&filters.hasta===`${y}-12-31`)||"";
+   return `<div class="invoice-filter-wrap"><div class="invoice-year-bar"><span class="invoice-year-label">AÑO</span>${years.map(y=>`<button type="button" class="invoice-year-btn ${selectedYear===y?"active":""}" onclick="NOC.Facturas.selectYear('${y}')">${y}</button>`).join("")}<button type="button" class="invoice-year-btn ${!filters.desde&&!filters.hasta?"active":""}" onclick="NOC.Facturas.selectYear('')">Todos</button></div><div class="modern-filter-card invoice-main-filters">
      <div class="modern-filter-field"><label>Buscar por fecha de</label><select onchange="NOC.Facturas.setFilter('fechaTipo',this.value)"><option value="proforma" ${filters.fechaTipo==="proforma"?"selected":""}>Proforma (origen)</option><option value="factura" ${filters.fechaTipo==="factura"?"selected":""}>Factura (expedición)</option></select></div>
      <div class="modern-filter-field"><label>Desde</label><input id="invoiceFilterDesde" type="date" value="${esc(filters.desde)}" onchange="NOC.Facturas.setFilter('desde',this.value)"></div>
      <div class="modern-filter-field"><label>Hasta</label><input id="invoiceFilterHasta" type="date" value="${esc(filters.hasta)}" onchange="NOC.Facturas.setFilter('hasta',this.value)"></div>
      <div class="modern-filter-field"><label>Pago</label><details class="noc-multi-filter" style="position:relative;min-width:150px"><summary style="cursor:pointer;list-style:none;border:1px solid #d7dbe2;border-radius:8px;padding:9px 34px 9px 11px;background:#fff;white-space:nowrap;position:relative">${esc(!filters.pagos.length?"Todos":filters.pagos.length===1?filters.pagos[0]:`${filters.pagos.length} seleccionados`)}<span style="position:absolute;right:11px">⌄</span></summary><div style="position:absolute;z-index:30;top:calc(100% + 5px);left:0;min-width:190px;background:#fff;border:1px solid #d7dbe2;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.14);padding:8px">${pagos.map(x=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 5px;cursor:pointer"><input type="checkbox" ${filters.pagos.includes(x)?"checked":""} onchange="NOC.Facturas.togglePagoFilter('${String(x).replace(/'/g,"\\'")}',this.checked)"><span>${esc(x)}</span></label>`).join("")}</div></details></div>
      <div class="modern-filter-field"><label>Tipo</label><select onchange="NOC.Facturas.setFilter('tipo',this.value)"><option value="" ${!filters.tipo?"selected":""}>Todos</option><option value="mayorista" ${filters.tipo==="mayorista"?"selected":""}>Mayorista</option><option value="particular" ${filters.tipo==="particular"?"selected":""}>Particulares</option></select></div>
-     <button class="btn modern-clear-btn" onclick="NOC.Facturas.clearFilters()">Limpiar filtros</button>
-   </div>`;
+     <button title="Limpiar filtros" class="btn modern-clear-btn" onclick="NOC.Facturas.clearFilters()">↺ <span>Limpiar</span></button>
+   </div></div>`;
  }
  function setFilter(k,v){
    if(!Object.prototype.hasOwnProperty.call(filters,k))return;
@@ -332,5 +347,5 @@ NOC.Facturas=(()=>{
      await ver(data.id);
    }catch(e){NOC.App.toast("No se ha creado la factura: "+e.message)}finally{btn.disabled=false;btn.textContent="Crear factura DIR"}
  }
- return{render,ver,abrirVentaDirecta,filtrarClientesVD,cambiarZonaVD,buscarArticuloVD,cerrarArticulosVD,anadirLineaVD,recalcularVD,guardarVentaDirecta,search,togglePagoFilter,setSort,openProforma,imprimirActual,pdfMode,pdfField,generarPdfZip,toggle,toggleAllVisible,updateSelectionUi,setFilter,clearFilters}
+ return{render,selectYear,ver,abrirVentaDirecta,filtrarClientesVD,cambiarZonaVD,buscarArticuloVD,cerrarArticulosVD,anadirLineaVD,recalcularVD,guardarVentaDirecta,search,togglePagoFilter,setSort,openProforma,imprimirActual,pdfMode,pdfField,generarPdfZip,toggle,toggleAllVisible,updateSelectionUi,setFilter,clearFilters}
 })();
