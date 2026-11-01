@@ -1,0 +1,133 @@
+/* Gestion NOC V4.0.95 — corrección responsive; no modifica lógica */
+@media (max-width: 767px) {
+  /* El grid de escritorio no debe competir con los estilos de móvil */
+  .noc-proformas-modern .pf-filter-wrap,
+  .noc-facturas-modern .invoice-filter-wrap {
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    align-items:stretch!important;
+    gap:12px 10px!important;
+    padding:14px!important;
+    min-width:0!important;
+  }
+  .noc-proformas-modern .pf-main-filters,
+  .noc-facturas-modern .invoice-main-filters {
+    display:contents!important;
+  }
+  .noc-proformas-modern .pf-year-bar,
+  .noc-facturas-modern .invoice-year-bar {
+    grid-column:1/-1!important;
+    grid-row:auto!important;
+    display:flex!important;
+    flex-wrap:wrap!important;
+    align-items:center!important;
+    gap:6px!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  .noc-proformas-modern .pf-filter-wrap .modern-filter-field,
+  .noc-facturas-modern .invoice-filter-wrap .modern-filter-field,
+  .noc-facturas-modern .invoice-pdf-card .modern-filter-field {
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:flex-end!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    position:relative!important;
+    box-sizing:border-box!important;
+  }
+  .noc-proformas-modern .pf-filter-wrap .modern-filter-field label,
+  .noc-facturas-modern .invoice-filter-wrap .modern-filter-field label,
+  .noc-facturas-modern .invoice-pdf-card .modern-filter-field label {
+    display:block!important;
+    position:static!important;
+    margin:0 0 5px!important;
+    min-height:16px!important;
+    line-height:16px!important;
+    font-size:12px!important;
+  }
+  .noc-proformas-modern .pf-filter-wrap .modern-filter-field input,
+  .noc-proformas-modern .pf-filter-wrap .modern-filter-field select,
+  .noc-facturas-modern .invoice-filter-wrap .modern-filter-field input,
+  .noc-facturas-modern .invoice-filter-wrap .modern-filter-field select,
+  .noc-facturas-modern .invoice-pdf-card .modern-filter-field input,
+  .noc-facturas-modern .invoice-pdf-card .modern-filter-field select {
+    display:block!important;
+    position:static!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:44px!important;
+    min-height:44px!important;
+    margin:0!important;
+    padding:8px 10px!important;
+    box-sizing:border-box!important;
+    font-size:14px!important;
+  }
+  .noc-facturas-modern .invoice-filter-wrap .noc-multi-filter,
+  .noc-proformas-modern .pf-filter-wrap .noc-multi-filter {
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+  .noc-facturas-modern .invoice-filter-wrap .noc-multi-filter summary,
+  .noc-proformas-modern .pf-filter-wrap .noc-multi-filter summary {
+    width:100%!important;
+    min-width:0!important;
+    height:44px!important;
+    min-height:44px!important;
+    padding:11px 30px 9px 10px!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .noc-proformas-modern .pf-filter-wrap .modern-clear-btn,
+  .noc-facturas-modern .invoice-filter-wrap .modern-clear-btn {
+    display:block!important;
+    align-self:end!important;
+    width:100%!important;
+    height:44px!important;
+    min-height:44px!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+  }
+  /* PDF: grid propio. Evita el desplazamiento del contador sobre las fechas */
+  .noc-facturas-modern .invoice-pdf-card {
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    align-items:end!important;
+    gap:12px 10px!important;
+    padding:14px!important;
+    min-width:0!important;
+  }
+  .noc-facturas-modern .invoice-pdf-card > .modern-filter-field:first-child {
+    grid-column:1/-1!important;
+  }
+  .noc-facturas-modern .invoice-pdf-card > div:not(.modern-filter-field) {
+    grid-column:1/-1!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  .noc-facturas-modern .invoice-pdf-card > .btn {
+    grid-column:1/-1!important;
+    width:100%!important;
+    min-height:44px!important;
+    margin:0!important;
+  }
+  .noc-facturas-modern .invoice-pdf-card > .modern-filter-field[style*="display:none"] {
+    display:none!important;
+  }
+}
+@media(max-width:380px) {
+  .noc-proformas-modern .pf-filter-wrap,
+  .noc-facturas-modern .invoice-filter-wrap,
+  .noc-facturas-modern .invoice-pdf-card {
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+}
