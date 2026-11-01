@@ -1,0 +1,37 @@
+/* V4.0.92 — cabecera única y compactación visual. No cambia lógica de negocio. */
+/* Mantener Cerrar sesión y usuario; ocultar solo el título y acción duplicados del marco. */
+body.noc-fashion-ui .main:has(.noc-proformas-modern) > .topbar,
+body.noc-fashion-ui .main:has(.noc-facturas-modern) > .topbar{
+  min-height:38px!important;height:auto!important;padding:5px 18px!important;justify-content:flex-end!important;
+}
+body.noc-fashion-ui .main:has(.noc-proformas-modern) > .topbar > div:not(.top-actions),
+body.noc-fashion-ui .main:has(.noc-facturas-modern) > .topbar > div:not(.top-actions){display:none!important}
+body.noc-fashion-ui .main:has(.noc-proformas-modern) > .topbar .top-actions > button.btn-primary,
+body.noc-fashion-ui .main:has(.noc-facturas-modern) > .topbar .top-actions > button.btn-primary{display:none!important}
+body.noc-fashion-ui .main:has(.noc-proformas-modern) > .topbar .top-actions,
+body.noc-fashion-ui .main:has(.noc-facturas-modern) > .topbar .top-actions{gap:10px!important}
+/* Mantener el botón de menú móvil visible. */
+body.noc-fashion-ui .main:has(.noc-proformas-modern) > .topbar #menuBtn,
+body.noc-fashion-ui .main:has(.noc-facturas-modern) > .topbar #menuBtn{margin-right:auto}
+.noc-proformas-modern .modern-page-head,.noc-facturas-modern .modern-page-head{align-items:center!important;gap:12px!important;margin-bottom:10px!important}
+.noc-proformas-modern .modern-page-head h1,.noc-facturas-modern .modern-page-head h1{font-size:26px!important;margin-bottom:2px!important}
+.noc-proformas-modern .modern-page-head p,.noc-facturas-modern .modern-page-head p{font-size:11px!important}
+.noc-proformas-modern .modern-kicker,.noc-facturas-modern .modern-kicker{font-size:9px!important;margin-bottom:3px!important}
+.noc-proformas-modern .modern-head-actions,.noc-facturas-modern .modern-head-actions{gap:8px!important}
+.noc-proformas-modern .modern-search,.noc-facturas-modern .modern-search{width:245px!important;max-width:100%}
+.noc-proformas-modern .modern-search input,.noc-facturas-modern .modern-search input{height:35px!important;min-height:35px!important;font-size:12px!important}
+.noc-proformas-modern .modern-head-actions .btn,.noc-facturas-modern .modern-head-actions .btn{min-height:35px!important;height:35px!important;padding:5px 12px!important;font-size:11px!important}
+.noc-proformas-modern .modern-filter-card{grid-template-columns:minmax(110px,1fr) minmax(110px,1fr) minmax(125px,1fr) minmax(125px,1fr) auto!important;gap:9px!important;align-items:end!important;padding:10px 12px!important;margin-bottom:10px!important}
+.noc-proformas-modern .modern-filter-field{min-width:0;padding:0!important;border:0!important}
+.noc-proformas-modern .modern-filter-field label{font-size:10px!important;font-weight:700!important;margin-bottom:3px!important}
+.noc-proformas-modern .modern-filter-field input,.noc-proformas-modern .modern-filter-field select{height:35px!important;min-height:35px!important;font-size:12px!important;padding:5px 9px!important}
+.noc-proformas-modern .modern-filter-field .noc-multi-filter{min-width:0!important}
+.noc-proformas-modern .modern-filter-field .noc-multi-filter summary{min-height:35px!important;padding:7px 26px 7px 9px!important;font-size:12px!important}
+.noc-proformas-modern .modern-clear-btn{margin:0!important;min-height:35px!important;padding:5px 10px!important}
+.noc-proformas-modern .modern-kpis{gap:9px!important;margin-bottom:10px!important}
+.noc-proformas-modern .modern-kpi{min-height:65px!important;padding:10px 12px!important;gap:10px!important}
+.noc-proformas-modern .modern-kpi .kpi-icon{width:32px!important;height:32px!important;font-size:16px!important;flex-shrink:0}
+.noc-proformas-modern .modern-kpi strong{font-size:19px!important}
+.noc-proformas-modern .modern-data-table thead th,.noc-facturas-modern .modern-data-table thead th{font-size:12px!important;font-weight:800!important;color:#111!important;letter-spacing:0!important}
+@media(max-width:950px){.noc-proformas-modern .modern-filter-card{grid-template-columns:repeat(2,minmax(0,1fr))!important}.noc-proformas-modern .modern-head-actions,.noc-facturas-modern .modern-head-actions{flex-wrap:wrap}}
+@media(max-width:650px){.noc-proformas-modern .modern-page-head,.noc-facturas-modern .modern-page-head{align-items:flex-start!important}.noc-proformas-modern .modern-search,.noc-facturas-modern .modern-search{width:100%!important}}
