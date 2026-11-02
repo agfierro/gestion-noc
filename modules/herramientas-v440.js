@@ -33,7 +33,7 @@ NOC.Herramientas=(()=>{
   const j=window._importJob;if(!j)return;
   const mode=document.getElementById("impMode").value,m=TABLES[j.table];
   NOC.App.closeModal();
-  let a=0,u=0,s=0,f=0;
+  let a=0,u=0,s=0,f=0;const failures=[];
   const total=j.rows.length;
   NOC.App.showProgress(`Importando ${m.label.toLowerCase()}…`,`0 de ${total}`);
 
@@ -52,14 +52,14 @@ NOC.Herramientas=(()=>{
         const {error}=await NOC.API.db().from(j.table).insert(p);
         if(error)throw error;a++;
       }
-    }catch(e){console.error(e);f++}
+    }catch(e){console.error(e);f++;failures.push(`Fila ${i+2}: ${e?.message||String(e)}${e?.details?' — '+e.details:''}`)}
   }
 
   try{await NOC.API.rpc("sincronizar_numeraciones")}catch{}
   NOC.App.hideProgress();
   await render();
 
-  const result=`Añadidos: ${a}. Actualizados: ${u}. Omitidos: ${s}. Errores: ${f}.`;
+  const result=`Añadidos: ${a}. Actualizados: ${u}. Omitidos: ${s}. Errores: ${f}.`+(failures.length?failures.slice(0,5).join(" | "): "");
   NOC.App.alertMessage(
     f? "Importación finalizada con incidencias" : "Importación finalizada",
     result,
@@ -89,7 +89,7 @@ NOC.Herramientas=(()=>{
  async function restoreAll(){if(document.getElementById("restoreWord").value!=="RESTAURAR")return NOC.App.toast("Escribe RESTAURAR");const b=window._restore;NOC.App.closeModal();for(const t of DEL){const {error}=await NOC.API.db().from(t).delete().neq("id","00000000-0000-0000-0000-000000000000");if(error)throw error}for(const t of INS){const rows=b.tables[t]||[];for(let x=0;x<rows.length;x+=250){const {error}=await NOC.API.db().from(t).insert(rows.slice(x,x+250));if(error)throw error}}try{await NOC.API.rpc("sincronizar_numeraciones")}catch{}NOC.App.toast("Backup restaurado.");render()}
  async function fetchAll(t){const o=[];let from=0;while(true){const {data,error}=await NOC.API.db().from(t).select("*").range(from,from+999);if(error)throw error;o.push(...(data||[]));if(!data||data.length<1000)break;from+=1000}return o}
  function clean(r){const p={...r};Object.keys(p).forEach(k=>{if(p[k]===""||p[k]===undefined)p[k]=null});if(!p.id)delete p.id;if(!p.created_at)delete p.created_at;return p}
- function normalize(t,r){const m=TABLES[t],o={},errors=[];Object.entries(r).forEach(([k,v0])=>{if(!m.columns.includes(k))return;let v=String(v0??"").trim();if(v===""){o[k]=null;return}if(m.numeric?.includes(k)){const n=parseNum(v);Number.isNaN(n)?errors.push(`${k} no numérico`):o[k]=n}else if(m.boolean?.includes(k))o[k]=["true","1","si","sí","yes"].includes(v.toLowerCase());else o[k]=v});m.required.forEach(k=>{if(o[k]===undefined||o[k]===null||String(o[k]).trim()==="")errors.push(`${k} obligatorio`)});return{row:o,errors}}
+ function normalize(t,r){const m=TABLES[t],o={},errors=[];Object.entries(r).forEach(([k,v0])=>{if(!m.columns.includes(k))return;let v=String(v0??"").trim();if(v===""){o[k]=null;return}if(m.numeric?.includes(k)){const n=parseNum(v);!Number.isFinite(n)?errors.push(`${k} no numérico`):o[k]=n}else if(m.boolean?.includes(k))o[k]=["true","1","si","sí","yes"].includes(v.toLowerCase());else o[k]=v});m.required.forEach(k=>{if(o[k]===undefined||o[k]===null||String(o[k]).trim()==="")errors.push(`${k} obligatorio`)});return{row:o,errors}}
  function parseNum(v){let s=String(v).replace(/\s|€/g,"");if(s.includes(",")&&s.includes(".")){if(s.lastIndexOf(",")>s.lastIndexOf("."))s=s.replace(/\./g,"").replace(",",".");else s=s.replace(/,/g,"")}else if(s.includes(","))s=s.replace(",",".");return Number(s)}
  function parseCsv(text){
    text=String(text||"").replace(/^\uFEFF/,"");
