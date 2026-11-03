@@ -116,6 +116,7 @@ NOC.Proformas=(()=>{
    return{
      count:rows.length,
      total:rows.reduce((a,r)=>a+Number(r.total||0),0),
+     pendientes:rows.filter(r=>esPendiente(r.estado)).length,
      enviadas:rows.filter(r=>esEnviada(r.estado)).length,
      facturadas:rows.filter(r=>esFacturada(r.estado)).length,
      canceladas:rows.filter(r=>esCancelada(r.estado)).length
@@ -155,9 +156,18 @@ NOC.Proformas=(()=>{
        <button class="btn modern-clear-btn" onclick="NOC.Proformas.clearModernFilters()">Limpiar filtros</button>
      </div></div>
 
+     <style>
+       .noc-proformas-modern .modern-kpis {display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:9px!important}
+       .noc-proformas-modern .modern-kpis .modern-kpi {min-width:0!important;padding:12px 10px!important;gap:8px!important}
+       .noc-proformas-modern .modern-kpis .modern-kpi strong {font-size:clamp(15px,1.25vw,21px)!important;white-space:nowrap}
+       .noc-proformas-modern .modern-kpis .modern-kpi small {font-size:10px!important}
+       @media(max-width:1050px){.noc-proformas-modern .modern-kpis {grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+       @media(max-width:580px){.noc-proformas-modern .modern-kpis {grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+     </style>
      <div class="modern-kpis">
        <div class="modern-kpi"><span class="kpi-icon">▤</span><div><small>Proformas</small><strong>${st.count}</strong></div></div>
        <div class="modern-kpi"><span class="kpi-icon">€</span><div><small>Importe total</small><strong>${NOC.App.money(st.total)}</strong></div></div>
+       <div class="modern-kpi" style="--kpi-accent:#b7791f"><span class="kpi-icon" style="background:#fff5dc;color:#a16207">◷</span><div><small>Pendientes</small><strong>${st.pendientes}</strong></div></div>
        <div class="modern-kpi kpi-blue"><span class="kpi-icon">↗</span><div><small>Enviadas</small><strong>${st.enviadas}</strong></div></div>
        <div class="modern-kpi kpi-green"><span class="kpi-icon">✓</span><div><small>Facturadas</small><strong>${st.facturadas}</strong></div></div>
        <div class="modern-kpi kpi-red"><span class="kpi-icon">×</span><div><small>Canceladas</small><strong>${st.canceladas}</strong></div></div>
