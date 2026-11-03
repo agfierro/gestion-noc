@@ -16,33 +16,54 @@ NOC.Proformas=(()=>{
  let pfInvoiceByProforma=new Map();
  let pfSort={key:"numero",dir:"desc"};
  let pfQuery="";
- // Cargar todas las páginas; Supabase limita el número de filas por petición.
+ // Cache por ejercicio: las consultas se limitan al año elegido.
+ const pfCache=new Map();
+ const pfCacheAt=new Map();
+ const pfYearNow=String(new Date().getFullYear());
+ let pfLoadedYear=pfYearNow;
+ let pfLoading=null;
+ const pfAvailableYears=()=>Array.from({length:Math.max(3,Number(pfYearNow)-2024+1)},(_,i)=>String(Number(pfYearNow)-i));
  async function fetchAllPages(makeQuery){
-   const all=[];
-   const pageSize=500;
+   const all=[];const pageSize=500;
    for(let offset=0;;offset+=pageSize){
      const {data,error}=await makeQuery().range(offset,offset+pageSize-1);
      if(error)throw error;
-     const batch=data||[];
-     all.push(...batch);
+     const batch=data||[];all.push(...batch);
      if(batch.length<pageSize)break;
    }
    return all;
  }
- async function render(){
+ async function loadPfYear(year,force=false){
+   if(!force&&pfCache.has(year)&&Date.now()-(pfCacheAt.get(year)||0)<60000)return pfCache.get(year);
    const db=NOC.API.db();
-   const [proformas,facturas]=await Promise.all([
-     fetchAllPages(()=>db.from("proformas")
-       .select("*, clientes(nombre_tienda)")
-       .order("created_at",{ascending:false}).order("id",{ascending:true})),
-     fetchAllPages(()=>db.from("facturas")
-       .select("id,numero,proforma_id")
-       .not("proforma_id","is",null)
-       .order("id",{ascending:true}))
-   ]);
-   pfRows=proformas;
-   pfInvoiceByProforma=new Map(facturas.map(f=>[f.proforma_id,f]));
+   const lo=year+"-01-01",hi=(Number(year)+1)+"-01-01";
+   const data=await fetchAllPages(()=>db.from("proformas")
+     .select("*, clientes(nombre_tienda)")
+     .gte("fecha",lo).lt("fecha",hi)
+     .order("created_at",{ascending:false}).order("id",{ascending:true}));
+   pfCache.set(year,data);pfCacheAt.set(year,Date.now());return data;
+ }
+ async function showPfYears(years,force=false){
+   const token=pfLoading={};
+   const parts=await Promise.all(years.map(y=>loadPfYear(y,force)));
+   if(pfLoading!==token)return;
+   pfRows=parts.flat();pfLoadedYear=years.join(",");
+   const ids=pfRows.map(r=>r.id);
+   // Solo consultar facturas relacionadas con las proformas visibles, evitando el histórico completo.
+   const invoices=[];
+   for(let i=0;i<ids.length;i+=200){
+     const {data,error}=await NOC.API.db().from("facturas").select("id,numero,proforma_id").in("proforma_id",ids.slice(i,i+200));
+     if(error)throw error;
+     invoices.push(...(data||[]));
+   }
+   if(pfLoading!==token)return;
+   pfInvoiceByProforma=new Map(invoices.map(f=>[f.proforma_id,f]));
+   selectedIds=new Set([...selectedIds].filter(id=>ids.includes(id)));
    drawModernPage();
+ }
+ async function render(){
+   const years=(window._pfModernFilters?.anios||[]);
+   await showPfYears(years.length?years:[pfYearNow]);
  }
 
  function pfDateEs(v){
@@ -65,7 +86,7 @@ NOC.Proformas=(()=>{
      hasta:document.getElementById("pfFilterHasta")?.value??saved.hasta??"",
      estados:Array.isArray(saved.estados)?saved.estados:[],
      pagos:Array.isArray(saved.pagos)?saved.pagos:[],
-     anios:Array.isArray(saved.anios)?saved.anios:[]
+     anios:Array.isArray(saved.anios)&&saved.anios.length?saved.anios:[pfYearNow]
    };
  }
  function multiLabel(values,allLabel="Todos"){
@@ -127,8 +148,8 @@ NOC.Proformas=(()=>{
    const st=pfStats(rows);
    const pagos=[...new Set(["Transferencia","Tarjeta","Bizum","PayPal","Metálico",...pfRows.map(r=>String(r.forma_pago||"Transferencia")).filter(Boolean)])];
    const mf=window._pfModernFilters||{estados:[],pagos:[]};
-   const pfYears=[...new Set(pfRows.map(r=>String(r.fecha||"").slice(0,4)).filter(y=>/^20\d{2}$/.test(y)))].sort((a,b)=>Number(b)-Number(a));
-   const selectedPfYears=Array.isArray(mf.anios)?mf.anios:[];
+   const pfYears=pfAvailableYears();
+   const selectedPfYears=Array.isArray(mf.anios)&&mf.anios.length?mf.anios:[pfYearNow];
    const container=document.getElementById("viewContainer");
    container.innerHTML=`<div class="noc-modern-page noc-proformas-modern">
      <div class="modern-page-head">
@@ -147,7 +168,7 @@ NOC.Proformas=(()=>{
      </div>
 
      <div class="pf-filter-wrap">
-       <div class="pf-year-bar"><span class="invoice-year-label">AÑO</span>${pfYears.map(y=>`<button type="button" aria-pressed="${selectedPfYears.includes(y)}" class="invoice-year-btn ${selectedPfYears.includes(y)?"active":""}" onclick="NOC.Proformas.toggleYear('${y}')">${y}</button>`).join("")}<button type="button" class="invoice-year-btn ${!selectedPfYears.length?"active":""}" onclick="NOC.Proformas.clearYears()">Todos</button></div>
+       <div class="pf-year-bar"><span class="invoice-year-label">AÑO</span>${pfYears.map(y=>`<button type="button" aria-pressed="${selectedPfYears.includes(y)}" class="invoice-year-btn ${selectedPfYears.includes(y)?"active":""}" onclick="NOC.Proformas.toggleYear('${y}')">${y}</button>`).join("")}<button type="button" class="invoice-year-btn ${pfLoadedYear===pfAvailableYears().join(",")?"active":""}" onclick="NOC.Proformas.clearYears()">Cargar todos</button></div>
      <div class="modern-filter-card pf-main-filters">
        <div class="modern-filter-field"><label>Desde</label><input id="pfFilterDesde" type="date" value="${NOC.App.esc(mf.desde||"")}" onchange="NOC.Proformas.refreshModern()"></div>
        <div class="modern-filter-field"><label>Hasta</label><input id="pfFilterHasta" type="date" value="${NOC.App.esc(mf.hasta||"")}" onchange="NOC.Proformas.refreshModern()"></div>
@@ -266,19 +287,20 @@ NOC.Proformas=(()=>{
    window._pfModernFilters=f;
    drawModernPage();
  }
- function toggleYear(year){
-   const f={...(window._pfModernFilters||{}),...getPfFilters()};
-   const selected=new Set(f.anios||[]);
-   selected.has(year)?selected.delete(year):selected.add(year);
-   f.anios=[...selected];window._pfModernFilters=f;drawModernPage();
+ async function toggleYear(year){
+   const f={...(window._pfModernFilters||{}),...getPfFilters(),anios:[year]};
+   window._pfModernFilters=f;
+   try{await showPfYears([year])}catch(e){NOC.App.toast("Error al cargar proformas: "+e.message)}
  }
- function clearYears(){
-   window._pfModernFilters={...(window._pfModernFilters||{}),...getPfFilters(),anios:[]};drawModernPage();
+ async function clearYears(){
+   const years=pfAvailableYears();
+   window._pfModernFilters={...(window._pfModernFilters||{}),...getPfFilters(),anios:years};
+   try{await showPfYears(years)}catch(e){NOC.App.toast("Error al cargar histórico: "+e.message)}
  }
- function clearModernFilters(){
-   window._pfModernFilters={q:"",desde:"",hasta:"",estados:[],pagos:[],anios:[]};
+ async function clearModernFilters(){
+   window._pfModernFilters={q:"",desde:"",hasta:"",estados:[],pagos:[],anios:[pfYearNow]};
    pfQuery="";
-   drawModernPage();
+   try{await showPfYears([pfYearNow])}catch(e){NOC.App.toast("Error al cargar proformas: "+e.message)}
  }
  function visibleRows(){
    return filteredPfRows();

@@ -1,7 +1,12 @@
 window.NOC=window.NOC||{};
 NOC.Facturas=(()=>{
  let rows=[],query="",sort={key:"numero",dir:"desc"};
- let filters={desde:"",hasta:"",fechaTipo:"proforma",pagos:[],tipo:"",anios:[]};
+ const invoiceYear=String(new Date().getFullYear());
+ const invoiceYears=()=>Array.from({length:Math.max(3,Number(invoiceYear)-2024+1)},(_,i)=>String(Number(invoiceYear)-i));
+ let filters={desde:"",hasta:"",fechaTipo:"proforma",pagos:[],tipo:"",anios:[invoiceYear]};
+ const invoiceCache=new Map();
+ const invoiceCacheAt=new Map();
+ let loadedInvoiceYears=[invoiceYear];
  let selectedIds=new Set();
  let ventaClientes=[];
  let pdfRange={mode:"fecha",fechaDesde:"",fechaHasta:"",numeroDesde:"",numeroHasta:""};
@@ -54,26 +59,21 @@ NOC.Facturas=(()=>{
    if(pdfRange.mode==="fecha")return [pdfRange.fechaDesde,pdfRange.fechaHasta].filter(Boolean).join(" a ")||"rango_fecha";
    return [pdfRange.numeroDesde,pdfRange.numeroHasta].filter(Boolean).join(" a ")||"rango_numeracion";
  }
- function yearsAvailable(){
-   const years=new Set();
-   for(const r of rows){
-     const dates=[r.proformas?.fecha,r.fecha_operacion,r.fecha_expedicion,r.fecha];
-     for(const d of dates){const y=String(d||"").slice(0,4);if(/^20\d{2}$/.test(y))years.add(y);}
-   }
-   return [...years].sort((a,b)=>Number(b)-Number(a));
+ function yearsAvailable(){return invoiceYears()}
+ async function toggleYear(y){
+   filters.anios=[y];
+   try{await loadInvoiceYears([y])}catch(e){NOC.App.toast("Error al cargar facturas: "+e.message)}
  }
- function toggleYear(y){
-   const selected=new Set(filters.anios||[]);
-   selected.has(y)?selected.delete(y):selected.add(y);
-   filters.anios=[...selected];draw();
+ async function clearYears(){
+   filters.anios=invoiceYears();
+   try{await loadInvoiceYears(filters.anios)}catch(e){NOC.App.toast("Error al cargar histórico: "+e.message)}
  }
- function clearYears(){filters.anios=[];draw();}
  function filterPanel(){
    const pagos=[...new Set(["Transferencia","Tarjeta","Bizum","PayPal","Metálico",...rows.map(r=>String(r.forma_pago||"")).filter(Boolean)])];
    const esc=NOC.App.esc;
    const years=yearsAvailable();
    const selectedYears=filters.anios||[];
-   return `<div class="invoice-filter-wrap"><div class="invoice-year-bar"><span class="invoice-year-label">AÑO</span>${years.map(y=>`<button type="button" class="invoice-year-btn ${selectedYears.includes(y)?"active":""}" aria-pressed="${selectedYears.includes(y)}" onclick="NOC.Facturas.toggleYear('${y}')">${y}</button>`).join("")}<button type="button" class="invoice-year-btn ${!selectedYears.length?"active":""}" onclick="NOC.Facturas.clearYears()">Todos</button></div><div class="modern-filter-card invoice-main-filters">
+   return `<div class="invoice-filter-wrap"><div class="invoice-year-bar"><span class="invoice-year-label">AÑO</span>${years.map(y=>`<button type="button" class="invoice-year-btn ${selectedYears.includes(y)?"active":""}" aria-pressed="${selectedYears.includes(y)}" onclick="NOC.Facturas.toggleYear('${y}')">${y}</button>`).join("")}<button type="button" class="invoice-year-btn ${loadedInvoiceYears.length===invoiceYears().length?"active":""}" onclick="NOC.Facturas.clearYears()">Cargar todos</button></div><div class="modern-filter-card invoice-main-filters">
      <div class="modern-filter-field"><label>Buscar por fecha de</label><select onchange="NOC.Facturas.setFilter('fechaTipo',this.value)"><option value="proforma" ${filters.fechaTipo==="proforma"?"selected":""}>Proforma (origen)</option><option value="factura" ${filters.fechaTipo==="factura"?"selected":""}>Factura (expedición)</option></select></div>
      <div class="modern-filter-field"><label>Desde</label><input id="invoiceFilterDesde" type="date" value="${esc(filters.desde)}" onchange="NOC.Facturas.setFilter('desde',this.value)"></div>
      <div class="modern-filter-field"><label>Hasta</label><input id="invoiceFilterHasta" type="date" value="${esc(filters.hasta)}" onchange="NOC.Facturas.setFilter('hasta',this.value)"></div>
@@ -94,9 +94,9 @@ NOC.Facturas=(()=>{
    draw();
  }
  function clearFilters(){
-   filters={desde:"",hasta:"",fechaTipo:"proforma",pagos:[],tipo:"",anios:[]};
+   filters={desde:"",hasta:"",fechaTipo:"proforma",pagos:[],tipo:"",anios:[invoiceYear]};
    query="";
-   draw();
+   loadInvoiceYears([invoiceYear]).catch(e=>NOC.App.toast(e.message));
  }
  function pdfPanel(){
    const nums=facturasPorNumero();
@@ -112,25 +112,33 @@ NOC.Facturas=(()=>{
      <button id="invoicePdfBtn" class="btn btn-primary" ${count?"":"disabled"} onclick="NOC.Facturas.generarPdfZip()">Generar ZIP de PDF</button>
    </div>`;
  }
- async function render(){
-   // Supabase limita cada respuesta (habitualmente 1000 filas): paginar para no ocultar ejercicios anteriores.
-   const todas=[];
-   const tamanoBloque=500;
-   for(let inicio=0;;inicio+=tamanoBloque){
+ async function fetchInvoiceYear(year,force=false){
+   if(!force&&invoiceCache.has(year)&&Date.now()-(invoiceCacheAt.get(year)||0)<60000)return invoiceCache.get(year);
+   const todas=[];const size=500;
+   for(let inicio=0;;inicio+=size){
      const {data,error}=await NOC.API.db().from("facturas")
        .select("*, clientes(nombre_tienda), proformas(id,numero,fecha)")
-       .order("created_at",{ascending:false})
-       .order("id",{ascending:false})
-       .range(inicio,inicio+tamanoBloque-1);
+       .gte("fecha",year+"-01-01").lt("fecha",String(Number(year)+1)+"-01-01")
+       .order("created_at",{ascending:false}).order("id",{ascending:false})
+       .range(inicio,inicio+size-1);
      if(error)throw error;
-     const bloque=data||[];
-     todas.push(...bloque);
-     if(bloque.length<tamanoBloque)break;
+     const bloque=data||[];todas.push(...bloque);
+     if(bloque.length<size)break;
    }
-   rows=todas;
+   invoiceCache.set(year,todas);invoiceCacheAt.set(year,Date.now());return todas;
+ }
+ let invoiceLoadToken=null;
+ async function loadInvoiceYears(years,force=false){
+   const token=invoiceLoadToken={};
+   const groups=await Promise.all(years.map(y=>fetchInvoiceYear(y,force)));
+   if(invoiceLoadToken!==token)return;
+   rows=groups.flat();loadedInvoiceYears=[...years];
    const valid=new Set(rows.map(r=>r.id));
    selectedIds=new Set([...selectedIds].filter(id=>valid.has(id)));
    draw();
+ }
+ async function render(){
+   await loadInvoiceYears(filters.anios.length?filters.anios:[invoiceYear]);
  }
  function draw(){
    const rr=shown(),base=rr.reduce((s,r)=>s+Number(r.base_imponible||0),0),iva=rr.reduce((s,r)=>s+Number(r.iva||0),0),total=rr.reduce((s,r)=>s+Number(r.total||0),0);
