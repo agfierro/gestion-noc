@@ -3,7 +3,7 @@ NOC.Facturas=(()=>{
  let rows=[],query="",sort={key:"numero",dir:"desc"};
  const invoiceYear=String(new Date().getFullYear());
  const invoiceYears=()=>Array.from({length:Math.max(3,Number(invoiceYear)-2024+1)},(_,i)=>String(Number(invoiceYear)-i));
- let filters={desde:"",hasta:"",fechaTipo:"proforma",pagos:[],tipo:"",anios:[invoiceYear]};
+ let filters={desde:"",hasta:"",fechaTipo:"operacion",pagos:[],tipo:"",anios:[invoiceYear]};
  const invoiceCache=new Map();
  const invoiceCacheAt=new Map();
  let loadedInvoiceYears=[invoiceYear];
@@ -11,14 +11,13 @@ NOC.Facturas=(()=>{
  let ventaClientes=[];
  let pdfRange={mode:"fecha",fechaDesde:"",fechaHasta:"",numeroDesde:"",numeroHasta:""};
  const dateEs=v=>{if(!v)return"";const [y,m,d]=String(v).split("-");return `${d}/${m}/${y}`};
- const value=(r,k)=>({numero:r.numero||"",fecha:r.fecha_expedicion||r.fecha||"",fecha_operacion:r.fecha_operacion||r.fecha||"",cliente:r.cliente_nombre_tienda||r.clientes?.nombre_tienda||"",
+ const value=(r,k)=>({numero:r.numero||"",fecha:r.fecha_operacion||r.fecha||"",fecha_operacion:r.fecha_operacion||r.fecha||"",cliente:r.cliente_nombre_tienda||r.clientes?.nombre_tienda||"",
    base:Number(r.base_imponible||0),iva:Number(r.iva||0),recargo:Number(r.recargo||0),
    total:Number(r.total||0),pago:r.forma_pago||"",proforma:r.proformas?.numero||""})[k];
  function compare(a,b){const va=value(a,sort.key),vb=value(b,sort.key);let c=(typeof va==="number"||typeof vb==="number")?Number(va||0)-Number(vb||0):String(va??"").localeCompare(String(vb??""),"es",{numeric:true,sensitivity:"base"});return sort.dir==="asc"?c:-c}
  // Fecha original de la proforma; las ventas directas usan su fecha de factura.
  function fechaBusqueda(r){
-   if(filters.fechaTipo==="factura")return String(r.fecha_expedicion||r.fecha||"").slice(0,10);
-   return String(r.proformas?.fecha||r.fecha_expedicion||r.fecha||"").slice(0,10);
+   return String(r.fecha_operacion||r.fecha||"").slice(0,10);
  }
  function shown(){
    const q=query.trim().toLocaleLowerCase("es");
@@ -45,7 +44,7 @@ NOC.Facturas=(()=>{
  function pdfRows(){
    if(pdfRange.mode==="fecha"){
      if(!pdfRange.fechaDesde&&!pdfRange.fechaHasta)return[];
-     return [...rows].filter(r=>(!pdfRange.fechaDesde||String(r.fecha)>=pdfRange.fechaDesde)&&(!pdfRange.fechaHasta||String(r.fecha)<=pdfRange.fechaHasta)).sort((a,b)=>String(a.fecha||"").localeCompare(String(b.fecha||""))||numeroOrden(a,b));
+     return [...rows].filter(r=>(!pdfRange.fechaDesde||String(r.fecha_operacion||r.fecha)>=pdfRange.fechaDesde)&&(!pdfRange.fechaHasta||String(r.fecha_operacion||r.fecha)<=pdfRange.fechaHasta)).sort((a,b)=>String(a.fecha_operacion||a.fecha||"").localeCompare(String(b.fecha_operacion||b.fecha||""))||numeroOrden(a,b));
    }
    if(!pdfRange.numeroDesde&&!pdfRange.numeroHasta)return[];
    const all=facturasPorNumero();
@@ -74,7 +73,7 @@ NOC.Facturas=(()=>{
    const years=yearsAvailable();
    const selectedYears=filters.anios||[];
    return `<div class="invoice-filter-wrap"><div class="invoice-year-bar"><span class="invoice-year-label">AÑO</span>${years.map(y=>`<button type="button" class="invoice-year-btn ${selectedYears.includes(y)?"active":""}" aria-pressed="${selectedYears.includes(y)}" onclick="NOC.Facturas.toggleYear('${y}')">${y}</button>`).join("")}<button type="button" class="invoice-year-btn ${loadedInvoiceYears.length===invoiceYears().length?"active":""}" onclick="NOC.Facturas.clearYears()">Cargar todos</button></div><div class="modern-filter-card invoice-main-filters">
-     <div class="modern-filter-field"><label>Buscar por fecha de</label><select onchange="NOC.Facturas.setFilter('fechaTipo',this.value)"><option value="proforma" ${filters.fechaTipo==="proforma"?"selected":""}>Proforma (origen)</option><option value="factura" ${filters.fechaTipo==="factura"?"selected":""}>Factura (expedición)</option></select></div>
+     <div class="modern-filter-field"><label>Buscar por fecha de</label><select onchange="NOC.Facturas.setFilter('fechaTipo',this.value)"><option value="operacion" selected>Fecha de operación</option></select></div>
      <div class="modern-filter-field"><label>Desde</label><input id="invoiceFilterDesde" type="date" value="${esc(filters.desde)}" onchange="NOC.Facturas.setFilter('desde',this.value)"></div>
      <div class="modern-filter-field"><label>Hasta</label><input id="invoiceFilterHasta" type="date" value="${esc(filters.hasta)}" onchange="NOC.Facturas.setFilter('hasta',this.value)"></div>
      <div class="modern-filter-field"><label>Pago</label><details class="noc-multi-filter" style="position:relative;min-width:150px"><summary style="cursor:pointer;list-style:none;border:1px solid #d7dbe2;border-radius:8px;padding:9px 34px 9px 11px;background:#fff;white-space:nowrap;position:relative">${esc(!filters.pagos.length?"Todos":filters.pagos.length===1?filters.pagos[0]:`${filters.pagos.length} seleccionados`)}<span style="position:absolute;right:11px">⌄</span></summary><div style="position:absolute;z-index:30;top:calc(100% + 5px);left:0;min-width:190px;background:#fff;border:1px solid #d7dbe2;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.14);padding:8px">${pagos.map(x=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 5px;cursor:pointer"><input type="checkbox" ${filters.pagos.includes(x)?"checked":""} onchange="NOC.Facturas.togglePagoFilter('${String(x).replace(/'/g,"\\'")}',this.checked)"><span>${esc(x)}</span></label>`).join("")}</div></details></div>
@@ -94,7 +93,7 @@ NOC.Facturas=(()=>{
    draw();
  }
  function clearFilters(){
-   filters={desde:"",hasta:"",fechaTipo:"proforma",pagos:[],tipo:"",anios:[invoiceYear]};
+   filters={desde:"",hasta:"",fechaTipo:"operacion",pagos:[],tipo:"",anios:[invoiceYear]};
    query="";
    loadInvoiceYears([invoiceYear]).catch(e=>NOC.App.toast(e.message));
  }
@@ -118,7 +117,7 @@ NOC.Facturas=(()=>{
    for(let inicio=0;;inicio+=size){
      const {data,error}=await NOC.API.db().from("facturas")
        .select("*, clientes(nombre_tienda), proformas(id,numero,fecha)")
-       .gte("fecha",year+"-01-01").lt("fecha",String(Number(year)+1)+"-01-01")
+       .or(`and(fecha_operacion.gte.${year}-01-01,fecha_operacion.lt.${Number(year)+1}-01-01),and(fecha_operacion.is.null,fecha.gte.${year}-01-01,fecha.lt.${Number(year)+1}-01-01)`)
        .order("created_at",{ascending:false}).order("id",{ascending:false})
        .range(inicio,inicio+size-1);
      if(error)throw error;
