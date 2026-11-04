@@ -1,7 +1,7 @@
 window.NOC=window.NOC||{};
 NOC.App=(()=>{
   const views={
-    dashboard:["Inicio","Resumen general",()=>NOC.Dashboard.render()],
+    dashboard:["Gestión NOC","Panel de análisis interactivo",()=>NOC.DashboardInteractivo.render()],
     clientes:["Clientes","Tiendas y datos fiscales",()=>NOC.Clientes.render()],
     articulos:["Artículos","Catálogo, costes y márgenes",()=>NOC.Articulos.render()],
     proformas:["Proformas","Preparación y seguimiento",()=>NOC.Proformas.render()],
@@ -95,7 +95,7 @@ NOC.App=(()=>{
     if(views[name])localStorage.setItem("noc_current_view",name);
     document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===name));
     const v=views[name];if(!v)return;
-    document.getElementById("pageTitle").textContent=name==="dashboard"?"Inicio · v4.0.100":v[0];document.getElementById("pageSubtitle").textContent=v[1];
+    document.getElementById("pageTitle").textContent=v[0];document.getElementById("pageSubtitle").textContent=v[1];
     closeMobileMenu();
     document.getElementById("viewContainer").innerHTML='<div class="card">Cargando…</div>';
     try{await v[2]()}catch(e){console.error(e);document.getElementById("viewContainer").innerHTML=`<div class="card"><h3>Error</h3><p class="muted">${esc(e.message)}</p></div>`}
