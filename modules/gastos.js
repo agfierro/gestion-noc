@@ -62,16 +62,16 @@ NOC.Gastos=(()=>{
         #gastosTabla { width:100%; min-width:1040px; table-layout:fixed; border-collapse:collapse; }
         #gastosTabla th, #gastosTabla td { box-sizing:border-box; padding:9px 7px; vertical-align:middle; overflow:hidden; }
         #gastosTabla th { white-space:nowrap; }
-        #gastosTabla .gastos-sort { border:0; background:transparent; box-shadow:none; padding:3px 1px; font:inherit; font-weight:650; cursor:pointer; color:inherit; max-width:100%; overflow:hidden; text-overflow:ellipsis; }
-        #gastosTabla .gastos-filter { display:block; width:100%; min-width:0; max-width:100%; height:30px; padding:4px 7px; border-radius:6px; font-size:12px; box-sizing:border-box; }
+        #gastosTabla .gastos-sort { border:0; background:transparent; box-shadow:none; padding:3px 1px; font:inherit; font-weight:700; font-size:13px; cursor:pointer; color:inherit; max-width:100%; overflow:hidden; text-overflow:ellipsis; }
+        #gastosTabla .gastos-filter { display:block; width:100%; min-width:0; max-width:100%; height:23px; padding:2px 6px; border-radius:5px; font-size:11px; box-sizing:border-box; }
         #gastosTabla .gastos-obs { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; overflow:hidden; overflow-wrap:anywhere; white-space:normal; line-height:1.4; }
         #gastosTabla .gastos-actions { white-space:nowrap; text-align:right; overflow:visible; }
-        #gastosTabla .gastos-actions .btn { padding:5px 8px; font-size:12px; }
+        #gastosTabla .gastos-actions {display:flex;align-items:center;justify-content:center;gap:4px} #gastosTabla .gastos-icon-action{border:1px solid #d9dee7;border-radius:6px;background:#fff;color:#344054;width:26px;height:27px;padding:0;font-size:18px;line-height:1;cursor:pointer} #gastosTabla .gastos-delete{color:#b42318} #gastosTabla .gastos-icon-action:hover{background:#eef2f7}
         </style>
         <div class="table-wrap" style="max-width:100%;overflow-x:auto"><table id="gastosTabla">
-          <colgroup><col style="width:105px"><col style="width:145px"><col style="width:155px"><col style="width:145px"><col style="width:115px"><col style="width:245px"><col style="width:130px"></colgroup>
+          <colgroup><col style="width:105px"><col style="width:145px"><col style="width:155px"><col style="width:145px"><col style="width:115px"><col style="width:245px"><col style="width:72px"></colgroup>
           <thead>
-            <tr>${columns.map(c=>`<th><button type="button" class="gastos-sort" data-gasto-sort="${c.key}" style="white-space:nowrap" title="Ordenar por ${esc(c.label)}">${esc(c.label)} <span data-sort-icon="${c.key}">↕</span></button></th>`).join("")}<th>Acciones</th></tr>
+            <tr>${columns.map(c=>`<th><button type="button" class="gastos-sort" data-gasto-sort="${c.key}" style="white-space:nowrap" title="Ordenar por ${esc(c.label)}">${esc(c.label)} <span data-sort-icon="${c.key}">↕</span></button></th>`).join("")}<th title="Acciones">Acc.</th></tr>
             <tr>${columns.map(c=>`<th><input type="search" data-gasto-filter="${c.key}" aria-label="Filtrar ${esc(c.label)}" placeholder="${c.key==="cantidad"?"Ej. -114,60":c.key==="fecha"?"AAAA-MM-DD o DD/MM/AAAA":"Filtrar…"}" class="gastos-filter"></th>`).join("")}<th></th></tr>
           </thead>
           <tbody id="gastosRows"></tbody>
@@ -118,7 +118,7 @@ NOC.Gastos=(()=>{
       <td>${esc(r.numero_factura)}</td>
       <td style="text-align:right;white-space:nowrap;${Number(r.cantidad)<0?"color:#b91c1c;":""}">${esc(amountText(r.cantidad))} €</td>
       <td title="${esc(r.observaciones)}"><span class="gastos-obs">${esc(r.observaciones)}</span></td>
-      <td class="gastos-actions"><button class="btn btn-small" onclick="NOC.Gastos.openEditor('${esc(r.id)}')">Editar</button> <button class="btn btn-small btn-danger" onclick="NOC.Gastos.del('${esc(r.id)}')">Borrar</button></td>
+      <td class="gastos-actions"><button class="gastos-icon-action" title="Editar gasto" aria-label="Editar gasto" onclick="NOC.Gastos.openEditor('${esc(r.id)}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg></button><button class="gastos-icon-action gastos-delete" title="Borrar gasto" aria-label="Borrar gasto" onclick="NOC.Gastos.del('${esc(r.id)}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6M10 10v7m4-7v7"/></svg></button></td>
     </tr>`).join("")||'<tr><td colspan="7" class="empty">No hay gastos que coincidan con los filtros.</td></tr>';
     document.getElementById("gastosCount").textContent=`${filtered.length} de ${rows.length} gastos`;
     document.getElementById("gastosSum").textContent=`Total filtrado: ${amountText(filtered.reduce((sum,r)=>sum+Number(r.cantidad||0),0))} €`;
