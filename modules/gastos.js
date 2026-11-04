@@ -58,10 +58,21 @@ NOC.Gastos=(()=>{
             <button class="btn btn-primary" type="button" onclick="NOC.Gastos.openEditor()">+ Nuevo gasto</button>
           </div>
         </div>
-        <div class="table-wrap"><table style="min-width:1050px">
+        <style>
+        #gastosTabla { width:100%; min-width:1040px; table-layout:fixed; border-collapse:collapse; }
+        #gastosTabla th, #gastosTabla td { box-sizing:border-box; padding:9px 7px; vertical-align:middle; overflow:hidden; }
+        #gastosTabla th { white-space:nowrap; }
+        #gastosTabla .gastos-sort { border:0; background:transparent; box-shadow:none; padding:3px 1px; font:inherit; font-weight:650; cursor:pointer; color:inherit; max-width:100%; overflow:hidden; text-overflow:ellipsis; }
+        #gastosTabla .gastos-filter { display:block; width:100%; min-width:0; max-width:100%; height:30px; padding:4px 7px; border-radius:6px; font-size:12px; box-sizing:border-box; }
+        #gastosTabla .gastos-obs { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; overflow:hidden; overflow-wrap:anywhere; white-space:normal; line-height:1.4; }
+        #gastosTabla .gastos-actions { white-space:nowrap; text-align:right; overflow:visible; }
+        #gastosTabla .gastos-actions .btn { padding:5px 8px; font-size:12px; }
+        </style>
+        <div class="table-wrap" style="max-width:100%;overflow-x:auto"><table id="gastosTabla">
+          <colgroup><col style="width:105px"><col style="width:145px"><col style="width:155px"><col style="width:145px"><col style="width:115px"><col style="width:245px"><col style="width:130px"></colgroup>
           <thead>
-            <tr>${columns.map(c=>`<th><button type="button" class="btn btn-small" data-gasto-sort="${c.key}" style="white-space:nowrap" title="Ordenar por ${esc(c.label)}">${esc(c.label)} <span data-sort-icon="${c.key}">↕</span></button></th>`).join("")}<th>Acciones</th></tr>
-            <tr>${columns.map(c=>`<th><input type="search" data-gasto-filter="${c.key}" aria-label="Filtrar ${esc(c.label)}" placeholder="${c.key==="cantidad"?"Ej. -114,60":c.key==="fecha"?"AAAA-MM-DD o DD/MM/AAAA":"Filtrar…"}" style="width:100%;min-width:90px;font-size:12px;padding:7px 6px"></th>`).join("")}<th></th></tr>
+            <tr>${columns.map(c=>`<th><button type="button" class="gastos-sort" data-gasto-sort="${c.key}" style="white-space:nowrap" title="Ordenar por ${esc(c.label)}">${esc(c.label)} <span data-sort-icon="${c.key}">↕</span></button></th>`).join("")}<th>Acciones</th></tr>
+            <tr>${columns.map(c=>`<th><input type="search" data-gasto-filter="${c.key}" aria-label="Filtrar ${esc(c.label)}" placeholder="${c.key==="cantidad"?"Ej. -114,60":c.key==="fecha"?"AAAA-MM-DD o DD/MM/AAAA":"Filtrar…"}" class="gastos-filter"></th>`).join("")}<th></th></tr>
           </thead>
           <tbody id="gastosRows"></tbody>
         </table></div>
@@ -106,8 +117,8 @@ NOC.Gastos=(()=>{
       <td>${esc(r.tipo_gasto)}</td>
       <td>${esc(r.numero_factura)}</td>
       <td style="text-align:right;white-space:nowrap;${Number(r.cantidad)<0?"color:#b91c1c;":""}">${esc(amountText(r.cantidad))} €</td>
-      <td title="${esc(r.observaciones)}" style="max-width:300px;overflow-wrap:anywhere">${esc(r.observaciones)}</td>
-      <td class="actions"><button class="btn btn-small" onclick="NOC.Gastos.openEditor('${esc(r.id)}')">Editar</button> <button class="btn btn-small btn-danger" onclick="NOC.Gastos.del('${esc(r.id)}')">Borrar</button></td>
+      <td title="${esc(r.observaciones)}"><span class="gastos-obs">${esc(r.observaciones)}</span></td>
+      <td class="gastos-actions"><button class="btn btn-small" onclick="NOC.Gastos.openEditor('${esc(r.id)}')">Editar</button> <button class="btn btn-small btn-danger" onclick="NOC.Gastos.del('${esc(r.id)}')">Borrar</button></td>
     </tr>`).join("")||'<tr><td colspan="7" class="empty">No hay gastos que coincidan con los filtros.</td></tr>';
     document.getElementById("gastosCount").textContent=`${filtered.length} de ${rows.length} gastos`;
     document.getElementById("gastosSum").textContent=`Total filtrado: ${amountText(filtered.reduce((sum,r)=>sum+Number(r.cantidad||0),0))} €`;
