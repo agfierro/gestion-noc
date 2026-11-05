@@ -26,3 +26,12 @@
  .noc-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.noc-total{padding:11px}.noc-total strong{font-size:17px}
  .noc-chart-bar-row{grid-template-columns:20px minmax(0,1fr) minmax(65px,auto)}
 }
+
+/* V4.1.3: gráfico de líneas trimestral responsive */
+.noc-line-chart{width:100%;min-width:0;display:block;overflow:hidden;padding:0}
+.noc-line-chart svg{width:100%;height:auto;display:block;overflow:visible;max-width:100%}
+.noc-line-tick{font-size:12px;fill:#657080;font-family:inherit}
+.noc-line-value{font-size:11px;font-weight:700;font-family:inherit;paint-order:stroke;stroke:white;stroke-width:3px;stroke-linejoin:round}
+.noc-line-legend{font-size:12px;fill:#39475a;font-family:inherit}
+.noc-chart-hint{font-size:11px;color:#758095;text-align:center;margin-top:2px}
+@media(max-width:600px){.noc-line-chart svg{min-width:0}.noc-line-value{font-size:10px}}
