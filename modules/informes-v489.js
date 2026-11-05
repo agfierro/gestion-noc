@@ -1857,17 +1857,29 @@ NOC.Informes=(()=>{
     const etiqueta=tipo==="facturado"?"Facturado":"Proformado";
     NOC.App.showProgress("Generando informe…",`${etiqueta} · ${comercial}`);
     try{
-      let q=NOC.API.db().from(tabla)
-        .select(tipo==="facturado"
-          ?"id,numero,fecha,base_imponible,iva,recargo,total,clientes!inner(nombre_tienda,comercial)"
-          :"id,numero,fecha,estado,base_imponible,iva,recargo,total,envio_precio,envio_cantidad,envio_descuento,clientes!inner(nombre_tienda,comercial)")
-        .eq("clientes.comercial",comercial).gte("fecha",desdeEfectivo).lte("fecha",hasta);
-
-      if(tipo==="proformado")q=q.neq("estado","Cancelada");
-      q=q.order("fecha",{ascending:true}).order("numero",{ascending:true});
-
-      const {data,error}=await q;
-      if(error)throw error;
+      // Facturado por comercial: la fecha de operación es el criterio principal
+      // para todas las facturas (vinculadas a proforma o ventas directas).
+      // Solo si falta fecha_operacion usamos fecha original como alternativa.
+      // No filtramos por facturas.fecha en Supabase: puede ser fecha de importación.
+      let data=[];
+      for(let offset=0;offset<100000;offset+=1000){
+        let q=NOC.API.db().from(tabla)
+          .select(tipo==="facturado"
+            ?"id,numero,fecha,fecha_operacion,proforma_id,base_imponible,iva,recargo,total,clientes!inner(nombre_tienda,comercial)"
+            :"id,numero,fecha,estado,base_imponible,iva,recargo,total,envio_precio,envio_cantidad,envio_descuento,clientes!inner(nombre_tienda,comercial)")
+          .eq("clientes.comercial",comercial)
+          .order("id",{ascending:true}).range(offset,offset+999);
+        if(tipo==="proformado")q=q.gte("fecha",desdeEfectivo).lte("fecha",hasta).neq("estado","Cancelada");
+        const {data:part,error}=await q;
+        if(error)throw error;
+        data.push(...(part||[]));
+        if(!part||part.length<1000)break;
+      }
+      if(tipo==="facturado")data=data.filter(r=>{
+        const fechaInforme=String(r.fecha_operacion||r.fecha||"").slice(0,10);
+        return fechaInforme>=desdeEfectivo&&fechaInforme<=hasta;
+      }).map(r=>({...r,fecha:r.fecha_operacion||r.fecha}));
+      data.sort((a,b)=>String(a.fecha||"").localeCompare(String(b.fecha||""))||String(a.numero||"").localeCompare(String(b.numero||""),"es",{numeric:true}));
 
       // SIN GASTOS DE ENVÍO:
       // - Proformas: el porte contractual está guardado en la propia cabecera

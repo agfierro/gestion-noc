@@ -17,7 +17,7 @@ NOC.Facturas=(()=>{
  function compare(a,b){const va=value(a,sort.key),vb=value(b,sort.key);let c=(typeof va==="number"||typeof vb==="number")?Number(va||0)-Number(vb||0):String(va??"").localeCompare(String(vb??""),"es",{numeric:true,sensitivity:"base"});return sort.dir==="asc"?c:-c}
  // Fecha original de la proforma; las ventas directas usan su fecha de factura.
  function fechaBusqueda(r){
-   return String(r.fecha_operacion||r.fecha||"").slice(0,10);
+   return String(filters.fechaTipo==="expedicion"?(r.fecha_expedicion||r.fecha||""):(r.fecha_operacion||r.fecha||"")).slice(0,10);
  }
  function shown(){
    const q=query.trim().toLocaleLowerCase("es");
@@ -73,7 +73,7 @@ NOC.Facturas=(()=>{
    const years=yearsAvailable();
    const selectedYears=filters.anios||[];
    return `<div class="invoice-filter-wrap"><div class="invoice-year-bar"><span class="invoice-year-label">AÑO</span>${years.map(y=>`<button type="button" class="invoice-year-btn ${selectedYears.includes(y)?"active":""}" aria-pressed="${selectedYears.includes(y)}" onclick="NOC.Facturas.toggleYear('${y}')">${y}</button>`).join("")}<button type="button" class="invoice-year-btn ${loadedInvoiceYears.length===invoiceYears().length?"active":""}" onclick="NOC.Facturas.clearYears()">Cargar todos</button></div><div class="modern-filter-card invoice-main-filters">
-     <div class="modern-filter-field"><label>Buscar por fecha de</label><select onchange="NOC.Facturas.setFilter('fechaTipo',this.value)"><option value="operacion" selected>Fecha de operación</option></select></div>
+     <div class="modern-filter-field"><label>Buscar por fecha de</label><select onchange="NOC.Facturas.setFilter('fechaTipo',this.value)"><option value="operacion" ${filters.fechaTipo==="operacion"?"selected":""}>Fecha de operación</option><option value="expedicion" ${filters.fechaTipo==="expedicion"?"selected":""}>Fecha de expedición</option></select></div>
      <div class="modern-filter-field"><label>Desde</label><input id="invoiceFilterDesde" type="date" value="${esc(filters.desde)}" onchange="NOC.Facturas.setFilter('desde',this.value)"></div>
      <div class="modern-filter-field"><label>Hasta</label><input id="invoiceFilterHasta" type="date" value="${esc(filters.hasta)}" onchange="NOC.Facturas.setFilter('hasta',this.value)"></div>
      <div class="modern-filter-field"><label>Pago</label><details class="noc-multi-filter" style="position:relative;min-width:150px"><summary style="cursor:pointer;list-style:none;border:1px solid #d7dbe2;border-radius:8px;padding:9px 34px 9px 11px;background:#fff;white-space:nowrap;position:relative">${esc(!filters.pagos.length?"Todos":filters.pagos.length===1?filters.pagos[0]:`${filters.pagos.length} seleccionados`)}<span style="position:absolute;right:11px">⌄</span></summary><div style="position:absolute;z-index:30;top:calc(100% + 5px);left:0;min-width:190px;background:#fff;border:1px solid #d7dbe2;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.14);padding:8px">${pagos.map(x=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 5px;cursor:pointer"><input type="checkbox" ${filters.pagos.includes(x)?"checked":""} onchange="NOC.Facturas.togglePagoFilter('${String(x).replace(/'/g,"\\'")}',this.checked)"><span>${esc(x)}</span></label>`).join("")}</div></details></div>
@@ -84,6 +84,7 @@ NOC.Facturas=(()=>{
  function setFilter(k,v){
    if(!Object.prototype.hasOwnProperty.call(filters,k))return;
    filters[k]=v||"";
+   if(k==="fechaTipo" && v==="expedicion"){loadInvoiceYears(invoiceYears()).catch(e=>NOC.App.toast(e.message));return;}
    draw();
  }
  function togglePagoFilter(value,checked){
