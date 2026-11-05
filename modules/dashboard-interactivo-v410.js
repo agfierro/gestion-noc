@@ -44,6 +44,29 @@ NOC.DashboardInteractivo=(()=>{
    }));draw();
   }catch(e){if(t===token)root.innerHTML=`<div class="card">Error al cargar el dashboard: ${esc(e.message||e)}</div>`;}
  }
+ function lineChart(m,ys,qs,group,labels,financial){
+  const w=560,h=300,left=58,right=20,top=36,bottom=58,plotW=w-left-right,plotH=h-top-bottom;
+  const vals=ys.flatMap(y=>qs.map(q=>Number(group.get(yq(y,q))?.[m]||0)));
+  const minV=Math.min(0,...vals),maxV=Math.max(0,...vals);
+  const roughStep=Math.max(1,(maxV-minV)/5);
+  const pow=Math.pow(10,Math.floor(Math.log10(roughStep)));
+  const step=[1,2,5,10].map(k=>k*pow).find(n=>n>=roughStep)||10*pow;
+  const lo=Math.floor(minV/step)*step,hi=Math.max(lo+step,Math.ceil(maxV/step)*step);
+  const xx=q=>left+(q-1)*plotW/3;
+  const yy=v=>top+(hi-v)/(hi-lo)*plotH;
+  const numberLabel=v=>{const a=Math.abs(v);if(a>=1000000)return (v/1000000).toLocaleString('es-ES',{maximumFractionDigits:1})+' M';if(a>=1000)return (v/1000).toLocaleString('es-ES',{maximumFractionDigits:1})+' mil';return Math.round(v).toLocaleString('es-ES',{maximumFractionDigits:0});};
+  const colors=['#20628a','#e56b2e','#529268','#8b5da9','#b07b2c'];
+  const lines=[];
+  for(let tick=lo;tick<=hi+step/10;tick+=step){const y=yy(tick);lines.push(`<line x1="${left}" y1="${y}" x2="${w-right}" y2="${y}" stroke="#dce2e8" stroke-width="1"/><text x="${left-8}" y="${y+4}" text-anchor="end" class="noc-line-tick">${esc(numberLabel(tick))}</text>`);}
+  for(let q=1;q<=4;q++)lines.push(`<text x="${xx(q)}" y="${h-39}" text-anchor="middle" class="noc-line-tick">T${q}</text>`);
+  ys.forEach((yearValue,i)=>{
+    const color=colors[i%colors.length],points=qs.map(q=>({q,v:Number(group.get(yq(yearValue,q))?.[m]||0)}));
+    if(points.length>1)lines.push(`<polyline points="${points.map(p=>`${xx(p.q)},${yy(p.v)}`).join(' ')}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`);
+    points.forEach((p,j)=>{const x=xx(p.q),y=yy(p.v),exact=financial?money(p.v):fmt(p.v);const offset=(i%2===0?-12:18);const label=numberLabel(p.v)+(financial?' €':'');lines.push(`<g><title>${esc(yearValue+' · T'+p.q+' · '+labels[m]+': '+exact)}</title><circle cx="${x}" cy="${y}" r="5" fill="${color}" stroke="#fff" stroke-width="1.5"/><text x="${x}" y="${Math.max(15,Math.min(h-bottom-5,y+offset))}" text-anchor="middle" class="noc-line-value" fill="${color}">${esc(label)}</text></g>`)});
+    const legendX=w/2-(ys.length*75)/2+i*75;lines.push(`<line x1="${legendX}" y1="${h-13}" x2="${legendX+18}" y2="${h-13}" stroke="${color}" stroke-width="3"/><text x="${legendX+23}" y="${h-9}" class="noc-line-legend">${yearValue}</text>`);
+  });
+  return `<div class="noc-chart noc-line-chart" aria-label="Gráfico de líneas comparativo de ${esc(labels[m])}"><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(labels[m])}: comparación por año y trimestre" preserveAspectRatio="xMidYMid meet">${lines.join('')}</svg><div class="noc-chart-hint">Pasa el cursor por un punto para ver el valor exacto.</div></div>`;
+ }
  function pill(kind,value,label,active){return `<button type="button" class="noc-pill ${active?'active':''}" data-kind="${kind}" data-value="${esc(value)}" aria-pressed="${active}">${esc(label)}</button>`}
  function draw(){
   const result=document.getElementById('nocResults');if(!result)return;
@@ -73,8 +96,7 @@ NOC.DashboardInteractivo=(()=>{
     const sum=cells.reduce((a,b)=>a+b,0);
     return `<tr><th>${y}</th>${cells.map(v=>`<td>${display(m,v)}</td>`).join('')}<td><strong>${display(m,sum)}</strong></td></tr>`;
    }).join('');
-   const max=Math.max(1,...ys.flatMap(y=>qs.map(q=>Math.abs(group.get(yq(y,q))?.[m]||0))));
-   const chart=`<div class="noc-chart" role="img" aria-label="Gráfico comparativo de ${esc(labels[m])}">${ys.map(y=>`<div class="noc-chart-year"><strong>${y}</strong>${qs.map(q=>{const v=group.get(yq(y,q))?.[m]||0;return `<div class="noc-chart-bar-row"><span>T${q}</span><div class="noc-chart-track"><div class="noc-chart-bar ${v<0?'negative':''}" style="width:${Math.max(0,Math.abs(v)/max*100)}%"></div></div><span class="noc-chart-value">${display(m,v)}</span></div>`}).join('')}</div>`).join('')}</div>`;
+   const chart=lineChart(m,ys,qs,group,labels,financial(m));
    return `<div class="noc-table-card"><h3>${esc(labels[m])} · comparativa trimestral</h3><div class="noc-compare-layout"><div class="noc-table-scroll" tabindex="0" aria-label="Tabla trimestral desplazable"><table class="noc-quarter-table"><thead>${header}</thead><tbody>${rows}</tbody></table></div>${chart}</div></div>`;
   }).join('');
   const netTable=showDiff?`<div class="noc-table-card"><h3>Facturado − gastos registrados</h3><div class="table-wrap"><table><thead><tr><th>Año</th>${qs.map(q=>`<th>T${q}</th>`).join('')}<th>Total</th></tr></thead><tbody>${ys.map(y=>{const values=qs.map(q=>{const r=group.get(yq(y,q));return (r?.facturado||0)-(r?.gastos||0)});return `<tr><th>${y}</th>${values.map(v=>`<td>${money(v)}</td>`).join('')}<td><strong>${money(values.reduce((a,b)=>a+b,0))}</strong></td></tr>`}).join('')}</tbody></table></div></div>`:'';
