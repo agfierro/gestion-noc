@@ -35,3 +35,11 @@
 .noc-line-legend{font-size:12px;fill:#39475a;font-family:inherit}
 .noc-chart-hint{font-size:11px;color:#758095;text-align:center;margin-top:2px}
 @media(max-width:600px){.noc-line-chart svg{min-width:0}.noc-line-value{font-size:10px}}
+
+/* V4.1.4: compact article report controls */
+#reportArticlesForm.noc-articles-filters{display:flex;flex-wrap:wrap;align-items:end;gap:10px}
+#reportArticlesForm.noc-articles-filters>.field{flex:1 1 145px;min-width:125px;max-width:240px}
+#reportArticlesForm.noc-articles-filters>.field:has(#artDesde),#reportArticlesForm.noc-articles-filters>.field:has(#artHasta){flex:0 1 155px}
+#reportArticlesForm.noc-articles-filters>.field:has(#artArticulo){flex:1 1 200px;max-width:300px}
+#reportArticlesForm.noc-articles-filters>.noc-articles-submit{flex:0 0 auto;align-self:end;margin:0}
+@media(max-width:850px){#reportArticlesForm.noc-articles-filters>.field{flex:1 1 180px;max-width:none}#reportArticlesForm.noc-articles-filters>.noc-articles-submit{flex:1 1 100%}}
