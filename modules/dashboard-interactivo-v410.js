@@ -34,7 +34,8 @@ NOC.DashboardInteractivo=(()=>{
     ${errors.length?`<div class="noc-warning">Algunos datos no se han podido consultar: ${esc(errors.join(' · '))}. Los indicadores correspondientes pueden estar incompletos.</div>`:''}
     <div class="noc-controls"><div class="noc-period-row"><div><strong>Años</strong><div class="noc-pills" id="nocYears">${years.map(y=>pill('year',y,y,state.years.has(y))).join('')}</div></div>
     <div><strong>Trimestres</strong><div class="noc-pills" id="nocQuarters">${[1,2,3,4].map(q=>pill('quarter',q,'T'+q,state.quarters.has(q))).join('')}</div></div>
-    <div class="noc-type-inline"><strong>Tipo de artículo (selección acumulable)</strong><div class="noc-pills" id="nocTypes">${[['ropa','Ropa'],['complementos','Complementos']].map(([v,l])=>pill('type',v,l,state.types.has(v))).join('')}</div></div></div><div><strong>Canal de venta</strong><div class="noc-pills" id="nocChannels">${[['todos','Todos'],['mayoristas','Mayoristas'],['particulares','Particulares']].map(([v,l])=>pill('channel',v,l,state.channel===v)).join('')}</div></div>
+    <div class="noc-channel-inline"><strong>Canal de venta</strong><div class="noc-pills" id="nocChannels">${[['todos','Todos'],['mayoristas','Mayoristas'],['particulares','Particulares']].map(([v,l])=>pill('channel',v,l,state.channel===v)).join('')}</div></div>
+    <div class="noc-type-inline"><strong>Tipo de artículo (selección acumulable)</strong><div class="noc-pills" id="nocTypes">${[['ropa','Ropa'],['complementos','Complementos']].map(([v,l])=>pill('type',v,l,state.types.has(v))).join('')}</div></div></div>
     <div><strong>Indicadores</strong><div class="noc-pills" id="nocMetrics">${metrics.map(([id,label])=>pill('metric',id,label,state.metrics.has(id))).join('')}</div></div></div>
     <div id="nocResults" aria-live="polite"></div></section>`;
    root.querySelectorAll('[data-kind]').forEach(btn=>btn.addEventListener('click',()=>{

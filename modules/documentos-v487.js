@@ -150,6 +150,9 @@ NOC.Documentos=(()=>{
       </table>
       <div class="doc-items-spacer"></div>
 
+      ${!isPf && !doc.proforma_id && !/^WEB/i.test(String(doc.numero||"")) && String(doc.observaciones||"").trim()?`
+      <div class="doc-observaciones" style="margin:8px 0 10px;padding:7px 10px;border:1px solid #dedede;border-radius:3px;break-inside:avoid;page-break-inside:avoid;font-size:11px;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere"><strong style="display:block;margin-bottom:3px">OBSERVACIONES</strong>${val(String(doc.observaciones).trim())}</div>`:""}
+
       <div class="doc-bottom">
         <div class="doc-payment">
           <div class="doc-payment-line"><span class="doc-icon">€</span><div><div class="doc-payment-label">FORMA DE PAGO</div><div class="doc-payment-value">${val(payment)}</div></div></div>
