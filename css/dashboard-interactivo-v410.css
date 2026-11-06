@@ -49,3 +49,10 @@
 .noc-type-inline{margin-left:auto;min-width:210px}
 .noc-type-inline strong{white-space:nowrap}
 @media(max-width:1000px){.noc-type-inline{margin-left:0}}
+
+/* V4.1.6: canal de venta en la fila superior con los filtros de periodo y tipo */
+.noc-period-row{align-items:flex-end;gap:14px 22px}
+.noc-period-row>.noc-channel-inline{min-width:0}
+.noc-period-row>.noc-type-inline{min-width:0;margin-left:0}
+@media(min-width:1250px){.noc-period-row>.noc-type-inline{margin-left:auto}}
+@media(max-width:650px){.noc-period-row{gap:12px 16px}}
