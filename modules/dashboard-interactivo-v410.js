@@ -1,8 +1,9 @@
 window.NOC=window.NOC||{};
 NOC.DashboardInteractivo=(()=>{
  const metrics=[['facturado','Facturado'],['proformas','Proformas'],['gastos','Gastos'],['modelos','Artículos lanzados'],['unidades','Unidades vendidas'],['resultado','Facturado − gastos']];
- const state={years:new Set(),quarters:new Set([1,2,3,4]),metrics:new Set(),loaded:false};
- let data={facturas:[],proformas:[],gastos:[],articulos:[],lineas:[]},token=0;
+ const state={years:new Set(),quarters:new Set([1,2,3,4]),metrics:new Set(),channel:"todos",types:new Set(["ropa","complementos"]),loaded:false};
+ let data={facturas:[],proformas:[],gastos:[],articulos:[],lineas:[],clientes:[]},token=0;
+ const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
  const esc=v=>NOC.App.esc(String(v??''));
  const money=n=>Number(n||0).toLocaleString('es-ES',{style:'currency',currency:'EUR'});
  const fmt=n=>Number(n||0).toLocaleString('es-ES',{maximumFractionDigits:0});
@@ -19,9 +20,9 @@ NOC.DashboardInteractivo=(()=>{
   document.getElementById('pageSubtitle').textContent='Panel de análisis interactivo';
   root.innerHTML='<div class="card"><p class="muted">Preparando panel interactivo…</p></div>';
   try{
-   const results=await Promise.allSettled([all('facturas','id,fecha,fecha_operacion,total'),all('proformas','id,fecha,total'),all('gastos','id,fecha,cantidad'),all('articulos','id,anio,mes,nombre_producto'),all('lineas_factura','factura_id,cantidad,es_envio')]);
+   const results=await Promise.allSettled([all('facturas','id,fecha,fecha_operacion,total,cliente_id,numero'),all('proformas','id,fecha,total,cliente_id'),all('gastos','id,fecha,cantidad'),all('articulos','id,anio,mes,nombre_producto,tipo_articulo'),all('lineas_factura','factura_id,articulo_id,cantidad,es_envio'),all('clientes','id,nombre_tienda')]);
    if(t!==token)return;
-   const names=['facturas','proformas','gastos','articulos','lineas'];const errors=[];
+   const names=['facturas','proformas','gastos','articulos','lineas','clientes'];const errors=[];
    results.forEach((r,i)=>{data[names[i]]=r.status==='fulfilled'?r.value:[];if(r.status==='rejected')errors.push(names[i]+': '+String(r.reason?.message||r.reason));});
    state.loaded=true;
    const ys=new Set([new Date().getFullYear()]);
@@ -33,11 +34,14 @@ NOC.DashboardInteractivo=(()=>{
     ${errors.length?`<div class="noc-warning">Algunos datos no se han podido consultar: ${esc(errors.join(' · '))}. Los indicadores correspondientes pueden estar incompletos.</div>`:''}
     <div class="noc-controls"><div class="noc-period-row"><div><strong>Años</strong><div class="noc-pills" id="nocYears">${years.map(y=>pill('year',y,y,state.years.has(y))).join('')}</div></div>
     <div><strong>Trimestres</strong><div class="noc-pills" id="nocQuarters">${[1,2,3,4].map(q=>pill('quarter',q,'T'+q,state.quarters.has(q))).join('')}</div></div>
-    </div><div><strong>Indicadores</strong><div class="noc-pills" id="nocMetrics">${metrics.map(([id,label])=>pill('metric',id,label,state.metrics.has(id))).join('')}</div></div></div>
+    </div><div><strong>Canal de venta</strong><div class="noc-pills" id="nocChannels">${[['todos','Todos'],['mayoristas','Mayoristas'],['particulares','Particulares']].map(([v,l])=>pill('channel',v,l,state.channel===v)).join('')}</div></div>
+    <div><strong>Tipo de artículo (selección acumulable)</strong><div class="noc-pills" id="nocTypes">${[['ropa','Ropa'],['complementos','Complementos']].map(([v,l])=>pill('type',v,l,state.types.has(v))).join('')}</div></div>
+    <div><strong>Indicadores</strong><div class="noc-pills" id="nocMetrics">${metrics.map(([id,label])=>pill('metric',id,label,state.metrics.has(id))).join('')}</div></div></div>
     <div id="nocResults" aria-live="polite"></div></section>`;
    root.querySelectorAll('[data-kind]').forEach(btn=>btn.addEventListener('click',()=>{
-    const kind=btn.dataset.kind,val=kind==='metric'?btn.dataset.value:Number(btn.dataset.value);
-    const set=kind==='year'?state.years:kind==='quarter'?state.quarters:state.metrics;
+    const kind=btn.dataset.kind,val=['metric','channel','type'].includes(kind)?btn.dataset.value:Number(btn.dataset.value);
+    if(kind==='channel'){state.channel=val;root.querySelectorAll('[data-kind=channel]').forEach(b=>{b.classList.toggle('active',b.dataset.value===val);b.setAttribute('aria-pressed',String(b.dataset.value===val))});draw();return;}
+    const set=kind==='year'?state.years:kind==='quarter'?state.quarters:kind==='type'?state.types:state.metrics;
     if(set.has(val))set.delete(val);else set.add(val);
     btn.classList.toggle('active',set.has(val));btn.setAttribute('aria-pressed',String(set.has(val)));
     draw();
@@ -75,12 +79,20 @@ NOC.DashboardInteractivo=(()=>{
   if(!active){result.innerHTML='<div class="noc-empty">Elige al menos un año, un trimestre y un indicador para empezar.</div>';return;}
   const ys=[...state.years].sort((a,b)=>b-a),qs=[...state.quarters].sort((a,b)=>a-b),ms=[...state.metrics];
   const group=new Map();ys.forEach(y=>qs.forEach(q=>group.set(yq(y,q),{y,q,facturado:0,proformas:0,gastos:0,modelos:0,unidades:0})));
-  for(const r of data.facturas){const g=group.get(yq(year(fechaFactura(r)),quarter(fechaFactura(r))));if(g)g.facturado+=Number(r.total||0)}
-  for(const r of data.proformas){const g=group.get(yq(year(r.fecha),quarter(r.fecha)));if(g)g.proformas+=Number(r.total||0)}
+  // El canal se infiere del tipo fiscal del cliente; no se alteran datos en Supabase.
+  const clients=new Map(data.clientes.map(c=>[String(c.id),norm(c.nombre_tienda)]));
+  const invoiceAllowed=r=>state.channel==='todos'||(state.channel==='particulares'?clients.get(String(r.cliente_id))==='particular':clients.has(String(r.cliente_id))&&clients.get(String(r.cliente_id))!=='particular');
+  const articleById=new Map(data.articulos.map(a=>[String(a.id),a]));
+  const typesAll=state.types.size===2;
+  const typeAllowed=id=>typesAll||(id&&state.types.has(norm(articleById.get(String(id))?.tipo_articulo)));
+  const invoices=new Map(data.facturas.filter(invoiceAllowed).map(r=>[String(r.id),r]));
+  // Los importes globales no se pueden distribuir por tipo sin importes de línea y ajustes fiscales.
+  for(const r of invoices.values()){const g=group.get(yq(year(fechaFactura(r)),quarter(fechaFactura(r))));if(g)g.facturado+=Number(r.total||0)}
+  for(const r of data.proformas){if(!invoiceAllowed(r))continue;const g=group.get(yq(year(r.fecha),quarter(r.fecha)));if(g)g.proformas+=Number(r.total||0)}
   for(const r of data.gastos){const g=group.get(yq(year(r.fecha),quarter(r.fecha)));if(g)g.gastos+=Number(r.cantidad||0)}
-  for(const r of data.articulos){const y=Number(r.anio),m=Number(r.mes),q=m>=1&&m<=12?Math.ceil(m/3):0;const g=group.get(yq(y,q));if(g)g.modelos++}
-  const invoiceDate=new Map(data.facturas.map(f=>[String(f.id),fechaFactura(f)]));
-  for(const r of data.lineas){if(r.es_envio===true||r.es_envio==='true')continue;const d=invoiceDate.get(String(r.factura_id));if(!d)continue;const g=group.get(yq(year(d),quarter(d)));if(g)g.unidades+=Number(r.cantidad||0)}
+  for(const r of data.articulos){const y=Number(r.anio),m=Number(r.mes),q=m>=1&&m<=12?Math.ceil(m/3):0;const g=group.get(yq(y,q));if(g&&typeAllowed(r.id))g.modelos++}
+  const invoiceDate=new Map([...invoices.values()].map(f=>[String(f.id),fechaFactura(f)]));
+  for(const r of data.lineas){if(r.es_envio===true||r.es_envio==='true'||!typeAllowed(r.articulo_id))continue;const d=invoiceDate.get(String(r.factura_id));if(!d)continue;const g=group.get(yq(year(d),quarter(d)));if(g)g.unidades+=Number(r.cantidad||0)}
   for(const g of group.values())g.resultado=g.facturado-g.gastos;
   const records=[...group.values()];
   const sums=Object.fromEntries(ms.map(m=>[m,records.reduce((s,r)=>s+r[m],0)]));
@@ -100,7 +112,7 @@ NOC.DashboardInteractivo=(()=>{
    return `<div class="noc-table-card"><h3>${esc(labels[m])} · comparativa trimestral</h3><div class="noc-compare-layout"><div class="noc-table-scroll" tabindex="0" aria-label="Tabla trimestral desplazable"><table class="noc-quarter-table"><thead>${header}</thead><tbody>${rows}</tbody></table></div>${chart}</div></div>`;
   }).join('');
   const netTable=showDiff?`<div class="noc-table-card"><h3>Facturado − gastos registrados</h3><div class="table-wrap"><table><thead><tr><th>Año</th>${qs.map(q=>`<th>T${q}</th>`).join('')}<th>Total</th></tr></thead><tbody>${ys.map(y=>{const values=qs.map(q=>{const r=group.get(yq(y,q));return (r?.facturado||0)-(r?.gastos||0)});return `<tr><th>${y}</th>${values.map(v=>`<td>${money(v)}</td>`).join('')}<td><strong>${money(values.reduce((a,b)=>a+b,0))}</strong></td></tr>`}).join('')}</tbody></table></div></div>`:'';
-  result.innerHTML=`<div class="noc-summary">${totals}</div>${tableSections}${netTable}<p class="muted noc-note">Las facturas se agrupan por fecha de operación; si no existe, se utiliza la fecha original. «Facturado − gastos» no equivale al beneficio contable.</p>`;
+  result.innerHTML=`<div class="noc-summary">${totals}</div>${tableSections}${netTable}<p class="muted noc-note">El filtro por tipo de artículo se aplica a unidades y artículos lanzados; los importes de facturas, proformas y gastos siguen siendo globales porque no se pueden distribuir con seguridad por categoría. El filtro de canal se aplica a facturas y proformas; gastos y lanzamientos son globales. Las facturas se agrupan por fecha de operación; si no existe, se utiliza la fecha original. «Facturado − gastos» no equivale al beneficio contable.</p>`;
  }
  return{render};
 })();

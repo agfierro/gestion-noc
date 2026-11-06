@@ -226,7 +226,7 @@ NOC.Facturas=(()=>{
    const {data:ls,error:e}=await NOC.API.db().from("lineas_factura").select("*").eq("factura_id",id).order("orden");if(e)throw e;
    const config=await NOC.Documentos.getConfig(),html=NOC.Documentos.render({tipo:"FACTURA",doc:f,lineas:ls||[],config});
    const rel=f.proformas?.id?`<div class="document-relation"><span>Proforma de origen</span><button class="doc-link" onclick="NOC.Facturas.openProforma('${f.proformas.id}')">${NOC.App.esc(f.proformas.numero)}</button></div>`:"";
-   NOC.App.modal(`<div class="modal-head"><strong>Factura ${NOC.App.esc(f.numero)} · ${NOC.App.esc(f.cliente_nombre_tienda||f.clientes?.nombre_tienda||"")}</strong><div style="display:flex;gap:8px;align-items:center"><button class="btn" onclick="NOC.Facturas.imprimirActual()">Imprimir / Guardar PDF</button><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div></div><div class="modal-body">${rel}${html}</div>`,false,"document-modal");
+   NOC.App.modal(`<div class="modal-head"><strong>Factura ${NOC.App.esc(f.numero)} · ${NOC.App.esc(f.cliente_nombre_tienda||f.clientes?.nombre_tienda||"")}</strong><div style="display:flex;gap:8px;align-items:center"><button class="btn" onclick="NOC.Facturas.imprimirActual()">Imprimir / Guardar PDF</button><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div></div><div class="modal-body">${rel}${f.observaciones?`<div class="document-relation" style="white-space:pre-wrap"><strong>Observaciones:</strong> ${NOC.App.esc(f.observaciones)}</div>`:""}${html}</div>`,false,"document-modal");
  }
  const todayLocal=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")};
  async function abrirVentaDirecta(){

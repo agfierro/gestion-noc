@@ -1258,19 +1258,19 @@ NOC.Informes=(()=>{
       articuloCatalogo=[];
     }
     const fabricas=[...new Set(articuloCatalogo.map(a=>String(a.fabrica||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es"));
-    const tipos=[...new Set(articuloCatalogo.map(a=>String(a.tipo_prenda||a.tipo_articulo||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es"));
+    const tipos=[...new Map(articuloCatalogo.map(a=>String(a.tipo_prenda||a.tipo_articulo||"").trim()).filter(Boolean).map(v=>[normalizarNombreArticulo(v),v])).values()].sort((a,b)=>a.localeCompare(b,"es"));
 
     document.getElementById("reportFilters").innerHTML=`
       <h2>Informe de artículos</h2>
       <p class="muted">Consulta el resumen de artículos o el detalle de en qué tiendas y proformas se pidió un artículo concreto. Las proformas canceladas no cuentan.</p>
-      <form id="reportArticlesForm" class="form-grid" onsubmit="event.preventDefault();NOC.Informes.generarArticulos()">
+      <form id="reportArticlesForm" class="form-grid noc-articles-filters" onsubmit="event.preventDefault();NOC.Informes.generarArticulos()">
         <div class="field f3"><label>Vista</label><select id="artVista" onchange="NOC.Informes.actualizarVistaArticulos()"><option value="resumen">Resumen</option><option value="detalle">Detalle por artículo</option></select></div>
         <div class="field f3"><label>Fecha inicio</label><input id="artDesde" type="date"></div>
         <div class="field f3"><label>Fecha fin</label><input id="artHasta" type="date"></div>
         <div class="field f3"><label>Fábrica</label><select id="artFabrica"><option value="">Todas</option>${fabricas.map(v=>`<option value="${NOC.App.esc(v)}">${NOC.App.esc(v)}</option>`).join("")}</select></div>
         <div class="field f3"><label>Tipo</label><select id="artTipo"><option value="">Todos</option>${tipos.map(v=>`<option value="${NOC.App.esc(v)}">${NOC.App.esc(v)}</option>`).join("")}</select></div>
-        <div class="field f6"><label>Artículo</label><select id="artArticulo"><option value="">Todos</option>${articuloCatalogo.map(a=>`<option value="${a.id}">${NOC.App.esc(a.nombre_producto)}${a.sku?` · ${NOC.App.esc(a.sku)}`:""}</option>`).join("")}</select></div>
-        <div class="f6 toolbar" style="align-items:end"><div></div><button class="btn btn-primary" type="submit">Generar informe</button></div>
+        <div class="field f3"><label>Artículo</label><select id="artArticulo"><option value="">Todos</option>${articuloCatalogo.map(a=>`<option value="${a.id}">${NOC.App.esc(a.nombre_producto)}${a.sku?` · ${NOC.App.esc(a.sku)}`:""}</option>`).join("")}</select></div>
+        <div class="f12 toolbar noc-articles-submit"><button class="btn btn-primary" type="submit">Generar informe</button></div>
       </form>`;
     prepararSelectoresBuscables(["artArticulo","artFabrica","artTipo"]);
   }
@@ -1308,10 +1308,15 @@ NOC.Informes=(()=>{
     try{
       // 1) Catálogo completo para poder recuperar líneas antiguas importadas
       //    que no tienen articulo_id pero sí conservan la descripción.
-      const {data:catalogo,error:catalogoError}=await NOC.API.db()
-        .from("articulos")
-        .select("id,nombre_producto,sku,fabrica,tipo_articulo,tipo_prenda");
-      if(catalogoError)throw catalogoError;
+      const catalogo=[];
+      for(let offset=0;offset<100000;offset+=500){
+        const {data:page,error}=await NOC.API.db().from("articulos")
+          .select("id,nombre_producto,sku,fabrica,tipo_articulo,tipo_prenda")
+          .order("id",{ascending:true}).range(offset,offset+499);
+        if(error)throw error;
+        catalogo.push(...(page||[]));
+        if(!page||page.length<500)break;
+      }
 
       const catalogoPorId=new Map((catalogo||[]).map(a=>[String(a.id),a]));
       const catalogoPorNombre=new Map();
@@ -1326,16 +1331,24 @@ NOC.Informes=(()=>{
 
       // 2) El informe comercial de artículos se basa en PROFORMAS:
       //    representan el pedido real. Las canceladas no cuentan.
-      let q=NOC.API.db().from("lineas_proforma")
-        .select("id,proforma_id,articulo_id,descripcion,cantidad,precio_unitario,descuento,es_envio,proformas!inner(fecha,numero,estado,cliente_id,clientes(nombre_tienda,nombre,apellidos))")
-        .eq("es_envio",false)
-        .neq("proformas.estado","Cancelada");
-
-      if(desde)q=q.gte("proformas.fecha",desde);
-      if(hasta)q=q.lte("proformas.fecha",hasta);
-
-      const {data,error}=await q;
-      if(error)throw error;
+      // Paginar por ID estable: sin fechas hay más de 1.000 líneas históricas.
+      // No limitar a las primeras 1.000 filas devueltas por PostgREST.
+      const data=[];
+      const pageSize=500;
+      for(let offset=0;offset<1000000;offset+=pageSize){
+        let q=NOC.API.db().from("lineas_proforma")
+          .select("id,proforma_id,articulo_id,descripcion,cantidad,precio_unitario,descuento,es_envio,proformas!inner(fecha,numero,estado,cliente_id,clientes(nombre_tienda,nombre,apellidos))")
+          .eq("es_envio",false)
+          .neq("proformas.estado","Cancelada")
+          .order("id",{ascending:true})
+          .range(offset,offset+pageSize-1);
+        if(desde)q=q.gte("proformas.fecha",desde);
+        if(hasta)q=q.lte("proformas.fecha",hasta);
+        const {data:page,error}=await q;
+        if(error)throw error;
+        data.push(...(page||[]));
+        if(!page||page.length<pageSize)break;
+      }
 
       let rows=(data||[]).map(r=>{
         let a=null;
@@ -1353,8 +1366,8 @@ NOC.Informes=(()=>{
 
       // Filtros por artículo/fábrica/tipo usando el catálogo recuperado.
       if(articuloId)rows=rows.filter(r=>String(r._articulo?.id||"")===String(articuloId));
-      if(fabrica)rows=rows.filter(r=>String(r._articulo?.fabrica||"")===fabrica);
-      if(tipo)rows=rows.filter(r=>String(r._articulo?.tipo_prenda||r._articulo?.tipo_articulo||"")===tipo);
+      if(fabrica)rows=rows.filter(r=>normalizarNombreArticulo(r._articulo?.fabrica)===normalizarNombreArticulo(fabrica));
+      if(tipo)rows=rows.filter(r=>normalizarNombreArticulo(r._articulo?.tipo_prenda||r._articulo?.tipo_articulo)===normalizarNombreArticulo(tipo));
 
       if(vista==="detalle"){
         const art=catalogoPorId.get(String(articuloId))||{};
