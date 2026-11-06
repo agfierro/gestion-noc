@@ -43,3 +43,9 @@
 #reportArticlesForm.noc-articles-filters>.field:has(#artArticulo){flex:1 1 200px;max-width:300px}
 #reportArticlesForm.noc-articles-filters>.noc-articles-submit{flex:0 0 auto;align-self:end;margin:0}
 @media(max-width:850px){#reportArticlesForm.noc-articles-filters>.field{flex:1 1 180px;max-width:none}#reportArticlesForm.noc-articles-filters>.noc-articles-submit{flex:1 1 100%}}
+
+/* V4.1.5: tipo de artículo a la derecha, sin ocupar otra fila */
+.noc-period-row{display:flex;align-items:flex-end;gap:14px 26px;flex-wrap:wrap}
+.noc-type-inline{margin-left:auto;min-width:210px}
+.noc-type-inline strong{white-space:nowrap}
+@media(max-width:1000px){.noc-type-inline{margin-left:0}}
