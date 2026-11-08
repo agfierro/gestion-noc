@@ -20,7 +20,7 @@ NOC.DashboardInteractivo=(()=>{
   document.getElementById('pageSubtitle').textContent='Panel de análisis interactivo';
   root.innerHTML='<div class="card"><p class="muted">Preparando panel interactivo…</p></div>';
   try{
-   const results=await Promise.allSettled([all('facturas','id,fecha,fecha_operacion,total,cliente_id,numero'),all('proformas','id,fecha,total,cliente_id'),all('gastos','id,fecha,cantidad'),all('articulos','id,anio,mes,nombre_producto,tipo_articulo'),all('lineas_factura','factura_id,articulo_id,descripcion,cantidad,precio_unitario,descuento,es_envio'),all('clientes','id,nombre_tienda')]);
+   const results=await Promise.allSettled([all('facturas','id,fecha,fecha_operacion,total,cliente_id,numero'),all('proformas','id,fecha,total,cliente_id'),all('gastos','id,fecha,cantidad'),all('articulos','id,anio,mes,nombre_producto,tipo_articulo'),all('lineas_factura','factura_id,articulo_id,descripcion,cantidad,precio_unitario,descuento,es_envio,tipo_articulo_web'),all('clientes','id,nombre_tienda')]);
    if(t!==token)return;
    const names=['facturas','proformas','gastos','articulos','lineas','clientes'];const errors=[];
    results.forEach((r,i)=>{data[names[i]]=r.status==='fulfilled'?r.value:[];if(r.status==='rejected')errors.push(names[i]+': '+String(r.reason?.message||r.reason));});
@@ -85,6 +85,8 @@ NOC.DashboardInteractivo=(()=>{
   const articleById=new Map(data.articulos.map(a=>[String(a.id),a]));
   // Clasificación por catálogo o por descripción histórica, sin alterar registros.
   const classify=r=>{
+   const explicit=norm(r.tipo_articulo_web);
+   if(explicit==='ropa'||explicit==='complementos')return explicit;
    const type=norm(articleById.get(String(r.articulo_id))?.tipo_articulo);
    if(type==='ropa')return 'ropa';
    if(type==='complementos'||type==='complemento')return 'complementos';
