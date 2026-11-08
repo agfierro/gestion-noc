@@ -106,6 +106,13 @@ NOC.DashboardInteractivo=(()=>{
   let unclassifiedAmount=0,missingLines=0;
   for(const [id,r] of invoices){
    const g=group.get(yq(year(fechaFactura(r)),quarter(fechaFactura(r))));if(!g)continue;
+   // Con ambas categorías activas, Facturado representa el total real de las
+   // facturas del canal y periodo, incluidas ventas WEB históricas sin artículo.
+   // El desglose por una sola categoría mantiene el reparto por líneas.
+   if(state.types.has('ropa')&&state.types.has('complementos')){
+    g.facturado+=Number(r.total||0);
+    continue;
+   }
    const lines=byInvoice.get(id)||[];
    if(!lines.length){missingLines++;continue}
    const totalNet=lines.reduce((sum,l)=>sum+lineNet(l),0);
@@ -137,7 +144,7 @@ NOC.DashboardInteractivo=(()=>{
    return `<div class="noc-table-card"><h3>${esc(labels[m])} · comparativa trimestral</h3><div class="noc-compare-layout"><div class="noc-table-scroll" tabindex="0" aria-label="Tabla trimestral desplazable"><table class="noc-quarter-table"><thead>${header}</thead><tbody>${rows}</tbody></table></div>${chart}</div></div>`;
   }).join('');
   const netTable=showDiff?`<div class="noc-table-card"><h3>Facturado − gastos registrados</h3><div class="table-wrap"><table><thead><tr><th>Año</th>${qs.map(q=>`<th>T${q}</th>`).join('')}<th>Total</th></tr></thead><tbody>${ys.map(y=>{const values=qs.map(q=>{const r=group.get(yq(y,q));return (r?.facturado||0)-(r?.gastos||0)});return `<tr><th>${y}</th>${values.map(v=>`<td>${money(v)}</td>`).join('')}<td><strong>${money(values.reduce((a,b)=>a+b,0))}</strong></td></tr>`}).join('')}</tbody></table></div></div>`:'';
-  result.innerHTML=`<div class="noc-summary">${totals}</div>${tableSections}${netTable}<p class="muted noc-note">Facturado se distribuye proporcionalmente entre categorías usando los importes de líneas de factura (incluidos los ajustes fiscales de la factura). Envíos, artículos históricos sin categoría identificable y facturas sin líneas no se asignan a Ropa ni Complementos; por ello la suma puede ser inferior al total general. Proformas y gastos no se filtran por categoría. El filtro de canal se aplica a facturas y proformas; gastos y lanzamientos son globales. Las facturas se agrupan por fecha de operación; si no existe, se utiliza la fecha original. «Facturado − gastos» no equivale al beneficio contable.</p>`;
+  result.innerHTML=`<div class="noc-summary">${totals}</div>${tableSections}${netTable}<p class="muted noc-note">Con Ropa y Complementos seleccionados, Facturado incluye el total real de las facturas, también ventas WEB históricas sin artículo. Al seleccionar solo una categoría, el importe se distribuye proporcionalmente por líneas clasificables; los conceptos sin categoría no se asignan a ninguna. Proformas y gastos no se filtran por categoría. El filtro de canal se aplica a facturas y proformas; gastos y lanzamientos son globales. Las facturas se agrupan por fecha de operación; si no existe, se utiliza la fecha original. «Facturado − gastos» no equivale al beneficio contable.</p>`;
  }
  return{render};
 })();

@@ -28,7 +28,7 @@ NOC.Herramientas=(()=>{
   }
 }
  function chooseImport(t){const i=document.getElementById("csvInput");i.value="";i.onchange=()=>i.files?.[0]&&previewImport(t,i.files[0]);i.click()}
- async function previewImport(t,file){try{const p=parseCsv(await file.text()),m=TABLES[t],missing=m.required.filter(x=>!p.headers.includes(x)),unknown=p.headers.filter(x=>!m.columns.includes(x)),norm=p.rows.map(r=>normalize(t,r)),errs=[];if(missing.length)errs.push("Faltan columnas obligatorias: "+missing.join(", "));if(unknown.length)errs.push("Se ignorarán: "+unknown.join(", "));norm.forEach((x,i)=>x.errors.forEach(e=>errs.push(`Fila ${i+2}: ${e}`)));window._importJob={table:t,rows:norm.map(x=>x.row)};NOC.App.modal(`<div class="modal-head"><strong>Importar ${m.label}</strong><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div><div class="modal-body"><p><strong>Archivo:</strong> ${NOC.App.esc(file.name)}</p><p><strong>Filas:</strong> ${norm.length}</p>${errs.length?`<div class="card" style="box-shadow:none"><strong>Avisos</strong><ul>${errs.slice(0,10).map(e=>`<li>${NOC.App.esc(e)}</li>`).join("")}</ul></div>`:""}<div class="field"><label>Modo</label><select id="impMode"><option value="add">Añadir</option><option value="update" selected>Actualizar / añadir</option></select></div></div><div class="modal-foot"><button class="btn" onclick="NOC.App.closeModal()">Cancelar</button><button class="btn btn-primary" ${missing.length?"disabled":""} onclick="NOC.Herramientas.runImport()">Importar</button></div>`)}catch(e){NOC.App.toast("CSV no válido: "+e.message)}}
+ async function previewImport(t,file){try{const p=parseCsv(await file.text()),m=TABLES[t],missing=m.required.filter(x=>!p.headers.includes(x)),unknown=p.headers.filter(x=>!m.columns.includes(x)),norm=p.rows.map(r=>normalize(t,r)),errs=[];if(missing.length)errs.push("Faltan columnas obligatorias: "+missing.join(", "));if(unknown.length)errs.push("Se ignorarán: "+unknown.join(", "));norm.forEach((x,i)=>x.errors.forEach(e=>errs.push(`Fila ${i+2}: ${e}`)));window._importJob={table:t,rows:norm.map(x=>x.row)};const invalidWeb=norm.some(x=>x.errors.some(e=>e.includes("Venta WEB sin fecha")));NOC.App.modal(`<div class="modal-head"><strong>Importar ${m.label}</strong><button class="icon-btn" onclick="NOC.App.closeModal()">×</button></div><div class="modal-body"><p><strong>Archivo:</strong> ${NOC.App.esc(file.name)}</p><p><strong>Filas:</strong> ${norm.length}</p>${errs.length?`<div class="card" style="box-shadow:none"><strong>Avisos</strong><ul>${errs.slice(0,10).map(e=>`<li>${NOC.App.esc(e)}</li>`).join("")}</ul></div>`:""}<div class="field"><label>Modo</label><select id="impMode"><option value="add">Añadir</option><option value="update" selected>Actualizar / añadir</option></select></div></div><div class="modal-foot"><button class="btn" onclick="NOC.App.closeModal()">Cancelar</button><button class="btn btn-primary" ${missing.length||invalidWeb?"disabled":""} onclick="NOC.Herramientas.runImport()">Importar</button></div>`)}catch(e){NOC.App.toast("CSV no válido: "+e.message)}}
  async function runImport(){
   const j=window._importJob;if(!j)return;
   const mode=document.getElementById("impMode").value,m=TABLES[j.table];
@@ -89,7 +89,23 @@ NOC.Herramientas=(()=>{
  async function restoreAll(){if(document.getElementById("restoreWord").value!=="RESTAURAR")return NOC.App.toast("Escribe RESTAURAR");const b=window._restore;NOC.App.closeModal();for(const t of DEL){const {error}=await NOC.API.db().from(t).delete().neq("id","00000000-0000-0000-0000-000000000000");if(error)throw error}for(const t of INS){const rows=b.tables[t]||[];for(let x=0;x<rows.length;x+=250){const {error}=await NOC.API.db().from(t).insert(rows.slice(x,x+250));if(error)throw error}}try{await NOC.API.rpc("sincronizar_numeraciones")}catch{}NOC.App.toast("Backup restaurado.");render()}
  async function fetchAll(t){const o=[];let from=0;while(true){const {data,error}=await NOC.API.db().from(t).select("*").range(from,from+999);if(error)throw error;o.push(...(data||[]));if(!data||data.length<1000)break;from+=1000}return o}
  function clean(r){const p={...r};Object.keys(p).forEach(k=>{if(p[k]===""||p[k]===undefined)p[k]=null});if(!p.id)delete p.id;if(!p.created_at)delete p.created_at;return p}
- function normalize(t,r){const m=TABLES[t],o={},errors=[];Object.entries(r).forEach(([k,v0])=>{if(!m.columns.includes(k))return;let v=String(v0??"").trim();if(v===""){o[k]=null;return}if(m.numeric?.includes(k)){const n=parseNum(v);!Number.isFinite(n)?errors.push(`${k} no numérico`):o[k]=n}else if(m.boolean?.includes(k))o[k]=["true","1","si","sí","yes"].includes(v.toLowerCase());else o[k]=v});m.required.forEach(k=>{if(o[k]===undefined||o[k]===null||String(o[k]).trim()==="")errors.push(`${k} obligatorio`)});return{row:o,errors}}
+ // Las ventas web de PrestaShop se cobran en el momento de la compra.
+ // Para WEBaaaa- y DEV-WEBaaaa- la fecha de origen del CSV es la de los tres campos.
+ // No se aplica esta regla a facturas mayoristas ni a otros documentos.
+ function ajustarFechasWeb(t,o,errors){
+   if(t!=="facturas")return;
+   const numero=String(o.numero||"").trim();
+   if(!/^(?:WEB\d{4}-|DEV-WEB\d{4}-)/i.test(numero))return;
+   const origen=String(o.fecha_operacion||o.fecha||"").trim();
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(origen) || Number.isNaN(Date.parse(origen+"T12:00:00Z"))){
+     errors.push("Venta WEB sin fecha de operación válida (AAAA-MM-DD); no se importará");
+     return;
+   }
+   o.fecha=origen;
+   o.fecha_operacion=origen;
+   o.fecha_expedicion=origen;
+ }
+ function normalize(t,r){const m=TABLES[t],o={},errors=[];Object.entries(r).forEach(([k,v0])=>{if(!m.columns.includes(k))return;let v=String(v0??"").trim();if(v===""){o[k]=null;return}if(m.numeric?.includes(k)){const n=parseNum(v);!Number.isFinite(n)?errors.push(`${k} no numérico`):o[k]=n}else if(m.boolean?.includes(k))o[k]=["true","1","si","sí","yes"].includes(v.toLowerCase());else o[k]=v});ajustarFechasWeb(t,o,errors);m.required.forEach(k=>{if(o[k]===undefined||o[k]===null||String(o[k]).trim()==="")errors.push(`${k} obligatorio`)});return{row:o,errors}}
  function parseNum(v){let s=String(v).replace(/\s|€/g,"");if(s.includes(",")&&s.includes(".")){if(s.lastIndexOf(",")>s.lastIndexOf("."))s=s.replace(/\./g,"").replace(",",".");else s=s.replace(/,/g,"")}else if(s.includes(","))s=s.replace(",",".");return Number(s)}
  function parseCsv(text){
    text=String(text||"").replace(/^\uFEFF/,"");
