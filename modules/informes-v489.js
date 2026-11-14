@@ -183,7 +183,7 @@ NOC.Informes=(()=>{
     document.addEventListener("keydown",e=>{if(e.key==="Escape")cerrarSelectoresBuscables()});
   }
 
-  const REPORT_STATE_KEY="noc_informes_state_v432";
+  const REPORT_STATE_KEY="noc_informes_state_v4110";
 
   function capturarFiltrosInforme(){
     const out={};
@@ -244,6 +244,7 @@ NOC.Informes=(()=>{
       currentCriteria=s.criteria;
       aplicarFiltrosInforme(s.filters);
       sincronizarSelectoresBuscables();
+      if(currentReport==="ventas")actualizarOrigenesVentas(false);
       dibujarResultadoGuardado();
       requestAnimationFrame(()=>window.scrollTo({top:Number(s.scrollY||0),behavior:"auto"}));
       return true;
@@ -348,7 +349,7 @@ NOC.Informes=(()=>{
           <button class="btn btn-primary noc-generate-report" type="submit">Generar informe</button>
         </div>
       </form>`;
-    prepararSelectoresBuscables(["repComercial"]);
+    prepararSelectoresBuscables(["repComercial","repTipo"]);
   }
 
   function drawVentasFilters(){
@@ -358,18 +359,19 @@ NOC.Informes=(()=>{
       <form id="reportSalesForm" class="form-grid" onsubmit="event.preventDefault();NOC.Informes.generarVentas()">
         <div class="field f3">
           <label>Tipo de venta</label>
-          <select id="ventasTipo" required>
+          <select id="ventasTipo" required onchange="NOC.Informes.actualizarOrigenesVentas(true)">
             <option value="mayorista">Mayorista</option>
             <option value="particulares">Particulares</option>
             <option value="todas">Todas</option>
           </select>
         </div>
-        <div class="field f3"><label>Origen de venta</label><select id="ventasOrigen"><option value="todos">Todos los orígenes</option><option value="mayorista">Mayorista / otras (serie F)</option><option value="web">Web (serie WEB)</option><option value="directa">Venta directa (serie DIR)</option></select></div>
+        <div class="field f6"><label>Origen de venta (selección acumulable)</label><input type="hidden" id="ventasOrigen" value="todos"><div id="ventasOrigenBotones" role="group" aria-label="Origen de venta" style="display:flex;flex-wrap:wrap;gap:6px"></div></div>
         <div class="field f3"><label>Fecha para el informe</label><select id="ventasFecha"><option value="operacion">Fecha de operación</option><option value="expedicion">Fecha de expedición</option></select></div>
         <div class="field f3"><label>Fecha inicio</label><input id="ventasDesde" type="date" required value="${firstOfMonth()}"></div>
         <div class="field f3"><label>Fecha fin</label><input id="ventasHasta" type="date" required value="${isoToday()}"></div>
         <div class="f3 toolbar" style="align-items:end"><div></div><button class="btn btn-primary" type="submit">Generar informe</button></div>
       </form>`;
+    actualizarOrigenesVentas(true);
   }
 
 
@@ -1272,7 +1274,7 @@ NOC.Informes=(()=>{
         <div class="field f3"><label>Artículo</label><select id="artArticulo"><option value="">Todos</option>${articuloCatalogo.map(a=>`<option value="${a.id}">${NOC.App.esc(a.nombre_producto)}${a.sku?` · ${NOC.App.esc(a.sku)}`:""}</option>`).join("")}</select></div>
         <div class="f12 toolbar noc-articles-submit"><button class="btn btn-primary" type="submit">Generar informe</button></div>
       </form>`;
-    prepararSelectoresBuscables(["artArticulo","artFabrica","artTipo"]);
+    prepararSelectoresBuscables(["artVista","artArticulo","artFabrica","artTipo"]);
   }
 
   function actualizarVistaArticulos(){
@@ -1971,13 +1973,28 @@ NOC.Informes=(()=>{
     }
   }
 
+  function esParticularVentas(r){return String(r.clientes?.nombre_tienda||"").trim().toLocaleLowerCase("es")==="particular";}
   function origenVenta(r){
-    const n=String(r.numero||"").toUpperCase();
+    const n=String(r.numero||"").trim().toUpperCase().replace(/^DEV-/ ,"");
     if(n.startsWith("WEB"))return "web";
     if(n.startsWith("DIR"))return "directa";
-    return "mayorista"; // Serie F y otras: no atribuirlas a Web ni a Directa
+    return esParticularVentas(r)?"sin_origen":"mayorista";
   }
-  function etiquetaOrigen(origen){return ({web:"Web",directa:"Venta directa",mayorista:"Mayorista / otras"})[origen]||"Otros";}
+  function etiquetaOrigen(origen){return ({web:"Web",directa:"Venta directa",mayorista:"Mayorista",sin_origen:"Particular sin origen identificado"})[origen]||"Otros";}
+  function origenesDisponibles(tipo){return tipo==="particulares"?["web","directa"]:tipo==="mayorista"?["mayorista"]:["mayorista","web","directa"];}
+  function actualizarOrigenesVentas(reset=false){
+    const tipo=document.getElementById("ventasTipo").value, input=document.getElementById("ventasOrigen"), box=document.getElementById("ventasOrigenBotones");
+    const allowed=origenesDisponibles(tipo);
+    let selected=reset||input.value==="todos"?allowed:input.value.split(",").filter(x=>allowed.includes(x));
+    if(!selected.length)selected=allowed;
+    input.value=selected.length===allowed.length?"todos":selected.join(",");
+    box.innerHTML="";
+    for(const key of ["todos",...allowed]){
+      const active=key==="todos"?selected.length===allowed.length:selected.includes(key);
+      const btn=document.createElement("button");btn.type="button";btn.className="btn "+(active?"btn-primary":"");btn.textContent=key==="todos"?"Todos los orígenes":etiquetaOrigen(key);btn.setAttribute("aria-pressed",String(active));
+      btn.addEventListener("click",()=>{let next=key==="todos"?allowed:selected.includes(key)?selected.filter(x=>x!==key):[...selected,key];if(!next.length)return;input.value=next.join(",");actualizarOrigenesVentas(false);});box.appendChild(btn);
+    }
+  }
   function fechaVentas(r){
     const campo=currentCriteria?.fechaCampo==="expedicion"?"fecha_expedicion":"fecha_operacion";
     return r[campo]||r.fecha||"";
@@ -1997,17 +2014,18 @@ NOC.Informes=(()=>{
       // El fallback a 'fecha' permite consultar facturas antiguas sin las dos fechas.
       // Filtrar en Supabase evita limitar el resultado a facturas emitidas en el mismo mes.
       const filtro=`and(${campo}.gte.${desde},${campo}.lte.${hasta}),and(${campo}.is.null,fecha.gte.${desde},fecha.lte.${hasta})`;
-      const {data,error}=await NOC.API.db().from("facturas")
-        .select("id,numero,fecha,fecha_operacion,fecha_expedicion,base_imponible,iva,recargo,total,proforma_id,observaciones,clientes(nombre,apellidos,nombre_tienda,localidad_facturacion),proformas(numero)")
-        .or(filtro)
-        .order(campo,{ascending:true,nullsFirst:false}).order("numero",{ascending:true});
-      if(error)throw error;
-      const esParticular=r=>String(r.clientes?.nombre_tienda||"").trim().toLocaleLowerCase("es")==="particular"||["web","directa"].includes(origenVenta(r));
-      let rows=data||[];
-      if(tipo==="mayorista")rows=rows.filter(r=>!esParticular(r));
-      if(tipo==="particulares")rows=rows.filter(esParticular);
-      if(origen!=="todos")rows=rows.filter(r=>origenVenta(r)===origen);
-      currentCriteria={report:"ventas",tipo,tipoEtiqueta:etiquetas[tipo],origen,origenEtiqueta:origen==="todos"?"Todos los orígenes":etiquetaOrigen(origen),fechaCampo,fechaEtiqueta:fechaCampo==="expedicion"?"Fecha de expedición":"Fecha de operación",desde,hasta,orden:"fecha",dir:"asc"};
+      const data=[];
+      for(let offset=0;;offset+=500){
+        const {data:page,error}=await NOC.API.db().from("facturas")
+          .select("id,numero,fecha,fecha_operacion,fecha_expedicion,base_imponible,iva,recargo,total,proforma_id,observaciones,clientes(nombre,apellidos,nombre_tienda,localidad_facturacion),proformas(numero)")
+          .or(filtro).order(campo,{ascending:true,nullsFirst:false}).order("numero",{ascending:true}).order("id",{ascending:true}).range(offset,offset+499);
+        if(error)throw error;data.push(...(page||[]));if((page||[]).length<500)break;
+      }
+      const allowed=origenesDisponibles(tipo);
+      const selected=origen==="todos"?allowed:origen.split(",").filter(x=>allowed.includes(x));
+      const unknown=tipo==="mayorista"?[]:data.filter(r=>origenVenta(r)==="sin_origen");
+      const rows=data.filter(r=>selected.includes(origenVenta(r)));
+      currentCriteria={report:"ventas",tipo,tipoEtiqueta:etiquetas[tipo],origen,origenEtiqueta:origen==="todos"?"Todos los orígenes":selected.map(etiquetaOrigen).join(" + "),sinOrigen:unknown.map(r=>({numero:r.numero,total:r.total})),fechaCampo,fechaEtiqueta:fechaCampo==="expedicion"?"Fecha de expedición":"Fecha de operación",desde,hasta,orden:"fecha",dir:"asc"};
       currentRows=rows.sort((a,b)=>(fechaVentas(a)||"").localeCompare(fechaVentas(b)||"")||String(a.numero||"").localeCompare(String(b.numero||""),"es",{numeric:true}));
       NOC.App.hideProgress();
       drawVentasResult();
@@ -2134,6 +2152,7 @@ NOC.Informes=(()=>{
         </div>
         <div class="toolbar-right"><button class="btn" onclick="NOC.Informes.exportCsv()">Exportar CSV</button><button class="btn btn-primary" onclick="NOC.Informes.imprimir()">Imprimir / Guardar PDF</button></div>
       </div>
+      ${(c.sinOrigen||[]).length?`<p class="muted" role="status">Fuera del total por origen no identificado: ${c.sinOrigen.map(r=>NOC.App.esc(r.numero)+" ("+NOC.App.money(r.total)+")").join(", ")}. No se han modificado estas facturas.</p>`:""}
       <div class="table-wrap report-table-wrap"><table class="report-table report-sales-table">
         <thead><tr>${[
           ["fecha",NOC.App.esc(c.fechaEtiqueta||"Fecha"),""],["numero","Num Factura",""],["origen","Origen",""],["cliente","Cliente",""],["localidad","Localidad",""],
@@ -2268,6 +2287,7 @@ NOC.Informes=(()=>{
         t.base.toFixed(2).replace(".",","),t.iva.toFixed(2).replace(".",","),
         t.re.toFixed(2).replace(".",","),t.total.toFixed(2).replace(".",","),"",""
       ].map(csvCell).join(";"));
+      for(const r of currentCriteria.sinOrigen||[])lines.push(["","","","Fuera del total: origen no identificado",r.numero,"","","","","",Number(r.total||0).toFixed(2).replace(".",","),"",""].map(csvCell).join(";"));
       downloadBlob(`informe_ventas_${currentCriteria.tipo}_${currentCriteria.origen||"todos"}_${currentCriteria.fechaCampo||"operacion"}_${currentCriteria.desde}_${currentCriteria.hasta}.csv`,"\uFEFF"+lines.join("\r\n"),"text/csv;charset=utf-8");
       return NOC.App.alertMessage("Exportación finalizada",`${currentRows.length} factura(s) exportadas a CSV.`,"success");
     }
@@ -2386,6 +2406,7 @@ NOC.Informes=(()=>{
       w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de ventas</title>
       <style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial,Helvetica,sans-serif;color:#171717;font-size:9px;margin:0}.brand{font-size:11px;font-weight:800;letter-spacing:2px;margin-bottom:4px}h1{font-size:20px;margin:0 0 5px}.meta{color:#555;margin-bottom:16px}table{width:100%;border-collapse:collapse}th{background:#eef3cf;text-align:left;padding:6px;border:1px solid #d8ddc8;font-size:8px}td{padding:6px;border:1px solid #e1e4e7}.n{text-align:right;white-space:nowrap}tfoot td{background:#f4f5f6;border-top:2px solid #111;font-weight:700}</style></head><body>
       <div class="brand">NOC THE BRAND</div><h1>Informe de ventas · ${NOC.App.esc(c.tipoEtiqueta)}</h1><div class="meta">${dateEs(c.desde)} a ${dateEs(c.hasta)} · ${NOC.App.esc(c.fechaEtiqueta||"Fecha")} · ${NOC.App.esc(c.origenEtiqueta||"Todos los orígenes")}</div>
+      ${(c.sinOrigen||[]).length?`<p>Fuera del total por origen no identificado: ${c.sinOrigen.map(r=>NOC.App.esc(r.numero)+" ("+NOC.App.money(r.total)+")").join(", ")}</p>`:""}
       <table><thead><tr><th>${NOC.App.esc(c.fechaEtiqueta||"Fecha")}</th><th>Num Factura</th><th>Origen</th><th>Cliente</th><th>Localidad</th><th>Base</th><th>IVA</th><th>RE</th><th>Total</th><th>Num Prof</th><th>Tienda</th></tr></thead>
       <tbody>${bodyRows}</tbody><tfoot><tr><td colspan="5">TOTALES</td><td class="n">${NOC.App.money(t.base)}</td><td class="n">${NOC.App.money(t.iva)}</td><td class="n">${NOC.App.money(t.re)}</td><td class="n">${NOC.App.money(t.total)}</td><td colspan="2"></td></tr></tfoot></table>
       <script>window.onload=()=>window.print();</script></body></html>`);
@@ -2404,5 +2425,5 @@ NOC.Informes=(()=>{
   document.addEventListener("visibilitychange",()=>{if(document.hidden)guardarEstadoInforme()});
   window.addEventListener("pagehide",guardarEstadoInforme);
 
-  return{render,cambiarInforme,abrirCierresComerciales,guardarCierreComercial,generarComercial,generarComercialConEnvio,ordenarComercialResultado,generarVentas,ordenarVentasResultado,generarProformas,limpiarProformas,ordenarProformasResultado,generarClientesHistorial,ordenarClientesHistorial,generarClientes,generarClientesInactivos,ordenarClientesResultado,ordenarClientesInactivos,actualizarVistaArticulos,generarArticulos,ordenarArticulosResultado,ordenarArticulosDetalleResultado,generarFiscal3000,ordenarFiscal3000Resultado,exportar347CsvSeparado,exportar347PdfSeparado,exportCsv,imprimir};
+  return{render,cambiarInforme,abrirCierresComerciales,guardarCierreComercial,generarComercial,generarComercialConEnvio,ordenarComercialResultado,generarVentas,actualizarOrigenesVentas,ordenarVentasResultado,generarProformas,limpiarProformas,ordenarProformasResultado,generarClientesHistorial,ordenarClientesHistorial,generarClientes,generarClientesInactivos,ordenarClientesResultado,ordenarClientesInactivos,actualizarVistaArticulos,generarArticulos,ordenarArticulosResultado,ordenarArticulosDetalleResultado,generarFiscal3000,ordenarFiscal3000Resultado,exportar347CsvSeparado,exportar347PdfSeparado,exportCsv,imprimir};
 })();
