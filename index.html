@@ -37,7 +37,7 @@
   <script defer src="modules/proformas-v496.js?v=4.0.98"></script>
   <script defer src="modules/facturas-v494.js?v=4.1.2"></script>
   <script defer src="modules/gastos.js?v=4.1.1"></script>
-  <script defer src="modules/informes-v489.js?v=4.1.11"></script>
+  <script defer src="modules/informes-v489.js?v=4.1.12"></script>
   <script defer src="modules/empresa.js?v=3.5.4"></script>
   <script defer src="modules/configuracion.js"></script>
   <script defer src="modules/herramientas-v440.js?v=4.1.8"></script>
@@ -158,6 +158,23 @@
     .noc-multi-filter label{font-size:14px !important; line-height:1.25 !important;}
   </style>
   <link rel="stylesheet" href="css/dashboard-interactivo-v410.css?v=4.1.7">
+<style>
+#reportArticlesForm{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr) repeat(2,minmax(0,.95fr)) repeat(2,minmax(0,1fr)) minmax(0,1.25fr) auto!important;gap:10px!important;align-items:end!important}
+#reportArticlesForm>div{grid-column:auto!important;min-width:0!important;width:auto!important;margin:0!important}
+#reportArticlesForm .field>label{white-space:nowrap}
+#reportArticlesForm .noc-articles-submit{align-self:end;white-space:nowrap}
+#reportArticlesForm .noc-articles-submit button{min-height:42px}
+.noc-art-origin{position:relative;min-width:0;width:100%}
+.noc-art-origin summary{list-style:none;box-sizing:border-box;height:42px;min-height:42px;max-height:42px}
+.noc-art-origin summary::-webkit-details-marker{display:none}
+.noc-art-origin[open] .noc-search-select-chevron{transform:rotate(180deg)}
+.noc-art-origin-panel{position:absolute;top:calc(100% + 5px);left:0;min-width:205px;width:100%;z-index:1201;background:#fff;border:1px solid #d8d9d7;border-radius:12px;padding:5px;box-shadow:0 16px 38px rgba(0,0,0,.14);box-sizing:border-box}
+#reportArticlesForm .noc-art-origin-option{display:flex!important;align-items:center;gap:9px;padding:9px 10px;margin:0;border-radius:7px;cursor:pointer;color:#171717;font-size:13px;font-weight:400;white-space:nowrap}
+#reportArticlesForm .noc-art-origin-option:hover{background:#f2f3f4}
+#reportArticlesForm .noc-art-origin-option input{appearance:auto!important;width:15px!important;height:15px!important;min-height:0!important;margin:0!important;padding:0!important;accent-color:#171717;flex:none}
+@media(max-width:1100px){#reportArticlesForm{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media(max-width:700px){#reportArticlesForm{grid-template-columns:repeat(2,minmax(0,1fr))!important}.noc-art-origin-panel{left:auto;right:0;min-width:190px}}
+</style>
 </head>
 <body class="noc-fashion-ui">
 <div id="authGate" class="auth-gate">
@@ -195,7 +212,7 @@
     <div class="sidebar-footer" style="flex-wrap:wrap">
       <span id="connectionDot" class="status-dot"></span>
       <span id="connectionText">Conectando…</span>
-      <small style="flex-basis:100%;padding-left:18px;opacity:.65;margin-top:4px">v4.1.11</small>
+      <small style="flex-basis:100%;padding-left:18px;opacity:.65;margin-top:4px">v4.1.12</small>
     </div>
   </aside>
 
@@ -204,7 +221,7 @@
       <button id="menuBtn" class="icon-btn mobile-only">☰</button>
       <div>
         <h1 id="pageTitle">Inicio</h1>
-        <p id="pageSubtitle">Resumen general</p><small style="opacity:.65">V4.1.11</small>
+        <p id="pageSubtitle">Resumen general</p><small style="opacity:.65">V4.1.12</small>
       </div>
       <div class="top-actions">
         <span id="sessionUser" class="save-status"></span>
