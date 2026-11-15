@@ -245,6 +245,7 @@ NOC.Informes=(()=>{
       aplicarFiltrosInforme(s.filters);
       sincronizarSelectoresBuscables();
       if(currentReport==="ventas")actualizarOrigenesVentas(false);
+      if(currentReport==="articulos")actualizarOrigenesArticulos();
       dibujarResultadoGuardado();
       requestAnimationFrame(()=>window.scrollTo({top:Number(s.scrollY||0),behavior:"auto"}));
       return true;
@@ -521,6 +522,7 @@ NOC.Informes=(()=>{
         <div class="toolbar-right"><button class="btn" onclick="NOC.Informes.exportCsv()">Exportar CSV</button><button class="btn btn-primary" onclick="NOC.Informes.imprimir()">Imprimir / Guardar PDF</button></div>
       </div>
 
+      ${c.sinDetalle?`<p class="muted">${c.sinDetalle} líneas de factura sin artículo identificado excluidas del informe.</p>`:""}
       <div class="article-report-metrics">
         <div class="dash-metric-card"><div class="dash-metric-label">${esFactura?"Facturas":"Proformas"}</div><div class="dash-metric-value">${docs.length}</div></div>
         <div class="dash-metric-card"><div class="dash-metric-label">Total documentos</div><div class="dash-metric-value">${NOC.App.money(t.total)}</div></div>
@@ -1264,7 +1266,7 @@ NOC.Informes=(()=>{
 
     document.getElementById("reportFilters").innerHTML=`
       <h2>Informe de artículos</h2>
-      <p class="muted">Consulta el resumen de artículos o el detalle de en qué tiendas y proformas se pidió un artículo concreto. Las proformas canceladas no cuentan.</p>
+      <p class="muted">Mayorista: pedidos de proformas no canceladas. Web y venta directa: líneas de facturas. Los importes son de líneas sin impuestos ni portes; los históricos sin detalle no cuentan como artículos.</p>
       <form id="reportArticlesForm" class="form-grid noc-articles-filters" onsubmit="event.preventDefault();NOC.Informes.generarArticulos()">
         <div class="field f3"><label>Vista</label><select id="artVista" onchange="NOC.Informes.actualizarVistaArticulos()"><option value="resumen">Resumen</option><option value="detalle">Detalle por artículo</option></select></div>
         <div class="field f3"><label>Fecha inicio</label><input id="artDesde" type="date"></div>
@@ -1272,11 +1274,24 @@ NOC.Informes=(()=>{
         <div class="field f3"><label>Fábrica</label><select id="artFabrica"><option value="">Todas</option>${fabricas.map(v=>`<option value="${NOC.App.esc(v)}">${NOC.App.esc(v)}</option>`).join("")}</select></div>
         <div class="field f3"><label>Tipo</label><select id="artTipo"><option value="">Todos</option>${tipos.map(v=>`<option value="${NOC.App.esc(v)}">${NOC.App.esc(v)}</option>`).join("")}</select></div>
         <div class="field f3"><label>Artículo</label><select id="artArticulo"><option value="">Todos</option>${articuloCatalogo.map(a=>`<option value="${a.id}">${NOC.App.esc(a.nombre_producto)}${a.sku?` · ${NOC.App.esc(a.sku)}`:""}</option>`).join("")}</select></div>
+        <div class="field f12"><label>Origen de venta (selección acumulable)</label><input type="hidden" id="artOrigen" value="todos"><div id="artOrigenBotones" role="group" aria-label="Origen de venta" style="display:flex;flex-wrap:wrap;gap:6px"></div></div>
         <div class="f12 toolbar noc-articles-submit"><button class="btn btn-primary" type="submit">Generar informe</button></div>
       </form>`;
     prepararSelectoresBuscables(["artVista","artArticulo","artFabrica","artTipo"]);
+    actualizarOrigenesArticulos();
   }
 
+  function actualizarOrigenesArticulos(){
+    const input=document.getElementById("artOrigen"),box=document.getElementById("artOrigenBotones");
+    if(!input||!box)return;
+    const allowed=["mayorista","web","directa"], selected=input.value==="todos"?allowed:input.value.split(",").filter(x=>allowed.includes(x));
+    box.replaceChildren();
+    for(const key of ["todos",...allowed]){
+      const active=key==="todos"?selected.length===3:selected.includes(key);
+      const b=document.createElement("button");b.type="button";b.className="btn "+(active?"btn-primary":"");b.textContent=key==="todos"?"Todos los orígenes":etiquetaOrigen(key);b.setAttribute("aria-pressed",String(active));
+      b.onclick=()=>{const next=key==="todos"?allowed:selected.includes(key)?selected.filter(x=>x!==key):[...selected,key];if(!next.length)return;input.value=next.length===3?"todos":next.join(",");actualizarOrigenesArticulos();};box.appendChild(b);
+    }
+  }
   function actualizarVistaArticulos(){
     const vista=document.getElementById("artVista")?.value||"resumen";
     const sel=document.getElementById("artArticulo");
@@ -1302,11 +1317,14 @@ NOC.Informes=(()=>{
     const tipo=document.getElementById("artTipo").value.trim();
     const articuloId=document.getElementById("artArticulo").value;
     const vista=document.getElementById("artVista")?.value||"resumen";
+    const origen=document.getElementById("artOrigen").value;
+    const selected=origen==="todos"?["mayorista","web","directa"]:origen.split(",");
+    const origenEtiqueta=selected.map(etiquetaOrigen).join(" + ");
 
     if(vista==="detalle"&&!articuloId)return NOC.App.alertMessage("Selecciona un artículo","Para el detalle debes elegir un artículo concreto.","info");
     if(desde&&hasta&&desde>hasta)return NOC.App.alertMessage("Periodo incorrecto","La fecha de inicio no puede ser posterior a la fecha fin.","error");
 
-    NOC.App.showProgress("Generando informe de artículos…","Analizando pedidos de proformas");
+    NOC.App.showProgress("Generando informe de artículos…","Analizando pedidos y facturas");
     try{
       // 1) Catálogo completo para poder recuperar líneas antiguas importadas
       //    que no tienen articulo_id pero sí conservan la descripción.
@@ -1337,7 +1355,7 @@ NOC.Informes=(()=>{
       // No limitar a las primeras 1.000 filas devueltas por PostgREST.
       const data=[];
       const pageSize=500;
-      for(let offset=0;offset<1000000;offset+=pageSize){
+      if(selected.includes("mayorista"))for(let offset=0;offset<1000000;offset+=pageSize){
         let q=NOC.API.db().from("lineas_proforma")
           .select("id,proforma_id,articulo_id,descripcion,cantidad,precio_unitario,descuento,es_envio,proformas!inner(fecha,numero,estado,cliente_id,clientes(nombre_tienda,nombre,apellidos))")
           .eq("es_envio",false)
@@ -1348,8 +1366,23 @@ NOC.Informes=(()=>{
         if(hasta)q=q.lte("proformas.fecha",hasta);
         const {data:page,error}=await q;
         if(error)throw error;
-        data.push(...(page||[]));
+        data.push(...(page||[]).filter(r=>r.proformas?.clientes && !esParticularVentas(r.proformas)));
         if(!page||page.length<pageSize)break;
+      }
+      let sinDetalle=0;
+      if(selected.includes("web")||selected.includes("directa")){
+        for(let offset=0;;offset+=pageSize){
+          let q=NOC.API.db().from("lineas_factura").select("id,articulo_id,descripcion,cantidad,precio_unitario,descuento,es_envio,tipo_articulo_web,facturas!inner(numero,fecha,fecha_operacion,clientes(nombre_tienda,nombre,apellidos))").eq("es_envio",false).order("id",{ascending:true}).range(offset,offset+pageSize-1);
+          const {data:page,error}=await q;if(error)throw error;
+          for(const r of page||[]){
+            const f=r.facturas, canal=origenVenta(f), fecha=f.fecha_operacion||f.fecha;
+            if(!selected.includes(canal)||canal==="mayorista"||(desde&&fecha<desde)||(hasta&&fecha>hasta))continue;
+            if(!r.articulo_id&&!r.tipo_articulo_web){sinDetalle++;continue;}
+            const cantidad=Number(r.cantidad||0), precio=Number(r.precio_unitario||0);
+            data.push({...r,cantidad:precio<0?-cantidad:cantidad,precio_unitario:Math.abs(precio),proformas:{...f,fecha},_canal:canal});
+          }
+          if(!page||page.length<pageSize)break;
+        }
       }
 
       let rows=(data||[]).map(r=>{
@@ -1369,7 +1402,7 @@ NOC.Informes=(()=>{
       // Filtros por artículo/fábrica/tipo usando el catálogo recuperado.
       if(articuloId)rows=rows.filter(r=>String(r._articulo?.id||"")===String(articuloId));
       if(fabrica)rows=rows.filter(r=>normalizarNombreArticulo(r._articulo?.fabrica)===normalizarNombreArticulo(fabrica));
-      if(tipo)rows=rows.filter(r=>normalizarNombreArticulo(r._articulo?.tipo_prenda||r._articulo?.tipo_articulo)===normalizarNombreArticulo(tipo));
+      if(tipo)rows=rows.filter(r=>normalizarNombreArticulo(r._articulo?.tipo_prenda||r._articulo?.tipo_articulo||r.tipo_articulo_web)===normalizarNombreArticulo(tipo));
 
       if(vista==="detalle"){
         const art=catalogoPorId.get(String(articuloId))||{};
@@ -1383,7 +1416,7 @@ NOC.Informes=(()=>{
             importe:precio*cantidad*(1-descuento/100)
           };
         }).sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))||String(a.proforma).localeCompare(String(b.proforma),"es",{numeric:true}));
-        currentCriteria={report:"articulos_detalle",desde,hasta,articuloId,articulo:art.nombre_producto||"",sku:art.sku||"",orden:"fecha",dir:"asc"};
+        currentCriteria={report:"articulos_detalle",desde,hasta,articuloId,articulo:art.nombre_producto||"",sku:art.sku||"",origenEtiqueta,sinDetalle,orden:"fecha",dir:"asc"};
         NOC.App.hideProgress();
         drawArticulosDetalleResult();
         return;
@@ -1398,7 +1431,7 @@ NOC.Informes=(()=>{
         if(!map.has(key))map.set(key,{
           articulo:a.nombre_producto||r.descripcion||"",
           sku:a.sku||"",
-          tipo:a.tipo_prenda||a.tipo_articulo||"",
+          tipo:a.tipo_prenda||a.tipo_articulo||r.tipo_articulo_web||"",
           fabrica:a.fabrica||"",
           unidades:0,
           facturado:0
@@ -1414,7 +1447,7 @@ NOC.Informes=(()=>{
       });
 
       currentRows=[...map.values()].sort((a,b)=>b.unidades-a.unidades||b.facturado-a.facturado);
-      currentCriteria={report:"articulos",desde,hasta,fabrica,tipo,articuloId,origen:"proformas",orden:"unidades",dir:"desc"};
+      currentCriteria={report:"articulos",desde,hasta,fabrica,tipo,articuloId,origen,origenEtiqueta,sinDetalle,orden:"unidades",dir:"desc"};
       NOC.App.hideProgress();
       drawArticulosResult();
     }catch(e){
@@ -1444,15 +1477,15 @@ NOC.Informes=(()=>{
     const importe=currentRows.reduce((a,r)=>a+Number(r.importe||0),0);
     const tiendas=new Set(currentRows.map(r=>r.tienda).filter(Boolean)).size;
     const proformas=new Set(currentRows.map(r=>r.proforma).filter(Boolean)).size;
-    const head=[["fecha","Fecha",""],["proforma","Proforma",""],["tienda","Tienda",""],["cantidad","Cantidad","num"],["precio","Precio","num"],["descuento","Dto. %","num"],["importe","Importe","num"]];
+    const head=[["fecha","Fecha",""],["proforma","Documento",""],["tienda","Tienda",""],["cantidad","Cantidad","num"],["precio","Precio","num"],["descuento","Dto. %","num"],["importe","Importe","num"]];
     box.style.display="";
     box.innerHTML=`
       <div class="report-head">
-        <div><div class="report-brand">NOC THE BRAND</div><h2 style="margin:2px 0 5px">Detalle · ${NOC.App.esc(c.articulo)}</h2><div class="muted">${NOC.App.esc(c.sku||"")}${c.desde?` · Desde ${dateEs(c.desde)}`:""}${c.hasta?` · Hasta ${dateEs(c.hasta)}`:""}</div></div>
+        <div><div class="report-brand">NOC THE BRAND</div><h2 style="margin:2px 0 5px">Detalle · ${NOC.App.esc(c.articulo)}</h2><div class="muted">${NOC.App.esc(c.sku||"")} · ${NOC.App.esc(c.origenEtiqueta||"")}${c.desde?` · Desde ${dateEs(c.desde)}`:""}${c.hasta?` · Hasta ${dateEs(c.hasta)}`:""}</div></div>
         <div class="toolbar-right"><button class="btn" onclick="NOC.Informes.exportCsv()">Exportar CSV</button><button class="btn btn-primary" onclick="NOC.Informes.imprimir()">Imprimir / Guardar PDF</button></div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 14px">
-        <span class="badge">${tiendas} tienda(s)</span><span class="badge">${proformas} proforma(s)</span><span class="badge">${unidades.toLocaleString("es-ES")} uds.</span><span class="badge">${NOC.App.money(importe)}</span>
+        <span class="badge">${tiendas} tienda(s)</span><span class="badge">${proformas} documento(s)</span><span class="badge">${unidades.toLocaleString("es-ES")} uds.</span><span class="badge">${NOC.App.money(importe)}</span>
       </div>
       <div class="table-wrap"><table class="report-table">
         <thead><tr>${head.map(([k,l,cl])=>{const a=c.orden===k;return `<th class="sortable-th ${a?"sort-active":""} ${cl}" onclick="NOC.Informes.ordenarArticulosDetalleResultado('${k}')">${l} <span class="sort-mark">${a?(c.dir==="asc"?"↑":"↓"):"↕"}</span></th>`}).join("")}</tr></thead>
@@ -1495,7 +1528,8 @@ NOC.Informes=(()=>{
       c.desde?`Desde ${dateEs(c.desde)}`:"",
       c.hasta?`Hasta ${dateEs(c.hasta)}`:"",
       c.fabrica?`Fábrica: ${c.fabrica}`:"",
-      c.tipo?`Tipo: ${c.tipo}`:""
+      c.tipo?`Tipo: ${c.tipo}`:"",
+      c.origenEtiqueta||""
     ].filter(Boolean).join(" · ")||"Sin filtros";
 
     box.style.display="";
@@ -1976,6 +2010,7 @@ NOC.Informes=(()=>{
   function esParticularVentas(r){return String(r.clientes?.nombre_tienda||"").trim().toLocaleLowerCase("es")==="particular";}
   function origenVenta(r){
     const n=String(r.numero||"").trim().toUpperCase().replace(/^DEV-/ ,"");
+    if(n==="F2026-0218")return "directa";
     if(n.startsWith("WEB"))return "web";
     if(n.startsWith("DIR"))return "directa";
     return esParticularVentas(r)?"sin_origen":"mayorista";
@@ -2245,7 +2280,7 @@ NOC.Informes=(()=>{
     }
 
     if(currentCriteria.report==="articulos_detalle"){
-      const headers=["Fecha","Proforma","Tienda","Cantidad","Precio","Dto. %","Importe"];
+      const headers=["Fecha","Documento","Tienda","Cantidad","Precio","Dto. %","Importe"];
       const lines=[headers.map(csvCell).join(";")];
       currentRows.forEach(r=>lines.push([dateEs(r.fecha),r.proforma,r.tienda,
         Number(r.cantidad||0).toString().replace(".",","),Number(r.precio||0).toFixed(2).replace(".",","),
@@ -2380,7 +2415,7 @@ NOC.Informes=(()=>{
     if(c.report==="articulos_detalle"){
       const unidades=currentRows.reduce((a,r)=>a+Number(r.cantidad||0),0),importe=currentRows.reduce((a,r)=>a+Number(r.importe||0),0);
       const body=currentRows.map(r=>`<tr><td>${dateEs(r.fecha)}</td><td>${NOC.App.esc(r.proforma)}</td><td>${NOC.App.esc(r.tienda)}</td><td class="n">${r.cantidad}</td><td class="n">${NOC.App.money(r.precio)}</td><td class="n">${r.descuento}%</td><td class="n">${NOC.App.money(r.importe)}</td></tr>`).join("");
-      w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Detalle artículo</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial,sans-serif;font-size:9px;color:#171717}.brand{font-size:11px;font-weight:800;letter-spacing:2px}h1{font-size:18px;margin:4px 0}.meta{color:#555;margin-bottom:14px}table{width:100%;border-collapse:collapse}th{text-align:left;padding:6px;border-bottom:1px solid #bbb}td{padding:6px;border-bottom:1px solid #e5e5e5}.n{text-align:right}</style></head><body><div class="brand">NOC THE BRAND</div><h1>Detalle · ${NOC.App.esc(c.articulo)}</h1><div class="meta">${currentRows.length} línea(s) · ${unidades} unidades · ${NOC.App.money(importe)}</div><table><thead><tr><th>Fecha</th><th>Proforma</th><th>Tienda</th><th>Cantidad</th><th>Precio</th><th>Dto.</th><th>Importe</th></tr></thead><tbody>${body}</tbody></table><script>window.onload=()=>window.print();</script></body></html>`);
+      w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Detalle artículo</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial,sans-serif;font-size:9px;color:#171717}.brand{font-size:11px;font-weight:800;letter-spacing:2px}h1{font-size:18px;margin:4px 0}.meta{color:#555;margin-bottom:14px}table{width:100%;border-collapse:collapse}th{text-align:left;padding:6px;border-bottom:1px solid #bbb}td{padding:6px;border-bottom:1px solid #e5e5e5}.n{text-align:right}</style></head><body><div class="brand">NOC THE BRAND</div><h1>Detalle · ${NOC.App.esc(c.articulo)}</h1><div class="meta">${currentRows.length} línea(s) · ${unidades} unidades · ${NOC.App.money(importe)}</div><table><thead><tr><th>Fecha</th><th>Documento</th><th>Tienda</th><th>Cantidad</th><th>Precio</th><th>Dto.</th><th>Importe</th></tr></thead><tbody>${body}</tbody></table><script>window.onload=()=>window.print();</script></body></html>`);
       return w.document.close();
     }
 
@@ -2390,7 +2425,7 @@ NOC.Informes=(()=>{
       const body=currentRows.map(r=>`<tr><td>${NOC.App.esc(r.articulo)}</td><td>${NOC.App.esc(r.sku)}</td><td>${NOC.App.esc(r.tipo)}</td><td>${NOC.App.esc(r.fabrica)}</td><td class="n">${Number(r.unidades).toLocaleString("es-ES")}</td><td class="n">${NOC.App.money(r.facturado)}</td></tr>`).join("");
       w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de artículos</title>
       <style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,Helvetica,sans-serif;color:#171717;font-size:10px}.brand{font-size:11px;font-weight:800;letter-spacing:2px;margin-bottom:4px}h1{font-size:20px;margin:0 0 14px}table{width:100%;border-collapse:collapse}th{background:#eef3cf;text-align:left;padding:7px;border:1px solid #d8ddc8}td{padding:7px;border:1px solid #e1e4e7}.n{text-align:right}tfoot td{background:#f4f5f6;border-top:2px solid #111;font-weight:700}</style></head><body>
-      <div class="brand">NOC THE BRAND</div><h1>Informe de artículos</h1>
+      <div class="brand">NOC THE BRAND</div><h1>Informe de artículos</h1><p>${NOC.App.esc(c.origenEtiqueta||"")}</p>
       <table><thead><tr><th>Artículo</th><th>SKU</th><th>Tipo</th><th>Fábrica</th><th>Unidades vendidas</th><th>Importe facturado</th></tr></thead><tbody>${body}</tbody><tfoot><tr><td colspan="4">TOTALES</td><td class="n">${totalU.toLocaleString("es-ES")}</td><td class="n">${NOC.App.money(totalF)}</td></tr></tfoot></table>
       <script>window.onload=()=>window.print();</script></body></html>`);
       return w.document.close();
