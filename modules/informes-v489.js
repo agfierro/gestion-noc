@@ -179,8 +179,9 @@ NOC.Informes=(()=>{
     window._nocSearchSelectOutsideBound=true;
     document.addEventListener("click",e=>{
       if(!e.target.closest(".noc-search-select"))cerrarSelectoresBuscables();
+      const menu=document.getElementById("artOrigenMenu");if(menu&&!menu.contains(e.target))menu.open=false;
     });
-    document.addEventListener("keydown",e=>{if(e.key==="Escape")cerrarSelectoresBuscables()});
+    document.addEventListener("keydown",e=>{if(e.key==="Escape"){cerrarSelectoresBuscables();const menu=document.getElementById("artOrigenMenu");if(menu?.open){menu.open=false;menu.querySelector("summary")?.focus();}}});
   }
 
   const REPORT_STATE_KEY="noc_informes_state_v4110";
@@ -1269,29 +1270,39 @@ NOC.Informes=(()=>{
       <p class="muted">Mayorista: pedidos de proformas no canceladas. Web y venta directa: líneas de facturas. Los importes son de líneas sin impuestos ni portes; los históricos sin detalle no cuentan como artículos.</p>
       <form id="reportArticlesForm" class="form-grid noc-articles-filters" onsubmit="event.preventDefault();NOC.Informes.generarArticulos()">
         <div class="field f3"><label>Vista</label><select id="artVista" onchange="NOC.Informes.actualizarVistaArticulos()"><option value="resumen">Resumen</option><option value="detalle">Detalle por artículo</option></select></div>
+        <div class="field f3"><label id="artOrigenLabel">Origen de venta</label><input type="hidden" id="artOrigen" value="todos"><details class="noc-art-origin" id="artOrigenMenu"><summary class="noc-search-select-trigger" aria-labelledby="artOrigenLabel artOrigenTexto"><span class="noc-search-select-label" id="artOrigenTexto">Todos los orígenes</span><span class="noc-search-select-chevron" aria-hidden="true">▼</span></summary><div id="artOrigenBotones" class="noc-art-origin-panel" role="group" aria-label="Origen de venta (selección acumulable)"></div></details></div>
         <div class="field f3"><label>Fecha inicio</label><input id="artDesde" type="date"></div>
         <div class="field f3"><label>Fecha fin</label><input id="artHasta" type="date"></div>
         <div class="field f3"><label>Fábrica</label><select id="artFabrica"><option value="">Todas</option>${fabricas.map(v=>`<option value="${NOC.App.esc(v)}">${NOC.App.esc(v)}</option>`).join("")}</select></div>
         <div class="field f3"><label>Tipo</label><select id="artTipo"><option value="">Todos</option>${tipos.map(v=>`<option value="${NOC.App.esc(v)}">${NOC.App.esc(v)}</option>`).join("")}</select></div>
         <div class="field f3"><label>Artículo</label><select id="artArticulo"><option value="">Todos</option>${articuloCatalogo.map(a=>`<option value="${a.id}">${NOC.App.esc(a.nombre_producto)}${a.sku?` · ${NOC.App.esc(a.sku)}`:""}</option>`).join("")}</select></div>
-        <div class="field f12"><label>Origen de venta (selección acumulable)</label><input type="hidden" id="artOrigen" value="todos"><div id="artOrigenBotones" role="group" aria-label="Origen de venta" style="display:flex;flex-wrap:wrap;gap:6px"></div></div>
+
         <div class="f12 toolbar noc-articles-submit"><button class="btn btn-primary" type="submit">Generar informe</button></div>
       </form>`;
     prepararSelectoresBuscables(["artVista","artArticulo","artFabrica","artTipo"]);
     actualizarOrigenesArticulos();
+    const menu=document.getElementById("artOrigenMenu");
+    menu.addEventListener("toggle",()=>{if(menu.open)cerrarSelectoresBuscables();});
   }
 
   function actualizarOrigenesArticulos(){
     const input=document.getElementById("artOrigen"),box=document.getElementById("artOrigenBotones");
     if(!input||!box)return;
     const allowed=["mayorista","web","directa"], selected=input.value==="todos"?allowed:input.value.split(",").filter(x=>allowed.includes(x));
+    const texto=document.getElementById("artOrigenTexto");
+    if(texto){texto.textContent=selected.length===3?"Todos los orígenes":selected.map(etiquetaOrigen).join(" + ");texto.title=texto.textContent;}
     box.replaceChildren();
     for(const key of ["todos",...allowed]){
       const active=key==="todos"?selected.length===3:selected.includes(key);
-      const b=document.createElement("button");b.type="button";b.className="btn "+(active?"btn-primary":"");b.textContent=key==="todos"?"Todos los orígenes":etiquetaOrigen(key);b.setAttribute("aria-pressed",String(active));
-      b.onclick=()=>{const next=key==="todos"?allowed:selected.includes(key)?selected.filter(x=>x!==key):[...selected,key];if(!next.length)return;input.value=next.length===3?"todos":next.join(",");actualizarOrigenesArticulos();};box.appendChild(b);
+      const row=document.createElement("label");row.className="noc-art-origin-option";
+      const cb=document.createElement("input");cb.type="checkbox";cb.checked=active;
+      if(key==="todos")cb.indeterminate=selected.length>0&&selected.length<3;
+      const label=document.createElement("span");label.textContent=key==="todos"?"Todos los orígenes":etiquetaOrigen(key);
+      cb.onchange=()=>{const next=key==="todos"?allowed:selected.includes(key)?selected.filter(x=>x!==key):[...selected,key];if(next.length)input.value=next.length===3?"todos":next.join(",");actualizarOrigenesArticulos();box.querySelectorAll("input")[ ["todos",...allowed].indexOf(key)]?.focus();};
+      row.append(cb,label);box.appendChild(row);
     }
   }
+
   function actualizarVistaArticulos(){
     const vista=document.getElementById("artVista")?.value||"resumen";
     const sel=document.getElementById("artArticulo");
